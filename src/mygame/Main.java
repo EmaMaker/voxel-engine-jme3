@@ -73,9 +73,9 @@ public class Main extends SimpleApplication {
 
         for (int i = 0; i < list.length; i++) {
             list[i].delete();
-            /*if (list[i].getName().endsWith(".chunk")) {
+            if (list[i].getName().endsWith(".chunk")) {
                 list[i].delete();
-            }*/
+            }
         }
 
         stateManager.getState(BulletAppState.class).setEnabled(false);

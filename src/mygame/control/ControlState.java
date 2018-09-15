@@ -22,6 +22,7 @@ import java.text.DecimalFormatSymbols;
 import java.util.ArrayList;
 import mygame.block.CellId;
 import mygame.Main;
+import mygame.block.Cell;
 import static mygame.utils.Debugger.debug;
 import mygame.world.WorldProvider;
 
@@ -125,6 +126,17 @@ public class ControlState extends AbstractAppState implements ActionListener, An
 
         //removes the pointed
         switch (name) {
+
+            case "break":
+            case "place":
+                results.clear();
+                ray = new Ray(app.getCamera().getLocation(), app.getCamera().getDirection());
+                Reference.terrainNode.collideWith(ray, results);
+                System.out.println(results.getClosestCollision());
+                debug("|===========================================|");
+                breakStep = 0;
+                break;
+
             /*case "remove":
                 if (!fastBlock) {
                     if (breakStep % 25 == 0) {
@@ -233,7 +245,6 @@ public class ControlState extends AbstractAppState implements ActionListener, An
         }
         placeStep = 0;
     }*/
-
     public Vector3f fixCoords(Vector3f v) {
         unusualSymbols.setDecimalSeparator('.');
         df.setDecimalFormatSymbols(unusualSymbols);

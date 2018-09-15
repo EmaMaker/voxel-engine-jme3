@@ -5,6 +5,7 @@ import com.jme3.bullet.BulletAppState;
 import com.jme3.bullet.control.RigidBodyControl;
 import com.jme3.bullet.util.CollisionShapeFactory;
 import com.jme3.math.Vector3f;
+import com.jme3.renderer.Camera;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.Node;
 import java.util.ArrayList;
@@ -29,7 +30,6 @@ public class Chunk {
     Vector3f pos = new Vector3f();
     Geometry chunkGeom;
     Node node = new Node();
-
     long t;
 
     public Chunk() {
@@ -44,40 +44,44 @@ public class Chunk {
         pos = new Vector3f(x * chunkSize, y * chunkSize, z * chunkSize);
         chunkGeom = new Geometry(this.toString(), chunkMesh);
         chunkGeom.setMaterial(Reference.mat);
-        node.attachChild(chunkGeom);
+        node.setLocalTranslation(pos);
     }
 
     public void update() {
 
         if (toBeUpdated) {
-            t = System.currentTimeMillis();
-
+            //t = System.currentTimeMillis();
             for (Cell c : cells) {
                 c.update();
             }
 
             dumbGreedy();
             chunkMesh.set();
-            node.setLocalTranslation(pos);
-            this.unload();
+
+            chunkMesh.indicesList.clear();
+            chunkMesh.verticesList.clear();
+            chunkMesh.textureList.clear();
+            //this.unload();
 
             toBeUpdated = false;
+            //System.out.println("Updating " + this + " took " + (System.currentTimeMillis() - t) + " ms");
         }
 
     }
 
     public void load() {
-        if (!loaded) {
-
-            Reference.terrainNode.attachChild(node);
+        if (!loaded && !toBeUpdated) {
             loaded = true;
+            node.attachChild(chunkGeom);
+            Reference.terrainNode.attachChild(node);
         }
     }
 
     public void unload() {
         if (loaded) {
-            Reference.terrainNode.detachChild(node);
             loaded = false;
+            node.detachChild(chunkGeom);
+            Reference.terrainNode.detachChild(node);
         }
     }
 
@@ -114,6 +118,8 @@ public class Chunk {
         if (!added) {
             cells.add(new Cell(id, x, y, z, this.x, this.y, this.z));
         }
+
+        toBeUpdated = true;
     }
 
     public void loadPhysics() {
