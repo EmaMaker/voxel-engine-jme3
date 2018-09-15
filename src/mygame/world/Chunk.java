@@ -70,7 +70,7 @@ public class Chunk {
     }
 
     public void load() {
-        if (!loaded && !toBeUpdated) {
+        if (!loaded && !toBeUpdated /* Reference.app.getCamera().contains(node.getWorldBound()) == FrustumIntersect.Inside || Reference.app.getCamera().contains(node.getWorldBound()) == FrustumIntersect.Interstects*/) {
             loaded = true;
             node.attachChild(chunkGeom);
             Reference.terrainNode.attachChild(node);
