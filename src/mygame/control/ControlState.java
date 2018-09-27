@@ -22,7 +22,6 @@ import java.text.DecimalFormatSymbols;
 import java.util.ArrayList;
 import mygame.block.CellId;
 import mygame.Main;
-import mygame.block.Cell;
 import static mygame.utils.Debugger.debug;
 import mygame.world.WorldProvider;
 
@@ -46,8 +45,6 @@ public class ControlState extends AbstractAppState implements ActionListener, An
 
     Main app;
     WorldProvider prov;
-
-    Ray ray;
 
     public CellId currentBlockId = CellId.DIRT;
     public float currentBlockNum = 1;
@@ -130,7 +127,7 @@ public class ControlState extends AbstractAppState implements ActionListener, An
             case "break":
             case "place":
                 results.clear();
-                ray = new Ray(app.getCamera().getLocation(), app.getCamera().getDirection());
+                Ray ray = new Ray(app.getCamera().getLocation(), app.getCamera().getDirection());
                 Reference.terrainNode.collideWith(ray, results);
                 System.out.println(results.getClosestCollision());
                 debug("|===========================================|");

@@ -1,10 +1,11 @@
 package mygame.block;
 
+import java.io.Serializable;
+import mygame.utils.MathHelper;
 import mygame.world.Chunk;
 import static mygame.utils.Reference.chunkSize;import mygame.world.WorldProvider;
-;
 
-public class Cell {
+public class Cell implements Serializable{
 
     //keeping track of free sides
     public boolean[] sides = {false, false, false, false, false, false};  //west, east, north, south, top, bottom
@@ -35,7 +36,7 @@ public class Cell {
         this.worldY = worldY;
         this.worldZ = worldZ;
 
-        this.chunk = WorldProvider.chunks[chunkX][chunkY][chunkZ];
+        this.chunk = WorldProvider.chunks[MathHelper.flat3Dto1D(chunkX, chunkY, chunkZ)];
         setId(id);
     }
 

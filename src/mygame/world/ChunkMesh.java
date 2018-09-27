@@ -1,13 +1,12 @@
 package mygame.world;
 
-import mygame.world.Chunk;
-import com.jme3.math.Vector2f;
 import com.jme3.math.Vector3f;
 import com.jme3.scene.Mesh;
 import com.jme3.scene.VertexBuffer.Type;
 import com.jme3.util.BufferUtils;
+import java.nio.ByteBuffer;
+import java.nio.ShortBuffer;
 import java.util.ArrayList;
-import static mygame.utils.Reference.chunkSize;
 
 public class ChunkMesh extends Mesh {
 
@@ -15,11 +14,10 @@ public class ChunkMesh extends Mesh {
 
     public ArrayList<Vector3f> verticesList = new ArrayList<>();
     public ArrayList<Vector3f> textureList = new ArrayList<>();
-    public ArrayList<Integer> indicesList = new ArrayList<>();
-    public Vector2f[] texCoord = new Vector2f[(int) Math.pow(chunkSize, 3) * 4];
+    public ArrayList<Short> indicesList = new ArrayList<>();
 
-    Integer[] integer1;
-    int[] indices;
+    Short[] short1;
+    short[] indices;
 
     public Chunk chunk;
 
@@ -29,16 +27,16 @@ public class ChunkMesh extends Mesh {
 
     //usually called at the end of the update() method of chunk. creates the mesh from the vertices, indices and texCoord set by Cell and adds it to a geometry with a material with correct texture loaded
     public void set() {
-        integer1 = indicesList.toArray(new Integer[indicesList.size()]);
-        indices = new int[integer1.length];
-        for (int i = 0; i < integer1.length; i++) {
-            indices[i] = integer1[i];
+        short1 = indicesList.toArray(new Short[indicesList.size()]);
+        indices = new short[short1.length];
+        for (int i = 0; i < short1.length; i++) {
+            indices[i] = Short.valueOf(Integer.toString(short1[i]));
         }
-        
-        setBuffer(Type.Position, 3, BufferUtils.createFloatBuffer(verticesList.toArray(new Vector3f[verticesList.size()])));
-        setBuffer(Type.TexCoord, 3, BufferUtils.createFloatBuffer(textureList.toArray(new Vector3f[textureList.size()])));
-        setBuffer(Type.Index, 3, BufferUtils.createIntBuffer(indices));
-        
+
+        setBuffer(Type.Position, 3, createShortBuffer(verticesList.toArray(new Vector3f[verticesList.size()])));
+        setBuffer(Type.TexCoord, 3, createByteBuffer(textureList.toArray(new Vector3f[textureList.size()])));
+        setBuffer(Type.Index, 3, BufferUtils.createShortBuffer(indices));
+
     }
 
     public Vector3f getVectorFor(int x, int y, int z) {
@@ -50,23 +48,40 @@ public class ChunkMesh extends Mesh {
         return null;
     }
 
-    /*public int getIndexFor(Vector3f v) {
-        for (int i = 0; i < verticesList.size(); i++) {
-            if (v.x == verticesList.get(i).x && v.y == verticesList.get(i).y && v.z == verticesList.get(i).z) {
-                return i;
-            }
-        }
-        return Integer.BYTES;
+    public short addVertex(Vector3f v) {
+        verticesList.add(v);
+        return (short) (verticesList.size() - 1);
     }
 
-    public int getIndexFor(int x, int y, int z) {
-        return getIndexFor(new Vector3f(x, y, z));
-    }*/
-
-    //adds the vertex to the verticesList and returns its index int the list, which is actually the verticesList.size() - 1.
-    //this makes simpler the texturing because some vertices will be duplicated
-    public int addVertex(Vector3f v) {
-        verticesList.add(v);
-        return (verticesList.size() - 1);
+    public static ByteBuffer createByteBuffer(Vector3f... data) {
+        if (data == null) {
+            return null;
+        }
+        ByteBuffer buff = BufferUtils.createByteBuffer(3 * data.length);
+        for (Vector3f element : data) {
+            if (element != null) {
+                buff.put((byte) element.x).put((byte) element.y).put((byte) element.z);
+            } else {
+                buff.put((byte) 0).put((byte) 0).put((byte) 0);
+            }
+        }
+        buff.flip();
+        return buff;
+    }
+    
+    public static ShortBuffer createShortBuffer(Vector3f... data) {
+        if (data == null) {
+            return null;
+        }
+        ShortBuffer buff = BufferUtils.createShortBuffer(3 * data.length);
+        for (Vector3f element : data) {
+            if (element != null) {
+                buff.put((short) element.x).put((short) element.y).put((short) element.z);
+            } else {
+                buff.put((short) 0).put((short) 0).put((short) 0);
+            }
+        }
+        buff.flip();
+        return buff;
     }
 }

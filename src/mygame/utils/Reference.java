@@ -13,6 +13,7 @@ import mygame.block.Cell;
 import mygame.utils.json.JsonDeserializeCell;
 import mygame.utils.json.JsonDeserializeChunk;
 import mygame.world.Chunk;
+import mygame.world.TerrainControl;
 import mygame.world.WorldProvider;
 
 public class Reference extends AbstractAppState {
@@ -30,7 +31,8 @@ public class Reference extends AbstractAppState {
     public static Material mat;
     public static Node terrainNode = new Node();
 
-    public static ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(3);
+    public static ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(2);
+    
 
     @Override
     public void initialize(AppStateManager stateManager, Application app) {
