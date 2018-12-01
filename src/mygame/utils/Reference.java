@@ -13,7 +13,6 @@ import mygame.block.Cell;
 import mygame.utils.json.JsonDeserializeCell;
 import mygame.utils.json.JsonDeserializeChunk;
 import mygame.world.Chunk;
-import mygame.world.TerrainControl;
 import mygame.world.WorldProvider;
 
 public class Reference extends AbstractAppState {
@@ -42,8 +41,8 @@ public class Reference extends AbstractAppState {
         mat = new Material(main.getAssetManager(), "Materials/UnshadedArray.j3md");
 
         main.getRootNode().attachChild(terrainNode);
-
-        // mat.getAdditionalRenderState().setWireframe(true);
+        //mat.getAdditionalRenderState().setWireframe(true);
+        
         module.addDeserializer(Cell.class, new JsonDeserializeCell());
         module.addDeserializer(Chunk.class, new JsonDeserializeChunk());
         mapper.registerModule(module);

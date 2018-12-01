@@ -2,10 +2,12 @@ package mygame.block;
 
 import java.io.Serializable;
 import mygame.utils.MathHelper;
+import mygame.utils.Reference;
 import mygame.world.Chunk;
-import static mygame.utils.Reference.chunkSize;import mygame.world.WorldProvider;
+import static mygame.utils.Reference.chunkSize;
+import mygame.world.WorldProvider;
 
-public class Cell implements Serializable{
+public class Cell implements Serializable {
 
     //keeping track of free sides
     public boolean[] sides = {false, false, false, false, false, false};  //west, east, north, south, top, bottom
@@ -41,7 +43,7 @@ public class Cell implements Serializable{
     }
 
     public synchronized void update() {
-        
+
         sides[0] = false;
         sides[1] = false;
         sides[2] = false;
@@ -56,36 +58,39 @@ public class Cell implements Serializable{
         meshed[5] = false;
 
         //est free
-        if (this.chunk.getCell(x + 1, y, z) == null) {
+        if (this.chunk.getCell(x + 1, y, z) == null || this.chunk.getCell(x + 1, y, z).id == CellId.AIR) {
             sides[0] = true;
         }
 
         //sides[0] free
-        if (this.chunk.getCell(x - 1, y, z) == null) {
+        if (this.chunk.getCell(x - 1, y, z) == null || this.chunk.getCell(x - 1, y, z).id == CellId.AIR) {
             sides[1] = true;
         }
 
         //sides[2] free
-        if (this.chunk.getCell(x, y, z + 1) == null) {
+        if (this.chunk.getCell(x, y, z + 1) == null || this.chunk.getCell(x, y, z + 1).id == CellId.AIR) {
             sides[2] = true;
         }
 
         //sides[3] free
-        if (this.chunk.getCell(x, y, z - 1) == null) {
+        if (this.chunk.getCell(x, y, z - 1) == null || this.chunk.getCell(x, y, z - 1).id == CellId.AIR) {
             sides[3] = true;
         }
 
         //sides[4] free
-        if (this.chunk.getCell(x, y + 1, z) == null) {
+        if (this.chunk.getCell(x, y + 1, z) == null || this.chunk.getCell(x, y + 1, z).id == CellId.AIR) {
             sides[4] = true;
-        }else{
-            if(this.id == CellId.GRASS){
+            if (this.id == CellId.DIRT) {
+                setId(CellId.GRASS);
+            }
+        } else {
+            if (this.id == CellId.GRASS) {
                 setId(CellId.DIRT);
             }
         }
 
         //Bottom free
-        if (this.chunk.getCell(x, y - 1, z) == null) {
+        if (this.chunk.getCell(x, y - 1, z) == null || this.chunk.getCell(x, y - 1, z).id == CellId.AIR) {
             sides[5] = true;
         }
     }

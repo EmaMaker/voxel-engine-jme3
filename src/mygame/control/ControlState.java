@@ -15,13 +15,14 @@ import com.jme3.input.controls.AnalogListener;
 import com.jme3.input.controls.KeyTrigger;
 import com.jme3.input.controls.MouseAxisTrigger;
 import com.jme3.input.controls.MouseButtonTrigger;
-import com.jme3.math.Ray;
 import com.jme3.math.Vector3f;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.ArrayList;
+import java.util.Random;
 import mygame.block.CellId;
 import mygame.Main;
+import mygame.block.Cell;
 import static mygame.utils.Debugger.debug;
 import mygame.world.WorldProvider;
 
@@ -123,18 +124,7 @@ public class ControlState extends AbstractAppState implements ActionListener, An
 
         //removes the pointed
         switch (name) {
-
-            case "break":
-            case "place":
-                results.clear();
-                Ray ray = new Ray(app.getCamera().getLocation(), app.getCamera().getDirection());
-                Reference.terrainNode.collideWith(ray, results);
-                System.out.println(results.getClosestCollision());
-                debug("|===========================================|");
-                breakStep = 0;
-                break;
-
-            /*case "remove":
+            case "remove":
                 if (!fastBlock) {
                     if (breakStep % 25 == 0) {
                         breakBlock();
@@ -162,7 +152,8 @@ public class ControlState extends AbstractAppState implements ActionListener, An
                     placeStep = 0;
                 }
                 debug("!===========================================!");
-                break;*/
+                break;
+
             case "changeBlock+":
                 if (currentBlockNum < CellId.values().length - 1) {
                     currentBlockNum += 0.35;
@@ -178,74 +169,50 @@ public class ControlState extends AbstractAppState implements ActionListener, An
         }
     }
 
-    /*public void breakBlock() {
+    public void breakBlock() {
 
-        debug("|===========================================|");
+        Random rand = new Random();
+        Vector3f v = null;
+        Cell c = null;
+
+        do {
+            v = new Vector3f(rand.nextInt(16), rand.nextInt(16), rand.nextInt(16));
+
+            c = prov.getCell(v);
+            c.setId(CellId.AIR);
+            c.chunk.toBeSet = true;
+            c.chunk.processCells();
+            c.chunk.unload();
+        } while (c == null);
+
+        /*debug("|===========================================|");
         results.clear();
-        ray = new Ray(app.getCamera().getLocation(), app.getCamera().getDirection());
+        Ray ray = new Ray(app.getCamera().getLocation(), app.getCamera().getDirection());
         Reference.terrainNode.collideWith(ray, results);
         if (results.getClosestCollision() != null) {
             Vector3f pt = results.getClosestCollision().getContactPoint();
             pt = fixCoords(pt);
-
-            Cell cell = prov.getCellFromVertices(findNearestVertices(pt));
-            if (cell != null) {
-                prov.setCell((int) cell.worldX, (int) cell.worldY, (int) cell.worldZ, CellId.AIR);
+            System.out.println(pt + ":\n" + findNearestVertices(pt) + "\n");
+            Cell c =  prov.getCellFromVertices(findNearestVertices(pt));
+            if(c != null){
+                c.setId(CellId.AIR);
+                c.chunk.toBeSet=true;
+                c.chunk.processCells();
+                c.chunk.unload();
+                c.chunk.refreshPhysics();
             }
             debug("|===========================================|");
             breakStep = 0;
-        }
+        }*/
     }
 
     public void placeblock() {
+    }
 
-        debug("!===========================================!");
-        results.clear();
-        ray = new Ray(app.getCamera().getLocation(), app.getCamera().getDirection());
-        Reference.terrainNode.collideWith(ray, results);
-        if (results.getClosestCollision() != null) {
-            Vector3f pt = results.getClosestCollision().getContactPoint();
-
-            debug("Original PT " + pt);
-            debug("Fixed PT " + fixCoords(pt));
-
-            Vector3f v = null;
-            pt = fixCoords(pt);
-
-            ArrayList al = findNearestVertices(pt);
-            Cell cell = prov.getCellFromVertices(al);
-            if (cell != null) {
-                switch (cell.faceFromVertices(al)) {
-                    case 3:
-                        v = new Vector3f((int) cell.worldX - 1, (int) cell.worldY, (int) cell.worldZ);
-                        break;
-                    case 2:
-                        v = new Vector3f((int) cell.worldX + 1, (int) cell.worldY, (int) cell.worldZ);
-                        break;
-                    case 5:
-                        v = new Vector3f((int) cell.worldX, (int) cell.worldY, (int) cell.worldZ - 1);
-                        break;
-                    case 4:
-                        v = new Vector3f((int) cell.worldX, (int) cell.worldY, (int) cell.worldZ + 1);
-                        break;
-                    case 0:
-                        v = new Vector3f((int) cell.worldX, (int) cell.worldY + 1, (int) cell.worldZ);
-                        break;
-                    case 1:
-                        v = new Vector3f((int) cell.worldX, (int) cell.worldY - 1, (int) cell.worldZ);
-                        break;
-                }
-                if (v != null) {
-                    prov.setCell((int) v.x, (int) v.y, (int) v.z, currentBlockId);
-                }
-            }
-        }
-        placeStep = 0;
-    }*/
     public Vector3f fixCoords(Vector3f v) {
         unusualSymbols.setDecimalSeparator('.');
         df.setDecimalFormatSymbols(unusualSymbols);
-        df.setMaximumFractionDigits(2);
+        df.setMaximumFractionDigits(4);
         float fx = Float.parseFloat(df.format(v.x)), fy = Float.parseFloat(df.format(v.y)), fz = Float.parseFloat(df.format(v.z));
         if (fx - (int) v.x == .99) {
             fx += 0.1f;
@@ -293,7 +260,7 @@ public class ControlState extends AbstractAppState implements ActionListener, An
             debug("Nearest vertex at bottom-left is at " + top4);*/
         } //facing ±x
         else if (s.x - (int) s.x == 0) {
-            top1 = new Vector3f(((int) s.x), (int) s.y + 1, ((int) s.z + 1));
+            top1 = new Vector3f(((int) s.x), ((int) s.y) + 1, (((int) s.z) + 1));
             top2 = new Vector3f(top1.x, top1.y, top1.z - 1);
             top3 = new Vector3f(top1.x, top1.y - 1, top1.z);
             top4 = new Vector3f(top1.x, top1.y - 1, top1.z - 1);

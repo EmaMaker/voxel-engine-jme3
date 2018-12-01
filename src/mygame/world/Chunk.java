@@ -1,24 +1,18 @@
 package mygame.world;
 
+import com.jme3.bounding.BoundingSphere;
 import mygame.utils.Reference;
 import com.jme3.bullet.BulletAppState;
+import com.jme3.bullet.collision.shapes.CollisionShape;
 import com.jme3.bullet.control.RigidBodyControl;
 import com.jme3.bullet.util.CollisionShapeFactory;
 import com.jme3.math.Vector3f;
+import com.jme3.renderer.Camera;
 import com.jme3.renderer.RenderManager;
 import com.jme3.renderer.ViewPort;
 import com.jme3.scene.Geometry;
-import com.jme3.scene.Node;
 import com.jme3.scene.control.AbstractControl;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.ObjectOutputStream;
-import java.nio.file.Paths;
-import java.util.Arrays;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import mygame.block.Cell;
 import mygame.block.CellId;
 import mygame.utils.MathHelper;
@@ -31,7 +25,7 @@ import static mygame.world.WorldProvider.renderDistance;
 
 public class Chunk extends AbstractControl {
 
-    transient boolean toBeSet = true;
+    public transient boolean toBeSet = true;
     transient boolean loaded = false;
     transient boolean phyLoaded = false;
 
@@ -45,7 +39,6 @@ public class Chunk extends AbstractControl {
     public ChunkMesh chunkMesh = new ChunkMesh(this);
     Vector3f pos = new Vector3f();
     Geometry chunkGeom;
-    Node node = new Node();
     long t;
 
     public Chunk() {
@@ -60,14 +53,15 @@ public class Chunk extends AbstractControl {
         pos = new Vector3f(x * chunkSize, y * chunkSize, z * chunkSize);
         chunkGeom = new Geometry(this.toString(), chunkMesh);
         chunkGeom.setMaterial(Reference.mat);
-        node.setLocalTranslation(pos);
-        Reference.terrainNode.addControl(this);
-        //node.getWorldBound().setCenter(new Vector3f(node.getLocalTranslation().x, node.getLocalTranslation().y, node.getLocalTranslation().z));
+        Reference.terrainNode.addControl((AbstractControl) this);
+        chunkGeom.setLocalTranslation(x * chunkSize, y * chunkSize, z * chunkSize);
+
     }
 
     public void processCells() {
 
         if (toBeSet) {
+
             //t = System.currentTimeMillis();
             for (Cell cell : cells) {
                 if (cell != null) {
@@ -84,24 +78,28 @@ public class Chunk extends AbstractControl {
             //this.unload();
 
             toBeSet = false;
+            loaded = false;
             //System.out.println("Updating " + this + " took " + (System.currentTimeMillis() - t) + " ms");
         }
 
     }
 
     public void load() {
-        if (!loaded && !toBeSet /*&& (Reference.main.getCamera().contains(node.getWorldBound()) == Camera.FrustumIntersect.Inside || Reference.main.getCamera().contains(node.getWorldBound()) == Camera.FrustumIntersect.Intersects)*/) {
+        chunkGeom.setModelBound(new BoundingSphere(chunkSize * 2f, new Vector3f(x + (chunkSize / 2), y + (chunkSize / 2), z + (chunkSize / 2))));
+        if (!loaded && (Reference.main.getCamera().contains(chunkGeom.getWorldBound()) == Camera.FrustumIntersect.Inside
+                || Reference.main.getCamera().contains(chunkGeom.getWorldBound()) == Camera.FrustumIntersect.Intersects)) {
             loaded = true;
-            node.attachChild(chunkGeom);
-            Reference.terrainNode.attachChild(node);
+            Reference.terrainNode.attachChild(chunkGeom);
+        } else if (!loaded) {
+            loaded = true;
+            Reference.terrainNode.attachChild(chunkGeom);
         }
     }
 
     public void unload() {
         if (loaded) {
             loaded = false;
-            node.detachChild(chunkGeom);
-            Reference.terrainNode.detachChild(node);
+            Reference.terrainNode.detachChild(chunkGeom);
         }
     }
 
@@ -112,6 +110,47 @@ public class Chunk extends AbstractControl {
                 setCell(i, 0, j, CellId.GRASS);
             }
         }
+    }
+
+    public void loadPhysics() {
+        if (!phyLoaded) {
+            try {
+                this.chunkGeom.addControl(new RigidBodyControl(CollisionShapeFactory.createMeshShape(chunkGeom), 0f));
+                Reference.main.getStateManager().getState(BulletAppState.class).getPhysicsSpace().add(chunkGeom.getControl(RigidBodyControl.class));
+                phyLoaded = true;
+            } catch (Exception e) {
+                //e.printStackTrace();
+            }
+        }
+    }
+
+    public void unloadPhysics() {
+        if (phyLoaded) {
+            phyLoaded = false;
+
+            chunkGeom.getControl(RigidBodyControl.class).setEnabled(false);
+            chunkGeom.removeControl(chunkGeom.getControl(RigidBodyControl.class));
+            Reference.main.getStateManager().getState(BulletAppState.class).getPhysicsSpace().remove(chunkGeom);
+        }
+    }
+
+    public void refreshPhysics() {
+        unloadPhysics();
+        loadPhysics();
+
+    }
+
+    //System.out.println(Math.abs(SimplexNoise.noise((x*chunkSize+i)*0.025, (z*chunkSize+k)*0.025)));
+    public void genTerrain() {
+        for (int i = 0; i < chunkSize; i++) {
+            for (int k = 0; k < chunkSize; k++) {
+                for (int a = 0; a <= Math.abs(SimplexNoise.noise((x * chunkSize + i) * 0.01, (z * chunkSize + k) * 0.01)) * 10; a++) {
+                    setCell(i, a, k, CellId.GRASS);
+                }
+            }
+        }
+
+        toBeSet = true;
     }
 
     //returns the Cell object of the cells[i][j][k]. Could return null if index is null
@@ -137,44 +176,38 @@ public class Chunk extends AbstractControl {
         } else {
             cells[MathHelper.flat3Dto1D(i, j, k)] = new Cell(id, i, j, k, x, y, z);
         }
-    }
-
-    public void loadPhysics() {
-        if (!phyLoaded) {
-            node.addControl(new RigidBodyControl(CollisionShapeFactory.createMeshShape(node), 0f));
-            Reference.main.getStateManager().getState(BulletAppState.class).getPhysicsSpace().add(node);
-            phyLoaded = true;
-        }
-    }
-
-    public void unloadPhysics() {
-        if (phyLoaded) {
-            phyLoaded = false;
-
-            node.getControl(RigidBodyControl.class).setEnabled(false);
-            node.removeControl(node.getControl(RigidBodyControl.class));
-            Reference.main.getStateManager().getState(BulletAppState.class).getPhysicsSpace().remove(node);
-        }
-    }
-
-    public void refreshPhysics() {
-        unloadPhysics();
-        loadPhysics();
-
-    }
-
-    //System.out.println(Math.abs(SimplexNoise.noise((x*chunkSize+i)*0.025, (z*chunkSize+k)*0.025)));
-    public void genTerrain() {
-
-        for (int i = 0; i < chunkSize; i++) {
-            for (int k = 0; k < chunkSize; k++) {
-                for (int a = 0; a <= Math.abs(SimplexNoise.noise((x * chunkSize + i) * 0.005, (z * chunkSize + k) * 0.005)) * 10; a++) {
-                    setCell(i, a, k, CellId.GRASS);
-                }
-            }
-        }
-
         toBeSet = true;
+    }
+
+    File f;
+
+    @Override
+    protected void controlUpdate(float tpf) {
+        if (Math.sqrt(Math.pow(x - pX, 2) + Math.pow(y - pY, 2) + Math.pow(z - pZ, 2)) < renderDistance) {
+
+            this.load();
+            if (Math.sqrt(Math.pow(x - pX, 2) + Math.pow(y - pY, 2) + Math.pow(z - pZ, 2)) <= 1) {
+                this.loadPhysics();
+            } else {
+                this.unloadPhysics();
+            }
+
+        } else {
+            this.unload();
+            this.unloadPhysics();
+            /*if (Math.sqrt(Math.pow(x - pX, 2) + Math.pow(y - pY, 2) + Math.pow(z - pZ, 2)) > renderDistance * 1.5f) {
+                f = Paths.get(System.getProperty("user.dir") + "/chunks/" + x + "-" + y + "-" + z + ".chunk").toFile();
+                if (!f.exists()) {
+                    //Reference.mapper.writeValue(f, cells);
+                    Reference.terrainNode.removeControl(this);
+                    //WorldProvider.chunks[MathHelper.flat3Dto1D(x, y, z)] = null;
+                }
+            }*/
+        }
+    }
+
+    @Override
+    protected void controlRender(RenderManager rm, ViewPort vp) {
     }
 
     public void dumbGreedy() {
@@ -199,7 +232,7 @@ public class Chunk extends AbstractControl {
         int indexOfSide = backface ? 0 : 1;
 
         for (Cell c : cells) {
-            if (c != null) {
+            if (c != null && c.id != CellId.AIR){
                 offX = backface ? 1 : 0;
                 offY = 0;
                 offZ = 0;
@@ -318,7 +351,7 @@ public class Chunk extends AbstractControl {
         int indexOfSide = backface ? 2 : 3;
 
         for (Cell c : cells) {
-            if (c != null) {
+            if (c != null && c.id != CellId.AIR){
                 offX = 0;
                 offY = 0;
                 offZ = backface ? 1 : 0;
@@ -437,7 +470,7 @@ public class Chunk extends AbstractControl {
         int indexOfSide = backface ? 4 : 5;
 
         for (Cell c : cells) {
-            if (c != null) {
+            if (c != null && c.id != CellId.AIR){
                 offX = 0;
                 offY = backface ? 1 : 0;
                 offZ = 0;
@@ -543,46 +576,5 @@ public class Chunk extends AbstractControl {
                 }
             }
         }
-    }
-
-    File f;
-
-    @Override
-    protected void controlUpdate(float tpf) {
-        if (Math.sqrt(Math.pow(x - pX, 2) + Math.pow(y - pY, 2) + Math.pow(z - pZ, 2)) < renderDistance) {
-            this.load();
-        } else {
-            this.unload();
-
-            if (Math.sqrt(Math.pow(x - pX, 2) + Math.pow(y - pY, 2) + Math.pow(z - pZ, 2)) > renderDistance * 1.5f) {
-                f = Paths.get(System.getProperty("user.dir") + "/chunks/" + x + "-" + y + "-" + z + ".chunk").toFile();
-                if (!f.exists()) {
-                    
-                    try {
-                        Reference.mapper.writeValue(f, cells);
-                        Reference.terrainNode.removeControl(this);
-                        WorldProvider.chunks[MathHelper.flat3Dto1D(x, y, z)] = null;
-                        
-                        /*FileOutputStream file = new FileOutputStream(f);
-                        ObjectOutputStream out = new ObjectOutputStream(file);
-                        
-                        // Method for serialization of object 
-                        out.writeObject(cells);
-
-                        out.close();
-                        file.close();
-
-                        Reference.terrainNode.removeControl(this);
-                        WorldProvider.chunks[MathHelper.flat3Dto1D(x, y, z)] = null;*/
-                    } catch (IOException ex) {
-                        Logger.getLogger(Chunk.class.getName()).log(Level.SEVERE, null, ex);
-                    }
-                }
-            }
-        }
-    }
-
-    @Override
-    protected void controlRender(RenderManager rm, ViewPort vp) {
     }
 }

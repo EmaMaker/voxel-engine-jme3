@@ -33,8 +33,8 @@ public class ChunkMesh extends Mesh {
             indices[i] = Short.valueOf(Integer.toString(short1[i]));
         }
 
-        setBuffer(Type.Position, 3, createShortBuffer(verticesList.toArray(new Vector3f[verticesList.size()])));
-        setBuffer(Type.TexCoord, 3, createByteBuffer(textureList.toArray(new Vector3f[textureList.size()])));
+        setBuffer(Type.Position, 3, BufferUtils.createFloatBuffer(verticesList.toArray(new Vector3f[verticesList.size()])));
+        setBuffer(Type.TexCoord, 3, BufferUtils.createFloatBuffer(textureList.toArray(new Vector3f[textureList.size()])));
         setBuffer(Type.Index, 3, BufferUtils.createShortBuffer(indices));
 
     }

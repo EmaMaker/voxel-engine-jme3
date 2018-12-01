@@ -37,7 +37,7 @@ public class Main extends SimpleApplication {
         }
 
         flyCam.setZoomSpeed(0);
-        flyCam.setMoveSpeed(30f);
+        flyCam.setMoveSpeed(60f);
 
         stateManager.attach(bulletAppState);
         stateManager.attach(new Reference());
@@ -46,9 +46,9 @@ public class Main extends SimpleApplication {
         stateManager.attach(new GuiManager());
         stateManager.attach(new WorldProvider());
         stateManager.attach(new TextureOffsets());
-
-        stateManager.getState(PlayerControlState.class).setEnabled(false);
-
+        
+        stateManager.getState(PlayerControlState.class).setEnabled(true);
+        
         initCrossHairs();
         viewPort.setBackgroundColor(ColorRGBA.Cyan);
     }
