@@ -15,11 +15,11 @@ import com.jme3.input.controls.AnalogListener;
 import com.jme3.input.controls.KeyTrigger;
 import com.jme3.input.controls.MouseAxisTrigger;
 import com.jme3.input.controls.MouseButtonTrigger;
+import com.jme3.math.Ray;
 import com.jme3.math.Vector3f;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.ArrayList;
-import java.util.Random;
 import mygame.block.CellId;
 import mygame.Main;
 import mygame.block.Cell;
@@ -103,14 +103,12 @@ public class ControlState extends AbstractAppState implements ActionListener, An
             breakStep = 25;
         } else if (name.equals("camera") && keyPressed) {
             if (this.app.getStateManager().getState(PlayerControlState.class).isEnabled()) {
-                this.app.getStateManager().getState(PlayerControlState.class).respawnPoint = this.app.getCamera().getLocation();
                 this.app.getStateManager().getState(PlayerControlState.class).stop();
                 this.app.getStateManager().getState(PlayerControlState.class).setEnabled(false);
             } else {
-                this.app.getStateManager().getState(PlayerControlState.class).playerControl.warp(this.app.getStateManager().getState(PlayerControlState.class).respawnPoint);
+                this.app.getStateManager().getState(PlayerControlState.class).setEnabled(true);
                 this.app.getStateManager().getState(PlayerControlState.class).speed = .2f;
                 this.app.getStateManager().getState(PlayerControlState.class).strafeSpeed = .35f;
-                this.app.getStateManager().getState(PlayerControlState.class).setEnabled(true);
             }
         }
     }
@@ -171,21 +169,7 @@ public class ControlState extends AbstractAppState implements ActionListener, An
 
     public void breakBlock() {
 
-        Random rand = new Random();
-        Vector3f v = null;
-        Cell c = null;
-
-        do {
-            v = new Vector3f(rand.nextInt(16), rand.nextInt(16), rand.nextInt(16));
-
-            c = prov.getCell(v);
-            c.setId(CellId.AIR);
-            c.chunk.toBeSet = true;
-            c.chunk.processCells();
-            c.chunk.unload();
-        } while (c == null);
-
-        /*debug("|===========================================|");
+        debug("|===========================================|");
         results.clear();
         Ray ray = new Ray(app.getCamera().getLocation(), app.getCamera().getDirection());
         Reference.terrainNode.collideWith(ray, results);
@@ -193,17 +177,15 @@ public class ControlState extends AbstractAppState implements ActionListener, An
             Vector3f pt = results.getClosestCollision().getContactPoint();
             pt = fixCoords(pt);
             System.out.println(pt + ":\n" + findNearestVertices(pt) + "\n");
-            Cell c =  prov.getCellFromVertices(findNearestVertices(pt));
-            if(c != null){
+            Cell c = prov.getCellFromVertices(findNearestVertices(pt));
+            if (c != null) {
                 c.setId(CellId.AIR);
-                c.chunk.toBeSet=true;
-                c.chunk.processCells();
-                c.chunk.unload();
-                c.chunk.refreshPhysics();
+                c.chunk.markForUpdate(true);
+                //c.chunk.refreshPhysics();
             }
             debug("|===========================================|");
             breakStep = 0;
-        }*/
+        }
     }
 
     public void placeblock() {

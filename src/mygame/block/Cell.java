@@ -2,17 +2,16 @@ package mygame.block;
 
 import java.io.Serializable;
 import mygame.utils.MathHelper;
-import mygame.utils.Reference;
 import mygame.world.Chunk;
 import static mygame.utils.Reference.chunkSize;
-import mygame.world.WorldProvider;
+import mygame.utils.Reference;
 
 public class Cell implements Serializable {
 
     //keeping track of free sides
-    public boolean[] sides = {false, false, false, false, false, false};  //west, east, north, south, top, bottom
-    public boolean[] meshed = {false, false, false, false, false, false}; //west, east, north, south, top, bottom
-    public int[] offsets = new int[6]; //west, east, north, south, top, bottom
+    public transient boolean[] sides = {false, false, false, false, false, false};  //west, east, north, south, top, bottom
+    public transient boolean[] meshed = {false, false, false, false, false, false}; //west, east, north, south, top, bottom
+    public transient int[] offsets = new int[6]; //west, east, north, south, top, bottom
 
     public transient Chunk chunk;
     public int x, y, z; //the coords RELATIVE inside the chunk
@@ -38,7 +37,7 @@ public class Cell implements Serializable {
         this.worldY = worldY;
         this.worldZ = worldZ;
 
-        this.chunk = WorldProvider.chunks[MathHelper.flat3Dto1D(chunkX, chunkY, chunkZ)];
+        this.chunk = Reference.prov.chunks[MathHelper.flat3Dto1D(chunkX, chunkY, chunkZ)];
         setId(id);
     }
 
@@ -57,41 +56,43 @@ public class Cell implements Serializable {
         meshed[4] = false;
         meshed[5] = false;
 
-        //est free
-        if (this.chunk.getCell(x + 1, y, z) == null || this.chunk.getCell(x + 1, y, z).id == CellId.AIR) {
-            sides[0] = true;
-        }
-
-        //sides[0] free
-        if (this.chunk.getCell(x - 1, y, z) == null || this.chunk.getCell(x - 1, y, z).id == CellId.AIR) {
-            sides[1] = true;
-        }
-
-        //sides[2] free
-        if (this.chunk.getCell(x, y, z + 1) == null || this.chunk.getCell(x, y, z + 1).id == CellId.AIR) {
-            sides[2] = true;
-        }
-
-        //sides[3] free
-        if (this.chunk.getCell(x, y, z - 1) == null || this.chunk.getCell(x, y, z - 1).id == CellId.AIR) {
-            sides[3] = true;
-        }
-
-        //sides[4] free
-        if (this.chunk.getCell(x, y + 1, z) == null || this.chunk.getCell(x, y + 1, z).id == CellId.AIR) {
-            sides[4] = true;
-            if (this.id == CellId.DIRT) {
-                setId(CellId.GRASS);
+        if (id != CellId.AIR) {
+            //est free
+            if (Reference.prov.getCell(worldX + 1, worldY, worldZ) == null || Reference.prov.getCell(worldX + 1, worldY, worldZ).id == CellId.AIR) {
+                sides[0] = true;
             }
-        } else {
-            if (this.id == CellId.GRASS) {
-                setId(CellId.DIRT);
-            }
-        }
 
-        //Bottom free
-        if (this.chunk.getCell(x, y - 1, z) == null || this.chunk.getCell(x, y - 1, z).id == CellId.AIR) {
-            sides[5] = true;
+            //sides[0] free
+            if (Reference.prov.getCell(worldX - 1, worldY, worldZ) == null || Reference.prov.getCell(worldX - 1, worldY, worldZ).id == CellId.AIR) {
+                sides[1] = true;
+            }
+
+            //sides[2] free
+            if (Reference.prov.getCell(worldX, worldY, worldZ + 1) == null || Reference.prov.getCell(worldX, worldY, worldZ + 1).id == CellId.AIR) {
+                sides[2] = true;
+            }
+
+            //sides[3] free
+            if (Reference.prov.getCell(worldX, worldY, worldZ - 1) == null || Reference.prov.getCell(worldX, worldY, worldZ - 1).id == CellId.AIR) {
+                sides[3] = true;
+            }
+
+            //sides[4] free
+            if (Reference.prov.getCell(worldX, worldY + 1, worldZ) == null || Reference.prov.getCell(worldX, worldY + 1, worldZ).id == CellId.AIR) {
+                sides[4] = true;
+                if (this.id == CellId.DIRT) {
+                    setId(CellId.GRASS);
+                }
+            } else {
+                if (this.id == CellId.GRASS) {
+                    setId(CellId.DIRT);
+                }
+            }
+
+            //Bottom free
+            if (Reference.prov.getCell(worldX, worldY - 1, worldZ) == null || Reference.prov.getCell(worldX, worldY - 1, worldZ).id == CellId.AIR) {
+                sides[5] = true;
+            }
         }
     }
 

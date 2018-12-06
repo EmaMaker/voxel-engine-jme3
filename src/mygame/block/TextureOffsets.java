@@ -48,48 +48,4 @@ public class TextureOffsets extends AbstractAppState {
         
         Reference.mat.setTexture("ColorMap", array);
     }
-
-    /*
-    //Following methods return the UV coordinates in the image for the given offset as a Vector2f to be used in the TextureBuffer for the mesh. 
-    //All is divided by ATLAS_DIM so it gets the position in values between 0 and 1 instead of pixels
-    //this is 0,1 in UV coords
-    public static Vector2f topLeft(int offset) {
-        return new Vector2f(minX(offset), maxY(offset));
-    }
-
-    //this is 1,1 in UV coords
-    public static Vector2f topRight(int offset) {
-        return new Vector2f(maxX(offset), maxY(offset));
-    }
-
-    //this is 0,0 in UV coords
-    public static Vector2f bottomLeft(int offset) {
-        return new Vector2f(minX(offset), minY(offset));
-    }
-
-    //this is 1,0 in UV coords
-    public static Vector2f bottomRight(int offset) {
-        return new Vector2f(maxX(offset), minY(offset));
-    }
-
-    public static float minX(int offset) {
-        return (float) ((float) ((offset % OFF_IN_ROW) * IMAGE_DIM) / ATLAS_DIM);
-    }
-
-    public static float minY(int offset) {
-        return (float) ((float) ((offset / OFF_IN_ROW) * IMAGE_DIM) / ATLAS_DIM);
-    }
-
-    public static float maxX(int offset) {
-        return (float) ((float) (((offset + 1) % OFF_IN_ROW) * (IMAGE_DIM - 1)) / ATLAS_DIM);
-    }
-
-    public static float maxY(int offset) {
-        return (float) ((float) (((offset + OFF_IN_ROW) / OFF_IN_ROW) * (IMAGE_DIM - 1)) / ATLAS_DIM);
-    }
-
-    // (float) ((float) ((offset % OFF_IN_ROW) * IMAGE_DIM) / ATLAS_DIM) minX
-    // (float) ((float) ((offset / OFF_IN_ROW) * IMAGE_DIM) / ATLAS_DIM) minY
-    // (float) ((float) (((offset + 1) % OFF_IN_ROW) *( IMAGE_DIM - 1)) / ATLAS_DIM) maxX
-    // (float) ((float) (((offset + OFF_IN_ROW) / OFF_IN_ROW) * (IMAGE_DIM - 1)) / ATLAS_DIM) maxY*/
 }

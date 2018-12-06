@@ -14,10 +14,11 @@ import com.jme3.math.Vector3f;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.shape.Box;
 import mygame.Main;
+import mygame.utils.Reference;
 
 public class PlayerControlState extends AbstractAppState implements ActionListener {
 
-    public Vector3f respawnPoint = new Vector3f(8, 8, 8);
+    public Vector3f respawnPoint = new Vector3f(8, 16, 8);
 
     Main app;
 
@@ -32,8 +33,6 @@ public class PlayerControlState extends AbstractAppState implements ActionListen
     Vector3f camLeft = new Vector3f();
 
     float speed = .4f, strafeSpeed = .2f, headHeight = 3f;
-
-    Vector3f desiredLocation = new Vector3f();
 
     @Override
     public void initialize(AppStateManager stateManager, Application app) {

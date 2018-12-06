@@ -3,7 +3,6 @@ package mygame.world;
 import com.jme3.bounding.BoundingSphere;
 import mygame.utils.Reference;
 import com.jme3.bullet.BulletAppState;
-import com.jme3.bullet.collision.shapes.CollisionShape;
 import com.jme3.bullet.control.RigidBodyControl;
 import com.jme3.bullet.util.CollisionShapeFactory;
 import com.jme3.math.Vector3f;
@@ -13,6 +12,8 @@ import com.jme3.renderer.ViewPort;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.control.AbstractControl;
 import java.io.File;
+import java.io.PrintWriter;
+import java.nio.file.Paths;
 import mygame.block.Cell;
 import mygame.block.CellId;
 import mygame.utils.MathHelper;
@@ -54,12 +55,11 @@ public class Chunk extends AbstractControl {
         chunkGeom = new Geometry(this.toString(), chunkMesh);
         chunkGeom.setMaterial(Reference.mat);
         Reference.terrainNode.addControl((AbstractControl) this);
-        chunkGeom.setLocalTranslation(x * chunkSize, y * chunkSize, z * chunkSize);
+        chunkGeom.setLocalTranslation(pos);
 
     }
 
     public void processCells() {
-
         if (toBeSet) {
 
             //t = System.currentTimeMillis();
@@ -76,7 +76,6 @@ public class Chunk extends AbstractControl {
             chunkMesh.verticesList.clear();
             chunkMesh.textureList.clear();
             //this.unload();
-
             toBeSet = false;
             loaded = false;
             //System.out.println("Updating " + this + " took " + (System.currentTimeMillis() - t) + " ms");
@@ -144,7 +143,7 @@ public class Chunk extends AbstractControl {
     public void genTerrain() {
         for (int i = 0; i < chunkSize; i++) {
             for (int k = 0; k < chunkSize; k++) {
-                for (int a = 0; a <= Math.abs(SimplexNoise.noise((x * chunkSize + i) * 0.01, (z * chunkSize + k) * 0.01)) * 10; a++) {
+                for (int a = 0; a <= Math.abs(SimplexNoise.noise((x * chunkSize + i) * 0.01, (z * chunkSize + k) * 0.01)) * 10 + 2; a++) {
                     setCell(i, a, k, CellId.GRASS);
                 }
             }
@@ -159,18 +158,10 @@ public class Chunk extends AbstractControl {
             return cells[MathHelper.flat3Dto1D(i, j, k)];
         }
         return null;
-        /*for (Cell c : cells) { if(c!=null){
-            if (c.x == x && c.y == y && c.z == z) {
-                return c;
-            }
-        }
-        return null;*/
     }
 
     //sets the cells index at x,y,z to the given ID, if index is null, it creates a new cell
     public void setCell(int i, int j, int k, CellId id) {
-        // z*width*height + y*width + x 
-        //System.out.println(i  + ", " + j + ", " + k + ": " + (k*chunkSize*chunkSize)+(j*chunkSize)+i);
         if (cells[MathHelper.flat3Dto1D(i, j, k)] != null) {
             cells[MathHelper.flat3Dto1D(i, j, k)].setId(id);
         } else {
@@ -184,10 +175,9 @@ public class Chunk extends AbstractControl {
     @Override
     protected void controlUpdate(float tpf) {
         if (Math.sqrt(Math.pow(x - pX, 2) + Math.pow(y - pY, 2) + Math.pow(z - pZ, 2)) < renderDistance) {
-
             this.load();
             if (Math.sqrt(Math.pow(x - pX, 2) + Math.pow(y - pY, 2) + Math.pow(z - pZ, 2)) <= 1) {
-                this.loadPhysics();
+                this.refreshPhysics();
             } else {
                 this.unloadPhysics();
             }
@@ -195,19 +185,47 @@ public class Chunk extends AbstractControl {
         } else {
             this.unload();
             this.unloadPhysics();
-            /*if (Math.sqrt(Math.pow(x - pX, 2) + Math.pow(y - pY, 2) + Math.pow(z - pZ, 2)) > renderDistance * 1.5f) {
+
+            if (Math.sqrt(Math.pow(x - pX, 2) + Math.pow(y - pY, 2) + Math.pow(z - pZ, 2)) > renderDistance * 1.5f) {
+
                 f = Paths.get(System.getProperty("user.dir") + "/chunks/" + x + "-" + y + "-" + z + ".chunk").toFile();
-                if (!f.exists()) {
-                    //Reference.mapper.writeValue(f, cells);
-                    Reference.terrainNode.removeControl(this);
-                    //WorldProvider.chunks[MathHelper.flat3Dto1D(x, y, z)] = null;
+
+                if (!f.exists() && !isEmpty()) {
+                    try {
+                        PrintWriter writer = new PrintWriter(f);
+                        for (int i = 0; i < cells.length; i++) {
+                            if (cells[i] != null) {
+                                writer.println(cells[i].x + "," + cells[i].y + "," + cells[i].z
+                                        + "," + cells[i].id);
+                            }
+                        }
+
+                        Reference.terrainNode.removeControl(this);
+                        WorldProvider.chunks[MathHelper.flat3Dto1D(x, y, z)] = null;
+                        writer.close();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
                 }
-            }*/
+            }
         }
     }
 
     @Override
     protected void controlRender(RenderManager rm, ViewPort vp) {
+    }
+    
+    public void markForUpdate(boolean b){
+        toBeSet = b;
+    }
+
+    public boolean isEmpty() {
+        for (int i = 0; i < cells.length; i++) {
+            if (cells[i] != null) {
+                return false;
+            }
+        }
+        return true;
     }
 
     public void dumbGreedy() {
@@ -232,7 +250,7 @@ public class Chunk extends AbstractControl {
         int indexOfSide = backface ? 0 : 1;
 
         for (Cell c : cells) {
-            if (c != null && c.id != CellId.AIR){
+            if (c != null && c.id != CellId.AIR) {
                 offX = backface ? 1 : 0;
                 offY = 0;
                 offZ = 0;
@@ -351,7 +369,7 @@ public class Chunk extends AbstractControl {
         int indexOfSide = backface ? 2 : 3;
 
         for (Cell c : cells) {
-            if (c != null && c.id != CellId.AIR){
+            if (c != null && c.id != CellId.AIR) {
                 offX = 0;
                 offY = 0;
                 offZ = backface ? 1 : 0;
@@ -470,7 +488,7 @@ public class Chunk extends AbstractControl {
         int indexOfSide = backface ? 4 : 5;
 
         for (Cell c : cells) {
-            if (c != null && c.id != CellId.AIR){
+            if (c != null && c.id != CellId.AIR) {
                 offX = 0;
                 offY = backface ? 1 : 0;
                 offZ = 0;
