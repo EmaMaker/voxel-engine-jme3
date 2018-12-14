@@ -26,7 +26,7 @@ import static mygame.world.WorldProvider.renderDistance;
 
 public class Chunk extends AbstractControl {
 
-    public transient boolean toBeSet = true;
+    transient boolean toBeSet = true;
     transient boolean loaded = false;
     transient boolean phyLoaded = false;
 
@@ -76,6 +76,7 @@ public class Chunk extends AbstractControl {
             chunkMesh.verticesList.clear();
             chunkMesh.textureList.clear();
             //this.unload();
+
             toBeSet = false;
             loaded = false;
             //System.out.println("Updating " + this + " took " + (System.currentTimeMillis() - t) + " ms");
@@ -106,7 +107,7 @@ public class Chunk extends AbstractControl {
     public void genBase() {
         for (int i = 0; i < chunkSize; i++) {
             for (int j = 0; j < chunkSize; j++) {
-                setCell(i, 0, j, CellId.GRASS);
+                setCell(i, 0, j, CellId.ID_GRASS);
             }
         }
     }
@@ -143,8 +144,8 @@ public class Chunk extends AbstractControl {
     public void genTerrain() {
         for (int i = 0; i < chunkSize; i++) {
             for (int k = 0; k < chunkSize; k++) {
-                for (int a = 0; a <= Math.abs(SimplexNoise.noise((x * chunkSize + i) * 0.01, (z * chunkSize + k) * 0.01)) * 10 + 2; a++) {
-                    setCell(i, a, k, CellId.GRASS);
+                for (int a = 0; a <= Math.abs(SimplexNoise.noise((x * chunkSize + i) * 0.01, (z * chunkSize + k) * 0.01)) * 10; a++) {
+                    setCell(i, a, k, CellId.ID_GRASS);
                 }
             }
         }
@@ -158,10 +159,18 @@ public class Chunk extends AbstractControl {
             return cells[MathHelper.flat3Dto1D(i, j, k)];
         }
         return null;
+        /*for (Cell c : cells) { if(c!=null){
+            if (c.x == x && c.y == y && c.z == z) {
+                return c;
+            }
+        }
+        return null;*/
     }
 
     //sets the cells index at x,y,z to the given ID, if index is null, it creates a new cell
-    public void setCell(int i, int j, int k, CellId id) {
+    public void setCell(int i, int j, int k, int id) {
+        // z*width*height + y*width + x 
+        //System.out.println(i  + ", " + j + ", " + k + ": " + (k*chunkSize*chunkSize)+(j*chunkSize)+i);
         if (cells[MathHelper.flat3Dto1D(i, j, k)] != null) {
             cells[MathHelper.flat3Dto1D(i, j, k)].setId(id);
         } else {
@@ -177,7 +186,7 @@ public class Chunk extends AbstractControl {
         if (Math.sqrt(Math.pow(x - pX, 2) + Math.pow(y - pY, 2) + Math.pow(z - pZ, 2)) < renderDistance) {
             this.load();
             if (Math.sqrt(Math.pow(x - pX, 2) + Math.pow(y - pY, 2) + Math.pow(z - pZ, 2)) <= 1) {
-                this.refreshPhysics();
+                this.loadPhysics();
             } else {
                 this.unloadPhysics();
             }
@@ -214,10 +223,6 @@ public class Chunk extends AbstractControl {
     @Override
     protected void controlRender(RenderManager rm, ViewPort vp) {
     }
-    
-    public void markForUpdate(boolean b){
-        toBeSet = b;
-    }
 
     public boolean isEmpty() {
         for (int i = 0; i < cells.length; i++) {
@@ -226,6 +231,10 @@ public class Chunk extends AbstractControl {
             }
         }
         return true;
+    }
+    
+    public void markForUpdate(boolean b){
+        toBeSet =  b;
     }
 
     public void dumbGreedy() {
@@ -250,13 +259,13 @@ public class Chunk extends AbstractControl {
         int indexOfSide = backface ? 0 : 1;
 
         for (Cell c : cells) {
-            if (c != null && c.id != CellId.AIR) {
+            if (c != null && c.id != CellId.ID_AIR) {
                 offX = backface ? 1 : 0;
                 offY = 0;
                 offZ = 0;
                 //System.out.println(c + " at " + c.x + ", " + c.y + ", " + c.z + "    (" + c.sides[indexOfSide] + ")    (" + c.meshed[indexOfSide] + ")");
 
-                if (c.id != CellId.AIR && c.sides[indexOfSide] && !c.meshed[indexOfSide]) {
+                if (c.id != CellId.ID_AIR && c.sides[indexOfSide] && !c.meshed[indexOfSide]) {
                     startX = c.x;
                     startY = c.y;
                     startZ = c.z;
@@ -265,7 +274,7 @@ public class Chunk extends AbstractControl {
 
                     while (!done) {
                         c1 = getCell(startX, startY + offY, startZ - 1);
-                        if (c1 != null && !c1.meshed[indexOfSide] && c1.id != CellId.AIR && c1.id == c.id && c1.sides[indexOfSide]) {
+                        if (c1 != null && !c1.meshed[indexOfSide] && c1.id != CellId.ID_AIR && c1.id == c.id && c1.sides[indexOfSide]) {
                             startZ--;
                             offZ++;
                             c1.meshed[indexOfSide] = true;
@@ -273,7 +282,7 @@ public class Chunk extends AbstractControl {
                         } else {
                             while (!done) {
                                 c1 = getCell(startX, startY + offY, startZ + offZ);
-                                if (c1 != null && c1.sides[indexOfSide] && !c1.meshed[indexOfSide] && c1.id != CellId.AIR && c1.id == c.id) {
+                                if (c1 != null && c1.sides[indexOfSide] && !c1.meshed[indexOfSide] && c1.id != CellId.ID_AIR && c1.id == c.id) {
                                     c1.meshed[indexOfSide] = true;
                                     //System.out.println(c1 + " at " + c1.x + ", " + c1.y + ", " + c1.z + " can be added z+");
                                     offZ++;
@@ -283,7 +292,7 @@ public class Chunk extends AbstractControl {
                                         for (int k = startZ; k < startZ + offZ; k++) {
                                             c1 = getCell(startX, startY + offY, k);
 
-                                            if (c1 == null || c1.meshed[indexOfSide] || c1.id == CellId.AIR || c1.id != c.id || !c1.sides[indexOfSide]) {
+                                            if (c1 == null || c1.meshed[indexOfSide] || c1.id == CellId.ID_AIR || c1.id != c.id || !c1.sides[indexOfSide]) {
                                                 done = true;
                                                 break;
                                             }
@@ -303,7 +312,7 @@ public class Chunk extends AbstractControl {
                                         for (int k = startZ; k < startZ + offZ; k++) {
                                             c1 = getCell(startX, startY, k);
 
-                                            if (c1 == null || c1.meshed[indexOfSide] || c1.id == CellId.AIR || c1.id != c.id || !c1.sides[indexOfSide]) {
+                                            if (c1 == null || c1.meshed[indexOfSide] || c1.id == CellId.ID_AIR || c1.id != c.id || !c1.sides[indexOfSide]) {
                                                 done = true;
                                                 startY++;
                                                 offY--;
@@ -369,13 +378,13 @@ public class Chunk extends AbstractControl {
         int indexOfSide = backface ? 2 : 3;
 
         for (Cell c : cells) {
-            if (c != null && c.id != CellId.AIR) {
+            if (c != null && c.id != CellId.ID_AIR) {
                 offX = 0;
                 offY = 0;
                 offZ = backface ? 1 : 0;
                 //System.out.println(c + " at " + c.x + ", " + c.y + ", " + c.z + "    (" + c.sides[indexOfSide] + ")    (" + c.meshed[indexOfSide] + ")");
 
-                if (c.id != CellId.AIR && c.sides[indexOfSide] && !c.meshed[indexOfSide]) {
+                if (c.id != CellId.ID_AIR && c.sides[indexOfSide] && !c.meshed[indexOfSide]) {
                     startX = c.x;
                     startY = c.y;
                     startZ = c.z;
@@ -384,7 +393,7 @@ public class Chunk extends AbstractControl {
 
                     while (!done) {
                         c1 = getCell(startX - 1, startY + offY, startZ);
-                        if (c1 != null && !c1.meshed[indexOfSide] && c1.id != CellId.AIR && c1.id == c.id && c1.sides[indexOfSide]) {
+                        if (c1 != null && !c1.meshed[indexOfSide] && c1.id != CellId.ID_AIR && c1.id == c.id && c1.sides[indexOfSide]) {
                             startX--;
                             offX++;
                             c1.meshed[indexOfSide] = true;
@@ -392,7 +401,7 @@ public class Chunk extends AbstractControl {
                         } else {
                             while (!done) {
                                 c1 = getCell(startX + offX, startY + offY, startZ);
-                                if (c1 != null && c1.sides[indexOfSide] && !c1.meshed[indexOfSide] && c1.id != CellId.AIR && c1.id == c.id) {
+                                if (c1 != null && c1.sides[indexOfSide] && !c1.meshed[indexOfSide] && c1.id != CellId.ID_AIR && c1.id == c.id) {
                                     c1.meshed[indexOfSide] = true;
                                     //System.out.println(c1 + " at " + c1.x + ", " + c1.y + ", " + c1.z + " can be added z+");
                                     offX++;
@@ -402,7 +411,7 @@ public class Chunk extends AbstractControl {
                                         for (int k = startX; k < startX + offX; k++) {
                                             c1 = getCell(k, startY + offY, startZ);
 
-                                            if (c1 == null || c1.meshed[indexOfSide] || c1.id == CellId.AIR || c1.id != c.id || !c1.sides[indexOfSide]) {
+                                            if (c1 == null || c1.meshed[indexOfSide] || c1.id == CellId.ID_AIR || c1.id != c.id || !c1.sides[indexOfSide]) {
                                                 done = true;
                                                 break;
                                             }
@@ -422,7 +431,7 @@ public class Chunk extends AbstractControl {
                                         for (int k = startX; k < startX + offX; k++) {
                                             c1 = getCell(k, startY + offY, startZ);
 
-                                            if (c1 == null || c1.meshed[indexOfSide] || c1.id == CellId.AIR || c1.id != c.id || !c1.sides[indexOfSide]) {
+                                            if (c1 == null || c1.meshed[indexOfSide] || c1.id == CellId.ID_AIR || c1.id != c.id || !c1.sides[indexOfSide]) {
                                                 done = true;
                                                 startY++;
                                                 offY--;
@@ -488,13 +497,13 @@ public class Chunk extends AbstractControl {
         int indexOfSide = backface ? 4 : 5;
 
         for (Cell c : cells) {
-            if (c != null && c.id != CellId.AIR) {
+            if (c != null && c.id != CellId.ID_AIR) {
                 offX = 0;
                 offY = backface ? 1 : 0;
                 offZ = 0;
                 //System.out.println(c + " at " + c.x + ", " + c.y + ", " + c.z + "    (" + c.sides[indexOfSide] + ")    (" + c.meshed[indexOfSide] + ")");
 
-                if (c.id != CellId.AIR && c.sides[indexOfSide] && !c.meshed[indexOfSide]) {
+                if (c.id != CellId.ID_AIR && c.sides[indexOfSide] && !c.meshed[indexOfSide]) {
                     startX = c.x;
                     startY = c.y;
                     startZ = c.z;
@@ -503,7 +512,7 @@ public class Chunk extends AbstractControl {
 
                     while (!done) {
                         c1 = getCell(startX + offX, startY, startZ - 1);
-                        if (c1 != null && !c1.meshed[indexOfSide] && c1.id != CellId.AIR && c1.id == c.id && c1.sides[indexOfSide]) {
+                        if (c1 != null && !c1.meshed[indexOfSide] && c1.id != CellId.ID_AIR && c1.id == c.id && c1.sides[indexOfSide]) {
                             startZ--;
                             offZ++;
                             c1.meshed[indexOfSide] = true;
@@ -511,7 +520,7 @@ public class Chunk extends AbstractControl {
                         } else {
                             while (!done) {
                                 c1 = getCell(startX + offX, startY, startZ + offZ);
-                                if (c1 != null && c1.sides[indexOfSide] && !c1.meshed[indexOfSide] && c1.id != CellId.AIR && c1.id == c.id) {
+                                if (c1 != null && c1.sides[indexOfSide] && !c1.meshed[indexOfSide] && c1.id != CellId.ID_AIR && c1.id == c.id) {
                                     c1.meshed[indexOfSide] = true;
                                     //System.out.println(c1 + " at " + c1.x + ", " + c1.y + ", " + c1.z + " can be added z+");
                                     offZ++;
@@ -521,7 +530,7 @@ public class Chunk extends AbstractControl {
                                         for (int k = startZ; k < startZ + offZ; k++) {
                                             c1 = getCell(startX + offX, startY, k);
 
-                                            if (c1 == null || c1.meshed[indexOfSide] || c1.id == CellId.AIR || c1.id != c.id || !c1.sides[indexOfSide]) {
+                                            if (c1 == null || c1.meshed[indexOfSide] || c1.id == CellId.ID_AIR || c1.id != c.id || !c1.sides[indexOfSide]) {
                                                 done = true;
                                                 break;
                                             }
@@ -541,7 +550,7 @@ public class Chunk extends AbstractControl {
                                         for (int k = startZ; k < startZ + offZ; k++) {
                                             c1 = getCell(startX, startY, k);
 
-                                            if (c1 == null || c1.meshed[indexOfSide] || c1.id == CellId.AIR || c1.id != c.id || !c1.sides[indexOfSide]) {
+                                            if (c1 == null || c1.meshed[indexOfSide] || c1.id == CellId.ID_AIR || c1.id != c.id || !c1.sides[indexOfSide]) {
                                                 done = true;
                                                 startX++;
                                                 offX--;

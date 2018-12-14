@@ -32,5 +32,6 @@ public class Reference extends AbstractAppState {
 
         main.getRootNode().attachChild(terrainNode);
         //mat.getAdditionalRenderState().setWireframe(true);
-}
+
+    }
 }

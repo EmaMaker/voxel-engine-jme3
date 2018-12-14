@@ -11,7 +11,7 @@ import com.jme3.math.ColorRGBA;
 import com.jme3.renderer.RenderManager;
 import com.jme3.system.AppSettings;
 import java.io.File;
-import mygame.block.TextureOffsets;
+import mygame.block.TextureManager;
 import mygame.control.PlayerControlState;
 import mygame.world.WorldProvider;
 
@@ -45,7 +45,7 @@ public class Main extends SimpleApplication {
         stateManager.attach(new PlayerControlState());
         stateManager.attach(new GuiManager());
         stateManager.attach(new WorldProvider());
-        stateManager.attach(new TextureOffsets());
+        stateManager.attach(new TextureManager());
         
         stateManager.getState(PlayerControlState.class).setEnabled(true);
         

@@ -18,7 +18,7 @@ import mygame.utils.Reference;
 
 public class PlayerControlState extends AbstractAppState implements ActionListener {
 
-    public Vector3f respawnPoint = new Vector3f(8, 16, 8);
+    public Vector3f respawnPoint = new Vector3f(8, 8, 8);
 
     Main app;
 

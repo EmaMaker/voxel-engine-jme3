@@ -15,11 +15,11 @@ import com.jme3.input.controls.AnalogListener;
 import com.jme3.input.controls.KeyTrigger;
 import com.jme3.input.controls.MouseAxisTrigger;
 import com.jme3.input.controls.MouseButtonTrigger;
-import com.jme3.math.Ray;
 import com.jme3.math.Vector3f;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.ArrayList;
+import java.util.Random;
 import mygame.block.CellId;
 import mygame.Main;
 import mygame.block.Cell;
@@ -47,7 +47,7 @@ public class ControlState extends AbstractAppState implements ActionListener, An
     Main app;
     WorldProvider prov;
 
-    public CellId currentBlockId = CellId.DIRT;
+    public int currentBlockId = CellId.ID_DIRT;
     public float currentBlockNum = 1;
 
     //used to know the block name
@@ -63,7 +63,7 @@ public class ControlState extends AbstractAppState implements ActionListener, An
         blockName = new BitmapText(this.app.getGuiFont(), false);
         this.app.getGuiNode().attachChild(blockName);
         prov = stateManager.getState(WorldProvider.class);
-        updateIds();
+        //updateIds();
 
         app.getInputManager().addMapping("place", new MouseButtonTrigger(MouseInput.BUTTON_LEFT));
         app.getInputManager().addMapping("remove", new MouseButtonTrigger(MouseInput.BUTTON_RIGHT));
@@ -113,9 +113,9 @@ public class ControlState extends AbstractAppState implements ActionListener, An
         }
     }
 
-    public void updateIds() {
+    /*public void updateIds() {
         currentBlockId = CellId.values()[(int) currentBlockNum];
-    }
+    }*/
 
     @Override
     public void onAnalog(String name, float value, float tpf) {
@@ -152,7 +152,7 @@ public class ControlState extends AbstractAppState implements ActionListener, An
                 debug("!===========================================!");
                 break;
 
-            case "changeBlock+":
+            /*case "changeBlock+":
                 if (currentBlockNum < CellId.values().length - 1) {
                     currentBlockNum += 0.35;
                     updateIds();
@@ -163,13 +163,19 @@ public class ControlState extends AbstractAppState implements ActionListener, An
                     currentBlockNum -= 0.35;
                     updateIds();
                 }
-                break;
+                break;*/
         }
     }
 
     public void breakBlock() {
 
-        debug("|===========================================|");
+        Random rand = new Random();
+        Vector3f v = null;
+        Cell c = null;
+
+        
+                    
+        /*debug("|===========================================|");
         results.clear();
         Ray ray = new Ray(app.getCamera().getLocation(), app.getCamera().getDirection());
         Reference.terrainNode.collideWith(ray, results);
@@ -177,15 +183,17 @@ public class ControlState extends AbstractAppState implements ActionListener, An
             Vector3f pt = results.getClosestCollision().getContactPoint();
             pt = fixCoords(pt);
             System.out.println(pt + ":\n" + findNearestVertices(pt) + "\n");
-            Cell c = prov.getCellFromVertices(findNearestVertices(pt));
-            if (c != null) {
+            Cell c =  prov.getCellFromVertices(findNearestVertices(pt));
+            if(c != null){
                 c.setId(CellId.AIR);
-                c.chunk.markForUpdate(true);
-                //c.chunk.refreshPhysics();
+                c.chunk.toBeSet=true;
+                c.chunk.processCells();
+                c.chunk.unload();
+                c.chunk.refreshPhysics();
             }
             debug("|===========================================|");
             breakStep = 0;
-        }
+        }*/
     }
 
     public void placeblock() {

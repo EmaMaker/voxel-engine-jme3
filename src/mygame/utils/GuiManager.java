@@ -55,9 +55,9 @@ public class GuiManager extends AbstractAppState {
             playerPos.setLocalTranslation(main.getSettings().getWidth() - playerPos.getLineWidth() * 1.1f, main.getSettings().getHeight() - playerPos.getLineHeight(), 0);
         }
         
-        blockName.setText(controlState.currentBlockId.toString());
+       /* blockName.setText(String.valueOf(curr));
         blockName.setSize(main.getGuiFont().getCharSet().getRenderedSize());
-        blockName.setLocalTranslation(main.getSettings().getWidth() - blockName.getLineWidth() * 1.2f, 0 + blockName.getLineHeight() * 1.2f, 0);
+        blockName.setLocalTranslation(main.getSettings().getWidth() - blockName.getLineWidth() * 1.2f, 0 + blockName.getLineHeight() * 1.2f, 0);*/
 
 
         if (Debugger.debugging) {
