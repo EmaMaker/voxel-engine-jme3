@@ -20,8 +20,8 @@ import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.ArrayList;
 import java.util.Random;
+import mygame.VoxelEngine;
 import mygame.block.CellId;
-import mygame.Main;
 import mygame.block.Cell;
 import static mygame.utils.Debugger.debug;
 import mygame.world.WorldProvider;
@@ -44,7 +44,7 @@ public class ControlState extends AbstractAppState implements ActionListener, An
     byte placeStep = 0;
     byte breakStep = 0;
 
-    Main app;
+    VoxelEngine engine;
     WorldProvider prov;
 
     public int currentBlockId = CellId.ID_DIRT;
@@ -53,16 +53,15 @@ public class ControlState extends AbstractAppState implements ActionListener, An
     //used to know the block name
     public static BitmapText blockName;
 
-    AppStateManager manager;
     CollisionResults results = new CollisionResults();
 
     @Override
     public void initialize(AppStateManager stateManager, Application app) {
-        manager = stateManager;
-        this.app = (Main) app;
-        blockName = new BitmapText(this.app.getGuiFont(), false);
-        this.app.getGuiNode().attachChild(blockName);
         prov = stateManager.getState(WorldProvider.class);
+        engine = stateManager.getState(VoxelEngine.class);
+        
+        blockName = new BitmapText(this.engine.getGuiFont(), false);
+        this.engine.getGuiNode().attachChild(blockName);
         //updateIds();
 
         app.getInputManager().addMapping("place", new MouseButtonTrigger(MouseInput.BUTTON_LEFT));
@@ -102,13 +101,13 @@ public class ControlState extends AbstractAppState implements ActionListener, An
         } else if (name.equals("remove") && !keyPressed) {
             breakStep = 25;
         } else if (name.equals("camera") && keyPressed) {
-            if (this.app.getStateManager().getState(PlayerControlState.class).isEnabled()) {
-                this.app.getStateManager().getState(PlayerControlState.class).stop();
-                this.app.getStateManager().getState(PlayerControlState.class).setEnabled(false);
+            if (this.engine.getStateManager().getState(PlayerControlState.class).isEnabled()) {
+                this.engine.getStateManager().getState(PlayerControlState.class).stop();
+                this.engine.getStateManager().getState(PlayerControlState.class).setEnabled(false);
             } else {
-                this.app.getStateManager().getState(PlayerControlState.class).setEnabled(true);
-                this.app.getStateManager().getState(PlayerControlState.class).speed = .2f;
-                this.app.getStateManager().getState(PlayerControlState.class).strafeSpeed = .35f;
+                this.engine.getStateManager().getState(PlayerControlState.class).setEnabled(true);
+                this.engine.getStateManager().getState(PlayerControlState.class).speed = .2f;
+                this.engine.getStateManager().getState(PlayerControlState.class).strafeSpeed = .35f;
             }
         }
     }

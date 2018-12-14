@@ -11,7 +11,7 @@ import com.jme3.app.state.AppStateManager;
 import com.jme3.font.BitmapText;
 import com.jme3.math.ColorRGBA;
 import mygame.control.ControlState;
-import mygame.Main;
+import mygame.VoxelEngine;
 import mygame.control.PlayerControlState;
 
 public class GuiManager extends AbstractAppState {
@@ -20,14 +20,14 @@ public class GuiManager extends AbstractAppState {
     BitmapText debugging;
     BitmapText playerPos;
 
-    Main main;
+    VoxelEngine main;
     ControlState controlState;
     PlayerControlState playerState;
 
     @Override
     public void initialize(AppStateManager stateManager, Application app) {
         super.initialize(stateManager, app);
-        main = (Main) app;
+        main = stateManager.getState(VoxelEngine.class);
 
         controlState = main.getStateManager().getState(ControlState.class);
         playerState = main.getStateManager().getState(PlayerControlState.class);

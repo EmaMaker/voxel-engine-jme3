@@ -45,6 +45,8 @@ public class WorldProvider extends AbstractAppState {
         super.initialize(stateManager, app);
         this.app = (Main) app;
         playerControl = this.app.getStateManager().getState(PlayerControlState.class);
+
+        preload();
     }
 
     @Override
@@ -63,32 +65,12 @@ public class WorldProvider extends AbstractAppState {
     }
 
     public void preload() {
-        Reference.executor.submit(chunkManager);
-
         if (TESTING) {
             updateChunks = false;
-            //PUT TEST CODE IN HERE
 
-            int i = 19, j = 19;
-                
-                    chunks[MathHelper.flat3Dto1D(i, 0, j)] = new Chunk(i, 0, j);
-                    chunks[MathHelper.flat3Dto1D(i, 0, j)].genTerrain();
-                    chunks[MathHelper.flat3Dto1D(i, 0, j)].processCells();
-                    chunks[MathHelper.flat3Dto1D(i, 0, j)].load();
-                    chunks[MathHelper.flat3Dto1D(i, 0, j)].loadPhysics();
-
-            /*for (int i = 0; i < 20; i++) {
-                for (int j = 0; j < 20; j++) {
-                    chunks[MathHelper.flat3Dto1D(i, 0, j)] = new Chunk(i, 0, j);
-                    chunks[MathHelper.flat3Dto1D(i, 0, j)].genTerrain();
-                    chunks[MathHelper.flat3Dto1D(i, 0, j)].processCells();
-                    chunks[MathHelper.flat3Dto1D(i, 0, j)].load();
-                    //chunks[MathHelper.flat3Dto1D(i, 0, j)].loadPhysics();
-                    System.out.println(i + ",0,"+j);
-                }
-            }*/
+        } else {
+            Reference.executor.submit(chunkManager);
         }
-
     }
 
     public void setCell(Cell c, int id) {
@@ -188,63 +170,65 @@ public class WorldProvider extends AbstractAppState {
         return null;
     }
 
+    @Override
+    public void cleanup() {
+        updateChunks = false;
+        Reference.executor.shutdownNow();
+        
+    }
+    
     final Callable<Object> chunkManager = new Callable<Object>() {
 
         File f;
         List<String> lines;
 
         String[] datas = new String[4];
-        int j =0;
+        int j = 0;
+
         @Override
         public Object call() {
             while (updateChunks) {
                 for (int i = pX - renderDistance; i < pX + renderDistance; i++) {
-                    //for (int j = pY - renderDistance; j < pY + renderDistance; j++) {
-                        for (int k = pZ - renderDistance; k < pZ + renderDistance; k++) {
+                    for (int k = pZ - renderDistance; k < pZ + renderDistance; k++) {
 
-                            if (i >= 0 && i < MAXX && j >= 0 && j < MAXY && k >= 0 && k < MAXZ) {
-                                
-                                
-                                if (chunks[MathHelper.flat3Dto1D(i, j, k)] != null) {
-                                    chunks[MathHelper.flat3Dto1D(i, j, k)].processCells();
-                                } else {
-                                    chunks[MathHelper.flat3Dto1D(i, j, k)] = new Chunk(i, j, k);
-                                    f = Paths.get(System.getProperty("user.dir") + "/chunks/" + i + "-" + j + "-" + k + ".chunk").toFile();
+                        if (i >= 0 && i < MAXX && j >= 0 && j < MAXY && k >= 0 && k < MAXZ) {
 
-                                System.out.println(i + "-" + j + "-" + k);
-                                    if (f.exists()) {
-                                        if (!(f.length() == 0)) {
-                                            try {
+                            if (chunks[MathHelper.flat3Dto1D(i, j, k)] != null) {
+                                chunks[MathHelper.flat3Dto1D(i, j, k)].processCells();
+                            } else {
+                                chunks[MathHelper.flat3Dto1D(i, j, k)] = new Chunk(i, j, k);
+                                f = Paths.get(System.getProperty("user.dir") + "/chunks/" + i + "-" + j + "-" + k + ".chunk").toFile();
 
-                                                lines = Files.readAllLines(f.toPath());
+                                if (f.exists()) {
+                                    if (!(f.length() == 0)) {
+                                        try {
 
-                                                for (String s : lines) {
-                                                    datas = s.split(",");
-                                                    chunks[MathHelper.flat3Dto1D(i, j, k)].setCell(Integer.valueOf(datas[0]), Integer.valueOf(datas[1]), Integer.valueOf(datas[2]), Integer.valueOf(datas[3]));
-                                                }
+                                            lines = Files.readAllLines(f.toPath());
 
-                                                f.delete();
-
-                                            } catch (Exception e) {
-                                                e.printStackTrace();
+                                            for (String s : lines) {
+                                                datas = s.split(",");
+                                                chunks[MathHelper.flat3Dto1D(i, j, k)].setCell(Integer.valueOf(datas[0]), Integer.valueOf(datas[1]), Integer.valueOf(datas[2]), Integer.valueOf(datas[3]));
                                             }
 
-                                        } else {
-                                            //if (j == 0) {
-                                                chunks[MathHelper.flat3Dto1D(i, j, k)].genTerrain();
-                                            //}
-                                        }
-                                    } else {
-                                        if (j == 0) {
-                                            chunks[MathHelper.flat3Dto1D(i, j, k)].genTerrain();
+                                            f.delete();
+
+                                        } catch (Exception e) {
+                                            e.printStackTrace();
                                         }
 
-                                        //System.out.println("Generated chunk at " + i + ", " + j + ", " + k);
+                                    } else {
+                                        //if (j == 0) {
+                                        chunks[MathHelper.flat3Dto1D(i, j, k)].genTerrain();
+                                        //}
+                                    }
+                                } else {
+                                    if (j == 0) {
+                                        chunks[MathHelper.flat3Dto1D(i, j, k)].genTerrain();
                                     }
                                 }
                             }
                         }
-                    //}
+                    }
                 }
             }
             return null;
