@@ -1,4 +1,4 @@
-package mygame.block;
+package voxelengine.block;
 
 public class CellId {
     

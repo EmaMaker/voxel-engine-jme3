@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package mygame;
+package voxelengine;
 
 import com.jme3.app.Application;
 import com.jme3.app.state.AbstractAppState;
@@ -17,12 +17,12 @@ import com.jme3.renderer.Camera;
 import com.jme3.scene.Node;
 import com.jme3.system.AppSettings;
 import java.io.File;
-import mygame.block.TextureManager;
-import mygame.control.ControlState;
-import mygame.control.PlayerControlState;
-import mygame.utils.GuiManager;
-import mygame.utils.Reference;
-import mygame.world.WorldProvider;
+import voxelengine.block.TextureManager;
+import voxelengine.control.ControlState;
+import voxelengine.control.PlayerControlState;
+import voxelengine.utils.GuiManager;
+import voxelengine.utils.Reference;
+import voxelengine.world.WorldProvider;
 
 /**
  *
@@ -67,8 +67,8 @@ public class VoxelEngine extends AbstractAppState{
         stateManager.attach(new ControlState());
         stateManager.attach(new PlayerControlState());
         stateManager.attach(new GuiManager());
-        stateManager.attach(new WorldProvider());
         stateManager.attach(new TextureManager());
+        stateManager.attach(new WorldProvider());
         
         stateManager.getState(PlayerControlState.class).setEnabled(true);
         

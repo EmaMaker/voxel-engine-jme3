@@ -1,4 +1,4 @@
-package mygame.utils.math;
+package voxelengine.utils.math;
 
 import java.util.Random;
 

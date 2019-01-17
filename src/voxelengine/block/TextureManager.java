@@ -1,4 +1,4 @@
-package mygame.block;
+package voxelengine.block;
 
 import com.jme3.app.Application;
 import com.jme3.app.state.AbstractAppState;
@@ -8,8 +8,8 @@ import com.jme3.texture.Texture;
 import com.jme3.texture.TextureArray;
 import java.util.ArrayList;
 import java.util.List;
-import mygame.Main;
-import mygame.utils.Reference;
+import voxelengine.Main;
+import voxelengine.utils.Reference;
 
 public class TextureManager extends AbstractAppState {
 
@@ -41,9 +41,6 @@ public class TextureManager extends AbstractAppState {
         array.setWrap(Texture.WrapMode.Repeat);
         
         Reference.mat.setTexture("ColorMap", array);
-        
-        
-        
         
         setIdTexture(CellId.ID_GRASS, OFF_GRASS_SIDE, OFF_GRASS_SIDE, OFF_GRASS_SIDE, OFF_GRASS_SIDE, OFF_GRASS_TOP, OFF_DIRT);
         setIdTexture(CellId.ID_DIRT, OFF_DIRT, OFF_DIRT, OFF_DIRT, OFF_DIRT, OFF_DIRT, OFF_DIRT);

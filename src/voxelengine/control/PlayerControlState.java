@@ -1,4 +1,4 @@
-package mygame.control;
+package voxelengine.control;
 
 import com.jme3.app.Application;
 import com.jme3.app.state.AbstractAppState;
@@ -13,8 +13,8 @@ import com.jme3.material.Material;
 import com.jme3.math.Vector3f;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.shape.Box;
-import mygame.Main;
-import mygame.utils.Reference;
+import voxelengine.Main;
+import voxelengine.utils.Reference;
 
 public class PlayerControlState extends AbstractAppState implements ActionListener {
 
@@ -31,7 +31,8 @@ public class PlayerControlState extends AbstractAppState implements ActionListen
     boolean left = false, right = false, up = false, down = false;
     Vector3f camDir = new Vector3f();
     Vector3f camLeft = new Vector3f();
-
+    Vector3f camPos = new Vector3f();
+            
     float speed = .4f, strafeSpeed = .2f, headHeight = 3f;
 
     @Override
@@ -126,7 +127,8 @@ public class PlayerControlState extends AbstractAppState implements ActionListen
         }
         playerControl.setWalkDirection(walkDirection);
 
-        app.getCamera().setLocation(new Vector3f(playerModel.getLocalTranslation().x, playerModel.getLocalTranslation().y + headHeight, playerModel.getLocalTranslation().z));
+        camPos.set(playerModel.getLocalTranslation().x, playerModel.getLocalTranslation().y + headHeight, playerModel.getLocalTranslation().z);
+        app.getCamera().setLocation(camPos);
 
         /*END WALKING UTILS*/
     }

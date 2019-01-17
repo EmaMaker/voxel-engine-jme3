@@ -3,16 +3,16 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package mygame.utils;
+package voxelengine.utils;
 
 import com.jme3.app.Application;
 import com.jme3.app.state.AbstractAppState;
 import com.jme3.app.state.AppStateManager;
 import com.jme3.font.BitmapText;
 import com.jme3.math.ColorRGBA;
-import mygame.control.ControlState;
-import mygame.VoxelEngine;
-import mygame.control.PlayerControlState;
+import voxelengine.control.ControlState;
+import voxelengine.VoxelEngine;
+import voxelengine.control.PlayerControlState;
 
 public class GuiManager extends AbstractAppState {
 
@@ -60,7 +60,7 @@ public class GuiManager extends AbstractAppState {
         blockName.setLocalTranslation(main.getSettings().getWidth() - blockName.getLineWidth() * 1.2f, 0 + blockName.getLineHeight() * 1.2f, 0);*/
 
 
-        if (Debugger.debugging) {
+        if (Reference.debugging) {
             debugging.setText("Debugging" + "\n\n");
             debugging.setColor(ColorRGBA.Red);
             debugging.setSize(main.getGuiFont().getCharSet().getRenderedSize());

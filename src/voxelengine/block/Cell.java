@@ -1,43 +1,39 @@
-package mygame.block;
+package voxelengine.block;
 
 import java.io.Serializable;
-import mygame.utils.MathHelper;
-import mygame.world.Chunk;
-import static mygame.utils.Reference.chunkSize;
-import mygame.world.WorldProvider;
+import voxelengine.utils.math.MathHelper;
+import voxelengine.world.Chunk;
+import static voxelengine.utils.Reference.chunkSize;
+import voxelengine.world.WorldProvider;
 
 public class Cell implements Serializable {
 
     //keeping track of free sides
-    public transient boolean[] sides = {false, false, false, false, false, false};  //west, east, north, south, top, bottom
-    public transient boolean[] meshed = {false, false, false, false, false, false}; //west, east, north, south, top, bottom
-    public transient int[] offsets = new int[6]; //west, east, north, south, top, bottom
+    public boolean[] sides = {false, false, false, false, false, false};  //west, east, north, south, top, bottom
+    public boolean[] meshed = {false, false, false, false, false, false}; //west, east, north, south, top, bottom
+    public int[] offsets = new int[6]; //west, east, north, south, top, bottom
 
-    public transient Chunk chunk;
+    public Chunk chunk;
     public int x, y, z; //the coords RELATIVE inside the chunk
     public int chunkX, chunkY, chunkZ; // the chunk's coords
     public int worldX, worldY, worldZ; //the ABSOLUTE coords in the world
 
     public int id;
 
-    public Cell(int id, int x, int y, int z, int chunkX, int chunkY, int chunkZ) {
-        this(id, x, y, z, chunkX, chunkY, chunkZ, (chunkX * chunkSize) + x, (chunkY * chunkSize) + y, (chunkZ * chunkSize) + z);
-    }
-
-    public Cell(int id, int x, int y, int z, int chunkX, int chunkY, int chunkZ, int worldX, int worldY, int worldZ) {
+    public Cell(int id, int x, int y, int z, Chunk c) {
         this.x = x;
         this.y = y;
         this.z = z;
 
-        this.chunkX = chunkX;
-        this.chunkY = chunkY;
-        this.chunkZ = chunkZ;
+        this.chunkX = c.x;
+        this.chunkY = c.y;
+        this.chunkZ = c.z;
 
-        this.worldX = worldX;
-        this.worldY = worldY;
-        this.worldZ = worldZ;
+        this.worldX = chunkX * chunkSize + x;
+        this.worldY = chunkY * chunkSize + y;
+        this.worldZ = chunkZ * chunkSize + z;
 
-        this.chunk = WorldProvider.chunks[MathHelper.flat3Dto1D(chunkX, chunkY, chunkZ)];
+        this.chunk = c;
         setId(id);
     }
 
@@ -96,7 +92,9 @@ public class Cell implements Serializable {
 
     public void setId(int id) {
         this.id = id;
-        
-        offsets = TextureManager.textures.get(id);
+
+        if (id != CellId.ID_AIR) {
+            offsets = TextureManager.textures.get(id);
+        }
     }
 }

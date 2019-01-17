@@ -1,8 +1,8 @@
-package mygame.utils;
+package voxelengine.utils.math;
 
 import com.jme3.math.Vector3f;
 import java.math.BigDecimal;
-import static mygame.utils.Reference.chunkSize;
+import static voxelengine.utils.Reference.chunkSize;
 
 public class MathHelper {
 

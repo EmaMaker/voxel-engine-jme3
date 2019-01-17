@@ -1,7 +1,7 @@
-package mygame.world;
+package voxelengine.world;
 
 import com.jme3.bounding.BoundingSphere;
-import mygame.utils.Reference;
+import voxelengine.utils.Reference;
 import com.jme3.bullet.BulletAppState;
 import com.jme3.bullet.control.RigidBodyControl;
 import com.jme3.bullet.util.CollisionShapeFactory;
@@ -14,33 +14,31 @@ import com.jme3.scene.control.AbstractControl;
 import java.io.File;
 import java.io.PrintWriter;
 import java.nio.file.Paths;
-import mygame.block.Cell;
-import mygame.block.CellId;
-import mygame.utils.MathHelper;
-import static mygame.utils.Reference.chunkSize;
-import mygame.utils.math.SimplexNoise;
-import static mygame.world.WorldProvider.pX;
-import static mygame.world.WorldProvider.pY;
-import static mygame.world.WorldProvider.pZ;
-import static mygame.world.WorldProvider.renderDistance;
+import voxelengine.block.Cell;
+import voxelengine.block.CellId;
+import voxelengine.utils.math.MathHelper;
+import static voxelengine.utils.Reference.chunkSize;
+import voxelengine.utils.math.SimplexNoise;
+import static voxelengine.world.WorldProvider.pX;
+import static voxelengine.world.WorldProvider.pY;
+import static voxelengine.world.WorldProvider.pZ;
+import static voxelengine.world.WorldProvider.renderDistance;
 
 public class Chunk extends AbstractControl {
 
-    transient boolean toBeSet = true;
-    transient boolean loaded = false;
-    transient boolean phyLoaded = false;
+    boolean toBeSet = true;
+    boolean loaded = false;
+    boolean phyLoaded = false;
 
     //the chunk coords in the world
     public int x, y, z;
 
     //the cells contained in the chunk, as an arraylist. using a three-dimensional array would cause to json-serialization to retrive StackOverflowException
-    //public ArrayList<Cell> cells = new ArrayList<>();
     public Cell[] cells = new Cell[chunkSize * chunkSize * chunkSize];
 
     public ChunkMesh chunkMesh = new ChunkMesh(this);
+    public Geometry chunkGeom;
     Vector3f pos = new Vector3f();
-    Geometry chunkGeom;
-    long t;
 
     public Chunk() {
         this(0, 0, 0);
@@ -61,25 +59,19 @@ public class Chunk extends AbstractControl {
 
     public void processCells() {
         if (toBeSet) {
+            chunkMesh.clearAll();
 
-            //t = System.currentTimeMillis();
             for (Cell cell : cells) {
                 if (cell != null) {
                     cell.update();
                 }
             }
-
-            dumbGreedy();
+            
+            dumbGreedy(); /*SOME BIG BUG OVER HERE!!!*/
             chunkMesh.set();
-
-            chunkMesh.indicesList.clear();
-            chunkMesh.verticesList.clear();
-            chunkMesh.textureList.clear();
-            //this.unload();
 
             toBeSet = false;
             loaded = false;
-            //System.out.println("Updating " + this + " took " + (System.currentTimeMillis() - t) + " ms");
         }
 
     }
@@ -140,7 +132,17 @@ public class Chunk extends AbstractControl {
 
     }
 
+    public void genCube() {
+        for (int i = 0; i < chunkSize; i++) {
+            for (int j = 0; j < chunkSize; j++) {
+                for (int k = 0; k < chunkSize; k++) {
+                    setCell(i, j, k, CellId.ID_GRASS);
+                }
+            }
+        }
+    }
     //System.out.println(Math.abs(SimplexNoise.noise((x*chunkSize+i)*0.025, (z*chunkSize+k)*0.025)));
+
     public void genTerrain() {
         for (int i = 0; i < chunkSize; i++) {
             for (int k = 0; k < chunkSize; k++) {
@@ -149,7 +151,6 @@ public class Chunk extends AbstractControl {
                 }
             }
         }
-
         toBeSet = true;
     }
 
@@ -159,12 +160,6 @@ public class Chunk extends AbstractControl {
             return cells[MathHelper.flat3Dto1D(i, j, k)];
         }
         return null;
-        /*for (Cell c : cells) { if(c!=null){
-            if (c.x == x && c.y == y && c.z == z) {
-                return c;
-            }
-        }
-        return null;*/
     }
 
     //sets the cells index at x,y,z to the given ID, if index is null, it creates a new cell
@@ -174,7 +169,7 @@ public class Chunk extends AbstractControl {
         if (cells[MathHelper.flat3Dto1D(i, j, k)] != null) {
             cells[MathHelper.flat3Dto1D(i, j, k)].setId(id);
         } else {
-            cells[MathHelper.flat3Dto1D(i, j, k)] = new Cell(id, i, j, k, x, y, z);
+            cells[MathHelper.flat3Dto1D(i, j, k)] = new Cell(id, i, j, k, this);
         }
         toBeSet = true;
     }
@@ -232,11 +227,12 @@ public class Chunk extends AbstractControl {
         }
         return true;
     }
-    
-    public void markForUpdate(boolean b){
-        toBeSet =  b;
+
+    public void markForUpdate(boolean b) {
+        toBeSet = b;
     }
 
+    /*THIS CODE HIS SUPER UGLY AND IT'S NOT NEEDED TO BE SO LONG. OH, IT'S SUPER BUGGED TOO: IT MAKES EVERYTHING CRASH, DAMN WHILE LOOPS*/
     public void dumbGreedy() {
         dumbGreedyWestEast(false);
         dumbGreedyWestEast(true);
@@ -342,10 +338,10 @@ public class Chunk extends AbstractControl {
                     i2 = chunkMesh.addVertex(v2);
                     i3 = chunkMesh.addVertex(v3);
 
-                    chunkMesh.textureList.add(i0, new Vector3f(0, 0, c.offsets[indexOfSide]));
-                    chunkMesh.textureList.add(i1, new Vector3f(0, offY, c.offsets[indexOfSide]));
-                    chunkMesh.textureList.add(i2, new Vector3f(offZ, offY, c.offsets[indexOfSide]));
-                    chunkMesh.textureList.add(i3, new Vector3f(offZ, 0, c.offsets[indexOfSide]));
+                    chunkMesh.addTextureVertex(i0, new Vector3f(0, 0, c.offsets[indexOfSide]));
+                    chunkMesh.addTextureVertex(i1, new Vector3f(0, offY, c.offsets[indexOfSide]));
+                    chunkMesh.addTextureVertex(i2, new Vector3f(offZ, offY, c.offsets[indexOfSide]));
+                    chunkMesh.addTextureVertex(i3, new Vector3f(offZ, 0, c.offsets[indexOfSide]));
 
                     if (backface) {
                         chunkMesh.indicesList.add(i0);
@@ -461,10 +457,10 @@ public class Chunk extends AbstractControl {
                     i2 = chunkMesh.addVertex(v2);
                     i3 = chunkMesh.addVertex(v3);
 
-                    chunkMesh.textureList.add(i0, new Vector3f(0, 0, c.offsets[indexOfSide]));
-                    chunkMesh.textureList.add(i1, new Vector3f(0, offY, c.offsets[indexOfSide]));
-                    chunkMesh.textureList.add(i2, new Vector3f(offX, offY, c.offsets[indexOfSide]));
-                    chunkMesh.textureList.add(i3, new Vector3f(offX, 0, c.offsets[indexOfSide]));
+                    chunkMesh.addTextureVertex(i0, new Vector3f(0, 0, c.offsets[indexOfSide]));
+                    chunkMesh.addTextureVertex(i1, new Vector3f(0, offY, c.offsets[indexOfSide]));
+                    chunkMesh.addTextureVertex(i2, new Vector3f(offX, offY, c.offsets[indexOfSide]));
+                    chunkMesh.addTextureVertex(i3, new Vector3f(offX, 0, c.offsets[indexOfSide]));
 
                     if (backface) {
                         chunkMesh.indicesList.add(i0);
@@ -580,10 +576,10 @@ public class Chunk extends AbstractControl {
                     i2 = chunkMesh.addVertex(v2);
                     i3 = chunkMesh.addVertex(v3);
 
-                    chunkMesh.textureList.add(i0, new Vector3f(0, 0, c.offsets[indexOfSide]));
-                    chunkMesh.textureList.add(i1, new Vector3f(0, offX, c.offsets[indexOfSide]));
-                    chunkMesh.textureList.add(i2, new Vector3f(offZ, offX, c.offsets[indexOfSide]));
-                    chunkMesh.textureList.add(i3, new Vector3f(offZ, 0, c.offsets[indexOfSide]));
+                    chunkMesh.addTextureVertex(i0, new Vector3f(0, 0, c.offsets[indexOfSide]));
+                    chunkMesh.addTextureVertex(i1, new Vector3f(0, offX, c.offsets[indexOfSide]));
+                    chunkMesh.addTextureVertex(i2, new Vector3f(offZ, offX, c.offsets[indexOfSide]));
+                    chunkMesh.addTextureVertex(i3, new Vector3f(offZ, 0, c.offsets[indexOfSide]));
 
                     if (backface) {
                         chunkMesh.indicesList.add(i0);

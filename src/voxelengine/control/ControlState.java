@@ -1,7 +1,6 @@
-package mygame.control;
+package voxelengine.control;
 
-import mygame.utils.Debugger;
-import mygame.utils.Reference;
+import voxelengine.utils.Reference;
 import com.jme3.app.Application;
 import com.jme3.app.state.AbstractAppState;
 import com.jme3.app.state.AppStateManager;
@@ -15,16 +14,16 @@ import com.jme3.input.controls.AnalogListener;
 import com.jme3.input.controls.KeyTrigger;
 import com.jme3.input.controls.MouseAxisTrigger;
 import com.jme3.input.controls.MouseButtonTrigger;
+import com.jme3.math.Ray;
 import com.jme3.math.Vector3f;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.ArrayList;
-import java.util.Random;
-import mygame.VoxelEngine;
-import mygame.block.CellId;
-import mygame.block.Cell;
-import static mygame.utils.Debugger.debug;
-import mygame.world.WorldProvider;
+import voxelengine.VoxelEngine;
+import voxelengine.block.Cell;
+import voxelengine.block.CellId;
+import static voxelengine.utils.Reference.debug;
+import voxelengine.world.WorldProvider;
 
 public class ControlState extends AbstractAppState implements ActionListener, AnalogListener {
 
@@ -32,14 +31,6 @@ public class ControlState extends AbstractAppState implements ActionListener, An
 
     DecimalFormat df = new DecimalFormat();
     DecimalFormatSymbols unusualSymbols = new DecimalFormatSymbols();
-
-    /*Possible values:
-    0-Pos X
-    1-Pos Z
-    2-Neg X
-    3-Neg Z
-     */
-    public byte pointingTo = 0;
 
     byte placeStep = 0;
     byte breakStep = 0;
@@ -55,11 +46,13 @@ public class ControlState extends AbstractAppState implements ActionListener, An
 
     CollisionResults results = new CollisionResults();
 
+    Vector3f top1 = new Vector3f(), top2 = new Vector3f(), top3 = new Vector3f(), top4 = new Vector3f();
+
     @Override
     public void initialize(AppStateManager stateManager, Application app) {
         prov = stateManager.getState(WorldProvider.class);
         engine = stateManager.getState(VoxelEngine.class);
-        
+
         blockName = new BitmapText(this.engine.getGuiFont(), false);
         this.engine.getGuiNode().attachChild(blockName);
         //updateIds();
@@ -93,7 +86,7 @@ public class ControlState extends AbstractAppState implements ActionListener, An
         if (name.equals("boundingBox") && keyPressed) {
             Reference.main.getStateManager().getState(BulletAppState.class).setDebugEnabled(!Reference.main.getStateManager().getState(BulletAppState.class).isDebugEnabled());
         } else if (name.equals("debug") && keyPressed) {
-            Debugger.debugging = !Debugger.debugging;
+            Reference.debugging = !Reference.debugging;
         } else if (name.equals("fastblock") && keyPressed) {
             fastBlock = !fastBlock;
         } else if (name.equals("place") && !keyPressed) {
@@ -115,7 +108,6 @@ public class ControlState extends AbstractAppState implements ActionListener, An
     /*public void updateIds() {
         currentBlockId = CellId.values()[(int) currentBlockNum];
     }*/
-
     @Override
     public void onAnalog(String name, float value, float tpf) {
 
@@ -168,31 +160,32 @@ public class ControlState extends AbstractAppState implements ActionListener, An
 
     public void breakBlock() {
 
-        Random rand = new Random();
-        Vector3f v = null;
-        Cell c = null;
+        /*Random rand = new Random();
+        Cell c = prov.getHighestCellAt(rand.nextInt(chunkSize), rand.nextInt(chunkSize));
+        c.setId(CellId.ID_AIR);
+        c.chunk.markForUpdate(true);
+        c.chunk.processCells();
+        c.chunk.refreshPhysics();*/
 
-        
-                    
-        /*debug("|===========================================|");
-        results.clear();
-        Ray ray = new Ray(app.getCamera().getLocation(), app.getCamera().getDirection());
+        debug("|===========================================|");
+        results = new CollisionResults();
+        Ray ray = new Ray(Reference.main.getCamera().getLocation(), Reference.main.getCamera().getDirection());
         Reference.terrainNode.collideWith(ray, results);
         if (results.getClosestCollision() != null) {
             Vector3f pt = results.getClosestCollision().getContactPoint();
+            System.out.println(pt);
             pt = fixCoords(pt);
             System.out.println(pt + ":\n" + findNearestVertices(pt) + "\n");
-            Cell c =  prov.getCellFromVertices(findNearestVertices(pt));
-            if(c != null){
-                c.setId(CellId.AIR);
-                c.chunk.toBeSet=true;
+            Cell c = prov.getCellFromVertices(findNearestVertices(pt));
+            if (c != null) {
+                c.setId(CellId.ID_AIR);
+                c.chunk.markForUpdate(true);
                 c.chunk.processCells();
-                c.chunk.unload();
                 c.chunk.refreshPhysics();
             }
             debug("|===========================================|");
             breakStep = 0;
-        }*/
+        }
     }
 
     public void placeblock() {
@@ -217,19 +210,15 @@ public class ControlState extends AbstractAppState implements ActionListener, An
 
     //finds the 4 nearest vertices (a face of a cell) in the given chunk relative to the given vector
     public ArrayList<Vector3f> findNearestVertices(Vector3f s) {
-        Vector3f top1 = null, //top right
-                top2 = null, //top left
-                top3 = null, //bottom right
-                top4 = null; //bottom left
         ArrayList<Vector3f> al = new ArrayList<>();
         //al.clear();
 
         //facing ±z
         if (s.z - (int) s.z == 0) {
-            top1 = new Vector3f(((int) s.x) + 1, (int) s.y + 1, (int) s.z);
-            top2 = new Vector3f(top1.x - 1, top1.y, top1.z);
-            top3 = new Vector3f(top1.x, top1.y - 1, top1.z);
-            top4 = new Vector3f(top1.x - 1, top1.y - 1, top1.z);
+            top1.set(((int) s.x) + 1, (int) s.y + 1, (int) s.z);
+            top2.set(top1.x - 1, top1.y, top1.z);
+            top3.set(top1.x, top1.y - 1, top1.z);
+            top4.set(top1.x - 1, top1.y - 1, top1.z);
             debug("Hit ±Z");
             /*debug("Nearest vertex at top-right is at " + top1);
             debug("Nearest vertex at top-left is at " + top2);
@@ -238,10 +227,10 @@ public class ControlState extends AbstractAppState implements ActionListener, An
         } //facing ±y
         else if (s.y - (int) s.y == 0) {
             //only finds the top-right vertex, the others are relative to this
-            top1 = new Vector3f(((int) s.x) + 1, s.y, ((int) s.z) + 1);
-            top2 = new Vector3f(top1.x - 1, top1.y, top1.z);
-            top3 = new Vector3f(top1.x, top1.y, top1.z - 1);
-            top4 = new Vector3f(top1.x - 1, top1.y, top1.z - 1);
+            top1.set(((int) s.x) + 1, s.y, ((int) s.z) + 1);
+            top2.set(top1.x - 1, top1.y, top1.z);
+            top3.set(top1.x, top1.y, top1.z - 1);
+            top4.set(top1.x - 1, top1.y, top1.z - 1);
             /*debug("Hit ±Y");
             debug("Nearest vertex at top-right is at " + top1);
             debug("Nearest vertex at top-left is at " + top2);
@@ -249,10 +238,10 @@ public class ControlState extends AbstractAppState implements ActionListener, An
             debug("Nearest vertex at bottom-left is at " + top4);*/
         } //facing ±x
         else if (s.x - (int) s.x == 0) {
-            top1 = new Vector3f(((int) s.x), ((int) s.y) + 1, (((int) s.z) + 1));
-            top2 = new Vector3f(top1.x, top1.y, top1.z - 1);
-            top3 = new Vector3f(top1.x, top1.y - 1, top1.z);
-            top4 = new Vector3f(top1.x, top1.y - 1, top1.z - 1);
+            top1.set(((int) s.x), ((int) s.y) + 1, (((int) s.z) + 1));
+            top2.set(top1.x, top1.y, top1.z - 1);
+            top3.set(top1.x, top1.y - 1, top1.z);
+            top4.set(top1.x, top1.y - 1, top1.z - 1);
             /*debug("Hit ±X");
             debug("Nearest vertex at top-right is at " + top1);
             debug("Nearest vertex at top-left is at " + top2);

@@ -1,4 +1,4 @@
-package mygame.world;
+package voxelengine.world;
 
 import com.jme3.math.Vector3f;
 import com.jme3.scene.Mesh;
@@ -39,6 +39,12 @@ public class ChunkMesh extends Mesh {
 
     }
 
+    public void clearAll() {
+        indicesList.clear();
+        verticesList.clear();
+        textureList.clear();
+    }
+
     public Vector3f getVectorFor(int x, int y, int z) {
         for (Vector3f v : verticesList) {
             if (v.x == x && v.y == y && v.z == z) {
@@ -51,6 +57,28 @@ public class ChunkMesh extends Mesh {
     public short addVertex(Vector3f v) {
         verticesList.add(v);
         return (short) (verticesList.size() - 1);
+    }
+
+    public void addTextureVertex(short index, Vector3f texVec) {
+        try {
+            textureList.add(index, texVec);
+        } catch (IndexOutOfBoundsException e) {
+            while (textureList.size() < index + 1) {
+                textureList.add(new Vector3f(0, 0, 0));
+                System.out.println(textureList.size());
+            }
+            textureList.add(index, texVec);
+
+        }
+    }
+
+    public boolean contains(Vector3f v) {
+        for (Vector3f v1 : verticesList) {
+            if (v1.x == v.x && v1.y == v.y && v1.z == v.z) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public static ByteBuffer createByteBuffer(Vector3f... data) {
@@ -68,7 +96,7 @@ public class ChunkMesh extends Mesh {
         buff.flip();
         return buff;
     }
-    
+
     public static ShortBuffer createShortBuffer(Vector3f... data) {
         if (data == null) {
             return null;
@@ -84,4 +112,5 @@ public class ChunkMesh extends Mesh {
         buff.flip();
         return buff;
     }
+
 }

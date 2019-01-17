@@ -1,4 +1,4 @@
-package mygame;
+package voxelengine;
 
 import com.jme3.app.SimpleApplication;
 
