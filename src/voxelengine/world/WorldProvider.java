@@ -9,6 +9,7 @@ import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.Callable;
@@ -28,7 +29,8 @@ public class WorldProvider extends AbstractAppState {
     Main app;
     Random rand = new Random();
 
-    public static int pX = 8, pY = 8, pZ = 8; //player coords in chunks
+    //player coords in chunks
+    public static int pX = 8, pY = 8, pZ = 8;
 
     PlayerControlState playerControl;
 
@@ -89,7 +91,7 @@ public class WorldProvider extends AbstractAppState {
                 chunks[MathHelper.flat3Dto1D(chunkX, chunkY, chunkZ)].setCell(plusX, plusY, plusZ, id);
             }
             //unloaded here, so next update cycle it will be showed
-            chunks[MathHelper.flat3Dto1D(chunkX, chunkY, chunkZ)].unload(); 
+            chunks[MathHelper.flat3Dto1D(chunkX, chunkY, chunkZ)].unload();
         }/* else {
             debug("Cell at: " + chunkX * chunkSize + plusX + ", " + chunkY * chunkSize + plusY + ", " + chunkZ * chunkSize + plusZ + " is out of the world");
         }*/
@@ -114,17 +116,43 @@ public class WorldProvider extends AbstractAppState {
         return chunks[MathHelper.flat3Dto1D(chunkX, chunkY, chunkZ)];
     }
 
-    public Cell getCellFromVertices(ArrayList<Vector3f> al) {
+    public Vector3f getCellPosFromVertices(ArrayList<Vector3f> al) {
+        System.out.println(Arrays.toString(al.toArray()));
         Vector3f v = MathHelper.lowestVectorInList(al.get(0), al.get(1), al.get(2), al.get(3));
-        System.out.println(v);
         if (al.get(0).x == al.get(1).x && al.get(0).x == al.get(2).x && al.get(0).x == al.get(3).x) {
-            if (getCell(v) != null || getCell(v).id != CellId.ID_AIR) {
-                return getCell(v);
-            } else {
-                return getCell(v.x - 1, v.y, v.z);
+            if (getCell(v) != null && getCell(v).id != CellId.ID_AIR) {
+                System.out.println(v);
+                return v;
+            }else {
+                v.set((int) (v.x - 1), (int) v.y, (int) v.z);
+                System.out.println(v);
+                return v;
             }
-        }
+        }/*else if (al.get(0).y == al.get(1).y && al.get(0).y == al.get(2).y && al.get(0).y == al.get(3).y) {
+            if (getCell(v) != null && getCell(v).id != CellId.ID_AIR) {
+                System.out.println(v);
+                return v;
+            }else {
+                v.set((int) v.x, (int) (v.y  - 1), (int) v.z);
+                System.out.println(v);
+                return v;
+            }
+        }else if (al.get(0).z== al.get(1).z && al.get(0).z == al.get(2).z && al.get(0).z == al.get(3).z) {
+            if (getCell(v) != null && getCell(v).id != CellId.ID_AIR) {
+                System.out.println(v);
+                return v;
+            }else {
+                v.set((int) v.x, (int) v.y, (int) (v.z - 1));
+                System.out.println(v);
+                return v;
+            }
+        }*/
         return null;
+               
+    }
+    
+    public Cell getCellFromVertices(ArrayList<Vector3f> al){
+        return getCell(getCellPosFromVertices(al));
     }
     
     public Cell getHighestCellAt(int i, int j) {
@@ -135,7 +163,7 @@ public class WorldProvider extends AbstractAppState {
         }
         return null;
     }
-    
+
     @Override
     public void cleanup() {
         updateChunks = false;

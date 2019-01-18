@@ -66,8 +66,9 @@ public class Chunk extends AbstractControl {
                     cell.update();
                 }
             }
-            
-            dumbGreedy(); /*SOME BIG BUG OVER HERE!!!*/
+
+            dumbGreedy();
+            /*SOME BIG BUG OVER HERE!!!*/
             chunkMesh.set();
 
             toBeSet = false;
@@ -137,6 +138,7 @@ public class Chunk extends AbstractControl {
             for (int j = 0; j < chunkSize; j++) {
                 for (int k = 0; k < chunkSize; k++) {
                     setCell(i, j, k, CellId.ID_GRASS);
+                    this.markForUpdate(true);
                 }
             }
         }
@@ -151,7 +153,7 @@ public class Chunk extends AbstractControl {
                 }
             }
         }
-        toBeSet = true;
+        markForUpdate(true);
     }
 
     //returns the Cell object of the cells[i][j][k]. Could return null if index is null
@@ -164,24 +166,22 @@ public class Chunk extends AbstractControl {
 
     //sets the cells index at x,y,z to the given ID, if index is null, it creates a new cell
     public void setCell(int i, int j, int k, int id) {
-        // z*width*height + y*width + x 
-        //System.out.println(i  + ", " + j + ", " + k + ": " + (k*chunkSize*chunkSize)+(j*chunkSize)+i);
         if (cells[MathHelper.flat3Dto1D(i, j, k)] != null) {
             cells[MathHelper.flat3Dto1D(i, j, k)].setId(id);
+            markForUpdate(true);
         } else {
             cells[MathHelper.flat3Dto1D(i, j, k)] = new Cell(id, i, j, k, this);
+            markForUpdate(true);
         }
-        toBeSet = true;
     }
 
     File f;
-
     @Override
     protected void controlUpdate(float tpf) {
         if (Math.sqrt(Math.pow(x - pX, 2) + Math.pow(y - pY, 2) + Math.pow(z - pZ, 2)) < renderDistance) {
             this.load();
             if (Math.sqrt(Math.pow(x - pX, 2) + Math.pow(y - pY, 2) + Math.pow(z - pZ, 2)) <= 1) {
-                this.loadPhysics();
+                this.refreshPhysics();
             } else {
                 this.unloadPhysics();
             }
@@ -232,7 +232,7 @@ public class Chunk extends AbstractControl {
         toBeSet = b;
     }
 
-    /*THIS CODE HIS SUPER UGLY AND IT'S NOT NEEDED TO BE SO LONG. OH, IT'S SUPER BUGGED TOO: IT MAKES EVERYTHING CRASH, DAMN WHILE LOOPS*/
+    /*THIS CODE HIS SUPER UGLY AND IT'S NOT NEEDED TO BE SO LONG. BUT IT ACTUALLY WORKS. AT LEAST BUGS HAVE BEEN FIXED*/
     public void dumbGreedy() {
         dumbGreedyWestEast(false);
         dumbGreedyWestEast(true);
@@ -241,7 +241,7 @@ public class Chunk extends AbstractControl {
         dumbGreedyTopBottom(true);
         dumbGreedyTopBottom(false);
 
-        toBeSet = true;
+        markForUpdate(true);
     }
 
     public void dumbGreedyWestEast(boolean backface) {

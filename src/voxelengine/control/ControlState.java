@@ -19,6 +19,7 @@ import com.jme3.math.Vector3f;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.ArrayList;
+import java.util.Arrays;
 import voxelengine.VoxelEngine;
 import voxelengine.block.Cell;
 import voxelengine.block.CellId;
@@ -166,22 +167,21 @@ public class ControlState extends AbstractAppState implements ActionListener, An
         c.chunk.markForUpdate(true);
         c.chunk.processCells();
         c.chunk.refreshPhysics();*/
-
         debug("|===========================================|");
-        results = new CollisionResults();
         Ray ray = new Ray(Reference.main.getCamera().getLocation(), Reference.main.getCamera().getDirection());
         Reference.terrainNode.collideWith(ray, results);
         if (results.getClosestCollision() != null) {
             Vector3f pt = results.getClosestCollision().getContactPoint();
-            System.out.println(pt);
             pt = fixCoords(pt);
-            System.out.println(pt + ":\n" + findNearestVertices(pt) + "\n");
+            System.out.println(pt);
+            //prov.setCell(prov.getCellPosFromVertices(findNearestVertices(pt)), CellId.ID_AIR);*/
+
             Cell c = prov.getCellFromVertices(findNearestVertices(pt));
             if (c != null) {
                 c.setId(CellId.ID_AIR);
                 c.chunk.markForUpdate(true);
                 c.chunk.processCells();
-                c.chunk.refreshPhysics();
+                results.clear();
             }
             debug("|===========================================|");
             breakStep = 0;
