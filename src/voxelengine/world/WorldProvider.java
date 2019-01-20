@@ -17,9 +17,10 @@ import voxelengine.block.CellId;
 import voxelengine.Main;
 import voxelengine.block.Cell;
 import voxelengine.utils.math.MathHelper;
-import voxelengine.utils.Reference;
-import static voxelengine.utils.Reference.TESTING;
-import static voxelengine.utils.Reference.chunkSize;
+import voxelengine.utils.Globals;
+import static voxelengine.utils.Globals.TESTING;
+import static voxelengine.utils.Globals.chunkSize;
+import static voxelengine.utils.Globals.debug;
 
 public class WorldProvider extends AbstractAppState {
 
@@ -70,9 +71,11 @@ public class WorldProvider extends AbstractAppState {
             chunks[MathHelper.flat3Dto1D(0, 0, 0)].processCells();
             chunks[MathHelper.flat3Dto1D(0, 0, 0)].load();
             chunks[MathHelper.flat3Dto1D(0, 0, 0)].loadPhysics();
+            
+            chunks[MathHelper.flat3Dto1D(0, 0, 0)].chunkMesh.contains(new Vector3f(0,0,0));
 
         } else {
-            Reference.executor.submit(chunkManager);
+            Globals.executor.submit(chunkManager);
         }
     }
 
@@ -117,15 +120,15 @@ public class WorldProvider extends AbstractAppState {
     }
 
     public Vector3f getCellPosFromVertices(ArrayList<Vector3f> al) {
-        System.out.println(Arrays.toString(al.toArray()));
+        debug(Arrays.toString(al.toArray()));
         Vector3f v = MathHelper.lowestVectorInList(al.get(0), al.get(1), al.get(2), al.get(3));
         if (al.get(0).x == al.get(1).x && al.get(0).x == al.get(2).x && al.get(0).x == al.get(3).x) {
             if (getCell(v) != null && getCell(v).id != CellId.ID_AIR) {
-                System.out.println(v);
+                debug(v.toString());
                 return v;
             }else {
-                v.set((int) (v.x - 1), (int) v.y, (int) v.z);
-                System.out.println(v);
+                v.set((int) (v.x + 1), (int) v.y, (int) v.z);
+                debug(v.toString());
                 return v;
             }
         }/*else if (al.get(0).y == al.get(1).y && al.get(0).y == al.get(2).y && al.get(0).y == al.get(3).y) {
@@ -167,7 +170,7 @@ public class WorldProvider extends AbstractAppState {
     @Override
     public void cleanup() {
         updateChunks = false;
-        Reference.executor.shutdownNow();
+        Globals.executor.shutdownNow();
     }
 
     final Callable<Object> chunkManager = new Callable<Object>() {

@@ -14,7 +14,7 @@ import com.jme3.math.Vector3f;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.shape.Box;
 import voxelengine.Main;
-import voxelengine.utils.Reference;
+import voxelengine.utils.Globals;
 
 public class PlayerControlState extends AbstractAppState implements ActionListener {
 

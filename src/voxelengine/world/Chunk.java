@@ -1,7 +1,7 @@
 package voxelengine.world;
 
 import com.jme3.bounding.BoundingSphere;
-import voxelengine.utils.Reference;
+import voxelengine.utils.Globals;
 import com.jme3.bullet.BulletAppState;
 import com.jme3.bullet.control.RigidBodyControl;
 import com.jme3.bullet.util.CollisionShapeFactory;
@@ -17,7 +17,8 @@ import java.nio.file.Paths;
 import voxelengine.block.Cell;
 import voxelengine.block.CellId;
 import voxelengine.utils.math.MathHelper;
-import static voxelengine.utils.Reference.chunkSize;
+import static voxelengine.utils.Globals.chunkSize;
+import static voxelengine.utils.Globals.debug;
 import voxelengine.utils.math.SimplexNoise;
 import static voxelengine.world.WorldProvider.pX;
 import static voxelengine.world.WorldProvider.pY;
@@ -51,8 +52,8 @@ public class Chunk extends AbstractControl {
 
         pos = new Vector3f(x * chunkSize, y * chunkSize, z * chunkSize);
         chunkGeom = new Geometry(this.toString(), chunkMesh);
-        chunkGeom.setMaterial(Reference.mat);
-        Reference.terrainNode.addControl((AbstractControl) this);
+        chunkGeom.setMaterial(Globals.mat);
+        Globals.terrainNode.addControl((AbstractControl) this);
         chunkGeom.setLocalTranslation(pos);
 
     }
@@ -60,6 +61,7 @@ public class Chunk extends AbstractControl {
     public void processCells() {
         if (toBeSet) {
             chunkMesh.clearAll();
+            debug("Updating " + this.toString());
 
             for (Cell cell : cells) {
                 if (cell != null) {
@@ -74,25 +76,24 @@ public class Chunk extends AbstractControl {
             toBeSet = false;
             loaded = false;
         }
-
     }
 
     public void load() {
         chunkGeom.setModelBound(new BoundingSphere(chunkSize * 2f, new Vector3f(x + (chunkSize / 2), y + (chunkSize / 2), z + (chunkSize / 2))));
-        if (!loaded && (Reference.main.getCamera().contains(chunkGeom.getWorldBound()) == Camera.FrustumIntersect.Inside
-                || Reference.main.getCamera().contains(chunkGeom.getWorldBound()) == Camera.FrustumIntersect.Intersects)) {
+        if (!loaded && (Globals.main.getCamera().contains(chunkGeom.getWorldBound()) == Camera.FrustumIntersect.Inside
+                || Globals.main.getCamera().contains(chunkGeom.getWorldBound()) == Camera.FrustumIntersect.Intersects)) {
             loaded = true;
-            Reference.terrainNode.attachChild(chunkGeom);
+            Globals.terrainNode.attachChild(chunkGeom);
         } else if (!loaded) {
             loaded = true;
-            Reference.terrainNode.attachChild(chunkGeom);
+            Globals.terrainNode.attachChild(chunkGeom);
         }
     }
 
     public void unload() {
         if (loaded) {
             loaded = false;
-            Reference.terrainNode.detachChild(chunkGeom);
+            Globals.terrainNode.detachChild(chunkGeom);
         }
     }
 
@@ -106,10 +107,10 @@ public class Chunk extends AbstractControl {
     }
 
     public void loadPhysics() {
-        if (!phyLoaded) {
+        if (!phyLoaded && Globals.phyEnabled()) {
             try {
                 this.chunkGeom.addControl(new RigidBodyControl(CollisionShapeFactory.createMeshShape(chunkGeom), 0f));
-                Reference.main.getStateManager().getState(BulletAppState.class).getPhysicsSpace().add(chunkGeom.getControl(RigidBodyControl.class));
+                Globals.main.getStateManager().getState(BulletAppState.class).getPhysicsSpace().add(chunkGeom.getControl(RigidBodyControl.class));
                 phyLoaded = true;
             } catch (Exception e) {
                 //e.printStackTrace();
@@ -118,18 +119,19 @@ public class Chunk extends AbstractControl {
     }
 
     public void unloadPhysics() {
-        if (phyLoaded) {
+        if (phyLoaded && Globals.phyEnabled()) {
             phyLoaded = false;
 
             chunkGeom.getControl(RigidBodyControl.class).setEnabled(false);
             chunkGeom.removeControl(chunkGeom.getControl(RigidBodyControl.class));
-            Reference.main.getStateManager().getState(BulletAppState.class).getPhysicsSpace().remove(chunkGeom);
+            Globals.main.getStateManager().getState(BulletAppState.class).getPhysicsSpace().remove(chunkGeom);
         }
     }
 
     public void refreshPhysics() {
         unloadPhysics();
         loadPhysics();
+        
 
     }
 
@@ -143,8 +145,8 @@ public class Chunk extends AbstractControl {
             }
         }
     }
+    
     //System.out.println(Math.abs(SimplexNoise.noise((x*chunkSize+i)*0.025, (z*chunkSize+k)*0.025)));
-
     public void genTerrain() {
         for (int i = 0; i < chunkSize; i++) {
             for (int k = 0; k < chunkSize; k++) {
@@ -204,7 +206,7 @@ public class Chunk extends AbstractControl {
                             }
                         }
 
-                        Reference.terrainNode.removeControl(this);
+                        Globals.terrainNode.removeControl(this);
                         WorldProvider.chunks[MathHelper.flat3Dto1D(x, y, z)] = null;
                         writer.close();
                     } catch (Exception e) {
@@ -234,6 +236,7 @@ public class Chunk extends AbstractControl {
 
     /*THIS CODE HIS SUPER UGLY AND IT'S NOT NEEDED TO BE SO LONG. BUT IT ACTUALLY WORKS. AT LEAST BUGS HAVE BEEN FIXED*/
     public void dumbGreedy() {
+        debug("Dumb gredding " + this);
         dumbGreedyWestEast(false);
         dumbGreedyWestEast(true);
         dumbGreedyNorthSouth(false);
@@ -242,6 +245,7 @@ public class Chunk extends AbstractControl {
         dumbGreedyTopBottom(false);
 
         markForUpdate(true);
+        debug("End dumb gredding " + this);
     }
 
     public void dumbGreedyWestEast(boolean backface) {

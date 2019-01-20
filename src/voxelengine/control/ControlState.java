@@ -1,6 +1,6 @@
 package voxelengine.control;
 
-import voxelengine.utils.Reference;
+import voxelengine.utils.Globals;
 import com.jme3.app.Application;
 import com.jme3.app.state.AbstractAppState;
 import com.jme3.app.state.AppStateManager;
@@ -19,11 +19,11 @@ import com.jme3.math.Vector3f;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.ArrayList;
-import java.util.Arrays;
 import voxelengine.VoxelEngine;
 import voxelengine.block.Cell;
 import voxelengine.block.CellId;
-import static voxelengine.utils.Reference.debug;
+import static voxelengine.utils.Globals.debug;
+import voxelengine.utils.math.MathHelper;
 import voxelengine.world.WorldProvider;
 
 public class ControlState extends AbstractAppState implements ActionListener, AnalogListener {
@@ -46,6 +46,7 @@ public class ControlState extends AbstractAppState implements ActionListener, An
     public static BitmapText blockName;
 
     CollisionResults results = new CollisionResults();
+    CollisionResults results1 = new CollisionResults();
 
     Vector3f top1 = new Vector3f(), top2 = new Vector3f(), top3 = new Vector3f(), top4 = new Vector3f();
 
@@ -85,9 +86,9 @@ public class ControlState extends AbstractAppState implements ActionListener, An
     @Override
     public void onAction(String name, boolean keyPressed, float tpf) {
         if (name.equals("boundingBox") && keyPressed) {
-            Reference.main.getStateManager().getState(BulletAppState.class).setDebugEnabled(!Reference.main.getStateManager().getState(BulletAppState.class).isDebugEnabled());
+            Globals.main.getStateManager().getState(BulletAppState.class).setDebugEnabled(!Globals.main.getStateManager().getState(BulletAppState.class).isDebugEnabled());
         } else if (name.equals("debug") && keyPressed) {
-            Reference.debugging = !Reference.debugging;
+            Globals.debugging = !Globals.debugging;
         } else if (name.equals("fastblock") && keyPressed) {
             fastBlock = !fastBlock;
         } else if (name.equals("place") && !keyPressed) {
@@ -167,27 +168,78 @@ public class ControlState extends AbstractAppState implements ActionListener, An
         c.chunk.markForUpdate(true);
         c.chunk.processCells();
         c.chunk.refreshPhysics();*/
-        debug("|===========================================|");
-        Ray ray = new Ray(Reference.main.getCamera().getLocation(), Reference.main.getCamera().getDirection());
-        Reference.terrainNode.collideWith(ray, results);
-        if (results.getClosestCollision() != null) {
+        Vector3f first = Vector3f.NEGATIVE_INFINITY;
+        Vector3f second = Vector3f.POSITIVE_INFINITY;
+
+        debug("\n|===========================================|");
+        while (!first.equals(second)) {
+            Ray ray = new Ray(Globals.main.getCamera().getLocation(), Globals.main.getCamera().getDirection());
+            Globals.terrainNode.collideWith(ray, results);
+            Globals.terrainNode.collideWith(ray, results1);
+            debug(results.toString());
+            debug(results1.toString());
+
+            first = results.getCollision(0).getContactPoint();
+            second = results1.getCollision(0).getContactPoint();
+
+            first = MathHelper.castVectorToInt(first);
+            second = MathHelper.castVectorToInt(second);
+            
+            debug(first + ", " + second);
+        }
+
+        Cell c = prov.getCellFromVertices(findNearestVertices(first));
+        if (c != null) {
+            c.setId(CellId.ID_AIR);
+            c.chunk.markForUpdate(true);
+            c.chunk.processCells();
+            c.chunk.refreshPhysics();
+            results.clear();
+        }
+    }
+
+
+    /*if (results.getClosestCollision()!= null) {
             Vector3f pt = results.getClosestCollision().getContactPoint();
             pt = fixCoords(pt);
-            System.out.println(pt);
-            //prov.setCell(prov.getCellPosFromVertices(findNearestVertices(pt)), CellId.ID_AIR);*/
+            debug(pt.toString());
+            //prov.setCell(prov.getCellPosFromVertices(findNearestVertices(pt)), CellId.ID_AIR);
 
             Cell c = prov.getCellFromVertices(findNearestVertices(pt));
             if (c != null) {
                 c.setId(CellId.ID_AIR);
                 c.chunk.markForUpdate(true);
                 c.chunk.processCells();
+                c.chunk.refreshPhysics();
                 results.clear();
             }
-            debug("|===========================================|");
+            debug("|===========================================|\n");
             breakStep = 0;
         }
-    }
+        
+        for (int i = 0; i < results.size(); i++) {
+            if (results.getCollision(i) != null && !MathHelper.castVectorToInt(results.getCollision(i).getContactPoint()).equals( prev)) {
+                Vector3f pt = results.getCollision(i).getContactPoint();
+                pt = fixCoords(pt);
+                //debug(pt.toString());
+                //prov.setCell(prov.getCellPosFromVertices(findNearestVertices(pt)), CellId.ID_AIR);
 
+                Cell c = prov.getCellFromVertices(findNearestVertices(pt));
+                if (c != null) {
+                    c.setId(CellId.ID_AIR);
+                    c.chunk.markForUpdate(true);
+                    c.chunk.processCells();
+                    c.chunk.refreshPhysics();
+                    
+                    results.clear();
+                    prev.set(MathHelper.castVectorToInt(pt));
+                    debug("prev: " + prev);
+                }
+                debug("|===========================================|\n");
+                breakStep = 0;
+                break;
+            }
+        }*/
     public void placeblock() {
     }
 

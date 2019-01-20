@@ -11,7 +11,7 @@ import java.util.concurrent.ScheduledThreadPoolExecutor;
 import voxelengine.Main;
 import voxelengine.world.WorldProvider;
 
-public class Reference extends AbstractAppState {
+public class Globals extends AbstractAppState {
 
     //the lenght of a chunk side
     public static int chunkSize = 16;
@@ -24,6 +24,7 @@ public class Reference extends AbstractAppState {
         
     public static boolean debugging = false;
     public static final boolean TESTING = true;
+    static boolean enablePhysics = true;
 
     public static ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(2);
     
@@ -31,7 +32,7 @@ public class Reference extends AbstractAppState {
     @Override
     public void initialize(AppStateManager stateManager, Application app) {
         super.initialize(stateManager, app);
-        Reference.main = (Main) app;
+        Globals.main = (Main) app;
         prov = stateManager.getState(WorldProvider.class);
         mat = new Material(main.getAssetManager(), "Materials/UnshadedArray.j3md");
 
@@ -49,5 +50,21 @@ public class Reference extends AbstractAppState {
 
     public static void debug(Exception e) {
         debug(Arrays.toString(e.getStackTrace()));
+    }
+    
+    public static void setPhysicsEnabled(boolean enable){
+        enablePhysics = enable;
+    }
+    
+    public static boolean phyEnabled(){
+        return enablePhysics;
+    }
+    
+    public static void setDebugEnabled(boolean enable){
+        debugging = enable;
+    }
+    
+    public boolean debugEnabled(){
+        return debugging;
     }
 }

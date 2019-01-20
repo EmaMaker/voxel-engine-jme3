@@ -60,7 +60,7 @@ public class GuiManager extends AbstractAppState {
         blockName.setLocalTranslation(main.getSettings().getWidth() - blockName.getLineWidth() * 1.2f, 0 + blockName.getLineHeight() * 1.2f, 0);*/
 
 
-        if (Reference.debugging) {
+        if (Globals.debugging) {
             debugging.setText("Debugging" + "\n\n");
             debugging.setColor(ColorRGBA.Red);
             debugging.setSize(main.getGuiFont().getCharSet().getRenderedSize());

@@ -1,10 +1,8 @@
 package voxelengine.block;
 
 import java.io.Serializable;
-import voxelengine.utils.math.MathHelper;
 import voxelengine.world.Chunk;
-import static voxelengine.utils.Reference.chunkSize;
-import voxelengine.world.WorldProvider;
+import static voxelengine.utils.Globals.chunkSize;
 
 public class Cell implements Serializable {
 

@@ -9,7 +9,7 @@ import com.jme3.texture.TextureArray;
 import java.util.ArrayList;
 import java.util.List;
 import voxelengine.Main;
-import voxelengine.utils.Reference;
+import voxelengine.utils.Globals;
 
 public class TextureManager extends AbstractAppState {
 
@@ -40,7 +40,7 @@ public class TextureManager extends AbstractAppState {
         TextureArray array = new TextureArray(images);
         array.setWrap(Texture.WrapMode.Repeat);
         
-        Reference.mat.setTexture("ColorMap", array);
+        Globals.mat.setTexture("ColorMap", array);
         
         setIdTexture(CellId.ID_GRASS, OFF_GRASS_SIDE, OFF_GRASS_SIDE, OFF_GRASS_SIDE, OFF_GRASS_SIDE, OFF_GRASS_TOP, OFF_DIRT);
         setIdTexture(CellId.ID_DIRT, OFF_DIRT, OFF_DIRT, OFF_DIRT, OFF_DIRT, OFF_DIRT, OFF_DIRT);
