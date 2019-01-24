@@ -22,8 +22,8 @@ import java.util.ArrayList;
 import voxelengine.VoxelEngine;
 import voxelengine.block.Cell;
 import voxelengine.block.CellId;
+import voxelengine.block.TextureManager;
 import static voxelengine.utils.Globals.debug;
-import voxelengine.utils.math.MathHelper;
 import voxelengine.world.WorldProvider;
 
 public class ControlState extends AbstractAppState implements ActionListener, AnalogListener {
@@ -88,7 +88,7 @@ public class ControlState extends AbstractAppState implements ActionListener, An
         if (name.equals("boundingBox") && keyPressed) {
             Globals.main.getStateManager().getState(BulletAppState.class).setDebugEnabled(!Globals.main.getStateManager().getState(BulletAppState.class).isDebugEnabled());
         } else if (name.equals("debug") && keyPressed) {
-            Globals.debugging = !Globals.debugging;
+            Globals.setDebugEnabled(!Globals.debugEnabled());
         } else if (name.equals("fastblock") && keyPressed) {
             fastBlock = !fastBlock;
         } else if (name.equals("place") && !keyPressed) {
@@ -107,9 +107,6 @@ public class ControlState extends AbstractAppState implements ActionListener, An
         }
     }
 
-    /*public void updateIds() {
-        currentBlockId = CellId.values()[(int) currentBlockNum];
-    }*/
     @Override
     public void onAnalog(String name, float value, float tpf) {
 
@@ -145,102 +142,88 @@ public class ControlState extends AbstractAppState implements ActionListener, An
                 debug("!===========================================!");
                 break;
 
-            /*case "changeBlock+":
-                if (currentBlockNum < CellId.values().length - 1) {
+            case "changeBlock+":
+                if (currentBlockNum < TextureManager.textures.size() - 1) {
                     currentBlockNum += 0.35;
-                    updateIds();
+                    currentBlockId = (int) currentBlockNum;
                 }
                 break;
             case "changeBlock-":
-                if (currentBlockNum > 1.35) { //first element (index 0) is AIR, so it's ignored (as remove function exists) and 1 is used instead of 0
+                if (currentBlockNum > 0.35) {
                     currentBlockNum -= 0.35;
-                    updateIds();
+                    currentBlockId = (int) currentBlockNum;
                 }
-                break;*/
+                break;
         }
     }
 
     public void breakBlock() {
-
-        /*Random rand = new Random();
-        Cell c = prov.getHighestCellAt(rand.nextInt(chunkSize), rand.nextInt(chunkSize));
-        c.setId(CellId.ID_AIR);
-        c.chunk.markForUpdate(true);
-        c.chunk.processCells();
-        c.chunk.refreshPhysics();*/
-        Vector3f first = Vector3f.NEGATIVE_INFINITY;
-        Vector3f second = Vector3f.POSITIVE_INFINITY;
-
         debug("\n|===========================================|");
-        while (!first.equals(second)) {
-            Ray ray = new Ray(Globals.main.getCamera().getLocation(), Globals.main.getCamera().getDirection());
-            Globals.terrainNode.collideWith(ray, results);
-            Globals.terrainNode.collideWith(ray, results1);
-            debug(results.toString());
-            debug(results1.toString());
+        Ray ray = new Ray(Globals.main.getCamera().getLocation(), Globals.main.getCamera().getDirection());
+        Globals.terrainNode.collideWith(ray, results);
 
-            first = results.getCollision(0).getContactPoint();
-            second = results1.getCollision(0).getContactPoint();
-
-            first = MathHelper.castVectorToInt(first);
-            second = MathHelper.castVectorToInt(second);
-            
-            debug(first + ", " + second);
-        }
-
-        Cell c = prov.getCellFromVertices(findNearestVertices(first));
-        if (c != null) {
-            c.setId(CellId.ID_AIR);
-            c.chunk.markForUpdate(true);
-            c.chunk.processCells();
-            c.chunk.refreshPhysics();
-            results.clear();
-        }
-    }
-
-
-    /*if (results.getClosestCollision()!= null) {
-            Vector3f pt = results.getClosestCollision().getContactPoint();
-            pt = fixCoords(pt);
-            debug(pt.toString());
-            //prov.setCell(prov.getCellPosFromVertices(findNearestVertices(pt)), CellId.ID_AIR);
-
+        if (results.getClosestCollision() != null) {
+            Vector3f pt = fixCoords(results.getClosestCollision().getContactPoint());
+            prov.setCellFromVertices(findNearestVertices(pt), CellId.ID_AIR);
             Cell c = prov.getCellFromVertices(findNearestVertices(pt));
             if (c != null) {
                 c.setId(CellId.ID_AIR);
                 c.chunk.markForUpdate(true);
                 c.chunk.processCells();
                 c.chunk.refreshPhysics();
-                results.clear();
             }
-            debug("|===========================================|\n");
+        }
+        results.clear();
+        breakStep = 0;
+
+        debug("|===========================================|\n");
+    }
+
+    public void placeblock() {
+        debug("\n|===========================================|");
+        Ray ray = new Ray(Globals.main.getCamera().getLocation(), Globals.main.getCamera().getDirection());
+        Globals.terrainNode.collideWith(ray, results);
+
+        if (results.getClosestCollision() != null) {
+            Vector3f pt = fixCoords(results.getClosestCollision().getContactPoint());
+            Cell c = prov.getCellFromVertices(findNearestVertices(pt));
+            if (c != null) {
+                int newX = c.worldX, newY = c.worldY, newZ = c.worldZ;
+                switch (c.getFaceFromVertices(findNearestVertices(pt))) {
+                    case 0:
+                        newX = c.worldX - 1;
+                        break;
+                    case 1:
+                        newX = c.worldX + 1;
+                        break;
+                    case 2:
+                        newZ = c.worldZ - 1;
+                        break;
+                    case 3:
+                        newZ = c.worldZ + 1;
+                        break;
+                    case 4:
+                        newY = c.worldY + 1;
+                        break;
+                    case 5:
+                        newY = c.worldY - 1;
+                        break;
+                    default:
+                        break;
+                }
+                prov.setCell(newX, newY, newZ, currentBlockId);
+
+                if (prov.getCell(newX, newY, newZ) != null) {
+                    prov.getCell(newX, newY, newZ).chunk.markForUpdate(true);
+                    prov.getCell(newX, newY, newZ).chunk.processCells();
+                    prov.getCell(newX, newY, newZ).chunk.refreshPhysics();
+                }
+            }
+            results.clear();
             breakStep = 0;
         }
-        
-        for (int i = 0; i < results.size(); i++) {
-            if (results.getCollision(i) != null && !MathHelper.castVectorToInt(results.getCollision(i).getContactPoint()).equals( prev)) {
-                Vector3f pt = results.getCollision(i).getContactPoint();
-                pt = fixCoords(pt);
-                //debug(pt.toString());
-                //prov.setCell(prov.getCellPosFromVertices(findNearestVertices(pt)), CellId.ID_AIR);
 
-                Cell c = prov.getCellFromVertices(findNearestVertices(pt));
-                if (c != null) {
-                    c.setId(CellId.ID_AIR);
-                    c.chunk.markForUpdate(true);
-                    c.chunk.processCells();
-                    c.chunk.refreshPhysics();
-                    
-                    results.clear();
-                    prev.set(MathHelper.castVectorToInt(pt));
-                    debug("prev: " + prev);
-                }
-                debug("|===========================================|\n");
-                breakStep = 0;
-                break;
-            }
-        }*/
-    public void placeblock() {
+        debug("|===========================================|\n");
     }
 
     public Vector3f fixCoords(Vector3f v) {

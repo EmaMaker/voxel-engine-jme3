@@ -10,8 +10,6 @@ import java.util.ArrayList;
 
 public class ChunkMesh extends Mesh {
 
-    public int step = 0;
-
     public ArrayList<Vector3f> verticesList = new ArrayList<>();
     public ArrayList<Vector3f> textureList = new ArrayList<>();
     public ArrayList<Short> indicesList = new ArrayList<>();

@@ -60,7 +60,16 @@ public class Chunk extends AbstractControl {
 
     public void processCells() {
         if (toBeSet) {
-            chunkMesh.clearAll();
+            //unload();
+            /*chunkMesh = new ChunkMesh(this);
+            chunkGeom = new Geometry(this.toString(), chunkMesh);
+            chunkGeom.setMaterial(Globals.mat);
+             */
+            if (Thread.currentThread() == Globals.engine.mainThread) {
+                chunkMesh = new ChunkMesh(this);
+                chunkGeom.setMesh(chunkMesh);
+            }
+
             debug("Updating " + this.toString());
 
             for (Cell cell : cells) {
@@ -70,7 +79,6 @@ public class Chunk extends AbstractControl {
             }
 
             dumbGreedy();
-            /*SOME BIG BUG OVER HERE!!!*/
             chunkMesh.set();
 
             toBeSet = false;
@@ -131,7 +139,6 @@ public class Chunk extends AbstractControl {
     public void refreshPhysics() {
         unloadPhysics();
         loadPhysics();
-        
 
     }
 
@@ -145,7 +152,7 @@ public class Chunk extends AbstractControl {
             }
         }
     }
-    
+
     //System.out.println(Math.abs(SimplexNoise.noise((x*chunkSize+i)*0.025, (z*chunkSize+k)*0.025)));
     public void genTerrain() {
         for (int i = 0; i < chunkSize; i++) {
@@ -168,16 +175,21 @@ public class Chunk extends AbstractControl {
 
     //sets the cells index at x,y,z to the given ID, if index is null, it creates a new cell
     public void setCell(int i, int j, int k, int id) {
-        if (cells[MathHelper.flat3Dto1D(i, j, k)] != null) {
-            cells[MathHelper.flat3Dto1D(i, j, k)].setId(id);
-            markForUpdate(true);
-        } else {
-            cells[MathHelper.flat3Dto1D(i, j, k)] = new Cell(id, i, j, k, this);
-            markForUpdate(true);
+        try {
+            if (cells[MathHelper.flat3Dto1D(i, j, k)] != null) {
+                cells[MathHelper.flat3Dto1D(i, j, k)].setId(id);
+                markForUpdate(true);
+            } else {
+                cells[MathHelper.flat3Dto1D(i, j, k)] = new Cell(id, i, j, k, this);
+                markForUpdate(true);
+            }
+        } catch (Exception e) {
+
         }
     }
 
     File f;
+
     @Override
     protected void controlUpdate(float tpf) {
         if (Math.sqrt(Math.pow(x - pX, 2) + Math.pow(y - pY, 2) + Math.pow(z - pZ, 2)) < renderDistance) {

@@ -1,6 +1,7 @@
 package voxelengine.control;
 
 import com.jme3.app.Application;
+import com.jme3.app.SimpleApplication;
 import com.jme3.app.state.AbstractAppState;
 import com.jme3.app.state.AppStateManager;
 import com.jme3.bullet.BulletAppState;
@@ -20,7 +21,7 @@ public class PlayerControlState extends AbstractAppState implements ActionListen
 
     public Vector3f respawnPoint = new Vector3f(8, 8, 8);
 
-    Main app;
+    SimpleApplication app;
 
     Box box = new Box(0.4f, 0.8f, 0.4f);
     public Geometry playerModel = new Geometry("Player", box);
@@ -38,7 +39,7 @@ public class PlayerControlState extends AbstractAppState implements ActionListen
     @Override
     public void initialize(AppStateManager stateManager, Application app) {
         super.initialize(stateManager, app);
-        this.app = (Main) app;
+        this.app = (SimpleApplication) app;
         mat = new Material(app.getAssetManager(), "Common/MatDefs/Misc/Unshaded.j3md");
         playerModel.setMaterial(mat);
         this.app.getRootNode().attachChild(playerModel);

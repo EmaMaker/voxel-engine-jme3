@@ -1,6 +1,7 @@
 package voxelengine.block;
 
 import com.jme3.app.Application;
+import com.jme3.app.SimpleApplication;
 import com.jme3.app.state.AbstractAppState;
 import com.jme3.app.state.AppStateManager;
 import com.jme3.texture.Image;
@@ -23,12 +24,12 @@ public class TextureManager extends AbstractAppState {
     public static List<Image> images = new ArrayList<Image>();
     public static List<int[]> textures = new ArrayList<int[]>();
             
-    Main main;
+    SimpleApplication main;
 
     @Override
     public void initialize(AppStateManager stateManager, Application app) {
 
-        main = (Main) app;
+        main = (SimpleApplication) app;
 
         addImage(OFF_DIRT, main.getAssetManager().loadTexture("Textures/dirt.png").getImage());
         addImage(OFF_GRASS_SIDE, main.getAssetManager().loadTexture("Textures/grass_side.png").getImage());

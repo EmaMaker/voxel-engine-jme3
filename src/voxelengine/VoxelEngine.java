@@ -6,6 +6,7 @@
 package voxelengine;
 
 import com.jme3.app.Application;
+import com.jme3.app.SimpleApplication;
 import com.jme3.app.state.AbstractAppState;
 import com.jme3.app.state.AppStateManager;
 import com.jme3.bullet.BulletAppState;
@@ -30,10 +31,12 @@ import voxelengine.world.WorldProvider;
  */
 public class VoxelEngine extends AbstractAppState {
 
+    public static Thread mainThread;
+
     FlyByCamera flyCam;
     AppStateManager stateManager;
     BitmapFont guiFont;
-    Main main;
+    SimpleApplication main;
 
     AppSettings settings;
 
@@ -45,12 +48,12 @@ public class VoxelEngine extends AbstractAppState {
     public void initialize(AppStateManager stateManager, Application app) {
         super.initialize(stateManager, app);
 
-        main = (Main) app;
+        //saves an instance of the main thread because it's needed in the chunk update method
+        mainThread = Thread.currentThread();
+
+        main = (SimpleApplication) app;
         stateManager = main.getStateManager();
         flyCam = main.getFlyByCamera();
-
-        BulletAppState bulletAppState = new BulletAppState();
-        bulletAppState.setEnabled(true);
 
         File f = new File(System.getProperty("user.dir") + "/chunks/");
 
@@ -61,7 +64,7 @@ public class VoxelEngine extends AbstractAppState {
         flyCam.setZoomSpeed(0);
         flyCam.setMoveSpeed(60f);
 
-        stateManager.attach(bulletAppState);
+        stateManager.attach(new BulletAppState());
         stateManager.attach(new Globals());
         stateManager.attach(new ControlState());
         stateManager.attach(new PlayerControlState());
@@ -69,17 +72,27 @@ public class VoxelEngine extends AbstractAppState {
         stateManager.attach(new TextureManager());
         stateManager.attach(new WorldProvider());
 
-
         initCrossHairs();
         main.getViewPort().setBackgroundColor(ColorRGBA.Cyan);
 
-        Globals.setPhysicsEnabled(false);
-        Globals.setDebugEnabled(true);
+        stateManager.getState(BulletAppState.class).setEnabled(Globals.phyEnabled());
         stateManager.getState(PlayerControlState.class).setEnabled(Globals.phyEnabled());
     }
 
     @Override
     public void cleanup() {
+        if (Globals.SAVE_ON_EXIT) {
+            exitAndSave();
+        } else {
+            exitWithoutSaving();
+        }
+    }
+
+    private void exitAndSave() {
+
+    }
+
+    private void exitWithoutSaving() {
         File folder = new File(System.getProperty("user.dir") + "/chunks/");
         File list[] = folder.listFiles();
 

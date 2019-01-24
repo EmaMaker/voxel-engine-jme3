@@ -5,11 +5,11 @@
         <group>
             <file>file:/home/emamaker/jMonkeyEngine%20Projects/voxel-engine-jme3/src/voxelengine/world/ChunkMesh.java</file>
             <file>file:/home/emamaker/jMonkeyEngine%20Projects/voxel-engine-jme3/src/voxelengine/world/WorldProvider.java</file>
+            <file>file:/home/emamaker/jMonkeyEngine%20Projects/voxel-engine-jme3/src/voxelengine/block/Cell.java</file>
             <file>file:/home/emamaker/jMonkeyEngine%20Projects/voxel-engine-jme3/src/voxelengine/world/Chunk.java</file>
             <file>file:/home/emamaker/jMonkeyEngine%20Projects/voxel-engine-jme3/src/voxelengine/control/ControlState.java</file>
             <file>file:/home/emamaker/jMonkeyEngine%20Projects/voxel-engine-jme3/src/voxelengine/utils/Globals.java</file>
             <file>file:/home/emamaker/jMonkeyEngine%20Projects/voxel-engine-jme3/src/voxelengine/VoxelEngine.java</file>
-            <file>file:/home/emamaker/jMonkeyEngine%20Projects/voxel-engine-jme3/src/voxelengine/utils/math/MathHelper.java</file>
         </group>
     </open-files>
 </project-private>

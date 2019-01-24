@@ -2,9 +2,11 @@ package voxelengine.world;
 
 import voxelengine.control.PlayerControlState;
 import com.jme3.app.Application;
+import com.jme3.app.SimpleApplication;
 import com.jme3.app.state.AbstractAppState;
 import com.jme3.app.state.AppStateManager;
 import com.jme3.math.Vector3f;
+import com.sun.javafx.collections.NonIterableChange;
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -27,7 +29,7 @@ public class WorldProvider extends AbstractAppState {
     public final static int MAXX = 20, MAXY = 20, MAXZ = 20;
     public static Chunk[] chunks = new Chunk[MAXX * MAXY * MAXZ];
 
-    Main app;
+    SimpleApplication app;
     Random rand = new Random();
 
     //player coords in chunks
@@ -41,7 +43,7 @@ public class WorldProvider extends AbstractAppState {
     @Override
     public void initialize(AppStateManager stateManager, Application app) {
         super.initialize(stateManager, app);
-        this.app = (Main) app;
+        this.app = (SimpleApplication) app;
         playerControl = this.app.getStateManager().getState(PlayerControlState.class);
 
         preload();
@@ -71,8 +73,8 @@ public class WorldProvider extends AbstractAppState {
             chunks[MathHelper.flat3Dto1D(0, 0, 0)].processCells();
             chunks[MathHelper.flat3Dto1D(0, 0, 0)].load();
             chunks[MathHelper.flat3Dto1D(0, 0, 0)].loadPhysics();
-            
-            chunks[MathHelper.flat3Dto1D(0, 0, 0)].chunkMesh.contains(new Vector3f(0,0,0));
+
+            chunks[MathHelper.flat3Dto1D(0, 0, 0)].chunkMesh.contains(new Vector3f(0, 0, 0));
 
         } else {
             Globals.executor.submit(chunkManager);
@@ -119,45 +121,48 @@ public class WorldProvider extends AbstractAppState {
         return chunks[MathHelper.flat3Dto1D(chunkX, chunkY, chunkZ)];
     }
 
+    public Cell getCellFromVertices(ArrayList<Vector3f> al) {
+        return getCell(getCellPosFromVertices(al));
+    }
+
+    public void setCellFromVertices(ArrayList<Vector3f> al, int id) {
+        setCell(getCellPosFromVertices(al), id);
+    }
+
     public Vector3f getCellPosFromVertices(ArrayList<Vector3f> al) {
-        debug(Arrays.toString(al.toArray()));
         Vector3f v = MathHelper.lowestVectorInList(al.get(0), al.get(1), al.get(2), al.get(3));
+
         if (al.get(0).x == al.get(1).x && al.get(0).x == al.get(2).x && al.get(0).x == al.get(3).x) {
             if (getCell(v) != null && getCell(v).id != CellId.ID_AIR) {
                 debug(v.toString());
                 return v;
-            }else {
-                v.set((int) (v.x + 1), (int) v.y, (int) v.z);
+            } else {
+                v.set((int) (v.x - 1), (int) v.y, (int) v.z);
                 debug(v.toString());
                 return v;
             }
-        }/*else if (al.get(0).y == al.get(1).y && al.get(0).y == al.get(2).y && al.get(0).y == al.get(3).y) {
+        } else if (al.get(0).y == al.get(1).y && al.get(0).y == al.get(2).y && al.get(0).y == al.get(3).y) {
             if (getCell(v) != null && getCell(v).id != CellId.ID_AIR) {
-                System.out.println(v);
+                debug(v.toString());
                 return v;
-            }else {
-                v.set((int) v.x, (int) (v.y  - 1), (int) v.z);
-                System.out.println(v);
+            } else {
+                v.set((int) v.x, (int) (v.y - 1), (int) v.z);
+                debug(v.toString());
                 return v;
             }
-        }else if (al.get(0).z== al.get(1).z && al.get(0).z == al.get(2).z && al.get(0).z == al.get(3).z) {
+        } else if (al.get(0).z == al.get(1).z && al.get(0).z == al.get(2).z && al.get(0).z == al.get(3).z) {
             if (getCell(v) != null && getCell(v).id != CellId.ID_AIR) {
-                System.out.println(v);
+                debug(v.toString());
                 return v;
-            }else {
+            } else {
                 v.set((int) v.x, (int) v.y, (int) (v.z - 1));
-                System.out.println(v);
+                debug(v.toString());
                 return v;
             }
-        }*/
+        }
         return null;
-               
     }
-    
-    public Cell getCellFromVertices(ArrayList<Vector3f> al){
-        return getCell(getCellPosFromVertices(al));
-    }
-    
+
     public Cell getHighestCellAt(int i, int j) {
         for (int a = MAXY * chunkSize; a >= 0; a--) {
             if (getCell(i, a, j) != null) {
@@ -184,47 +189,51 @@ public class WorldProvider extends AbstractAppState {
         @Override
         public Object call() {
             while (updateChunks) {
-                for (int i = pX - renderDistance; i < pX + renderDistance; i++) {
-                    for (int k = pZ - renderDistance; k < pZ + renderDistance; k++) {
+                try {
+                    for (int i = pX - renderDistance; i < pX + renderDistance; i++) {
+                        for (int k = pZ - renderDistance; k < pZ + renderDistance; k++) {
 
-                        if (i >= 0 && i < MAXX && j >= 0 && j < MAXY && k >= 0 && k < MAXZ) {
+                            if (i >= 0 && i < MAXX && j >= 0 && j < MAXY && k >= 0 && k < MAXZ) {
 
-                            if (chunks[MathHelper.flat3Dto1D(i, j, k)] != null) {
-                                chunks[MathHelper.flat3Dto1D(i, j, k)].processCells();
-                            } else {
-                                chunks[MathHelper.flat3Dto1D(i, j, k)] = new Chunk(i, j, k);
-                                f = Paths.get(System.getProperty("user.dir") + "/chunks/" + i + "-" + j + "-" + k + ".chunk").toFile();
+                                if (chunks[MathHelper.flat3Dto1D(i, j, k)] != null) {
+                                    chunks[MathHelper.flat3Dto1D(i, j, k)].processCells();
+                                } else {
+                                    chunks[MathHelper.flat3Dto1D(i, j, k)] = new Chunk(i, j, k);
+                                    f = Paths.get(System.getProperty("user.dir") + "/chunks/" + i + "-" + j + "-" + k + ".chunk").toFile();
 
-                                if (f.exists()) {
-                                    if (!(f.length() == 0)) {
-                                        try {
+                                    if (f.exists()) {
+                                        if (!(f.length() == 0)) {
+                                            try {
 
-                                            lines = Files.readAllLines(f.toPath());
+                                                lines = Files.readAllLines(f.toPath());
 
-                                            for (String s : lines) {
-                                                datas = s.split(",");
-                                                chunks[MathHelper.flat3Dto1D(i, j, k)].setCell(Integer.valueOf(datas[0]), Integer.valueOf(datas[1]), Integer.valueOf(datas[2]), Integer.valueOf(datas[3]));
+                                                for (String s : lines) {
+                                                    datas = s.split(",");
+                                                    chunks[MathHelper.flat3Dto1D(i, j, k)].setCell(Integer.valueOf(datas[0]), Integer.valueOf(datas[1]), Integer.valueOf(datas[2]), Integer.valueOf(datas[3]));
+                                                }
+
+                                                f.delete();
+
+                                            } catch (Exception e) {
+                                                e.printStackTrace();
                                             }
 
-                                            f.delete();
-
-                                        } catch (Exception e) {
-                                            e.printStackTrace();
+                                        } else {
+                                            //if (j == 0) {
+                                            chunks[MathHelper.flat3Dto1D(i, j, k)].genTerrain();
+                                            //}
                                         }
-
                                     } else {
-                                        //if (j == 0) {
-                                        chunks[MathHelper.flat3Dto1D(i, j, k)].genTerrain();
-                                        //}
-                                    }
-                                } else {
-                                    if (j == 0) {
-                                        chunks[MathHelper.flat3Dto1D(i, j, k)].genTerrain();
+                                        if (j == 0) {
+                                            chunks[MathHelper.flat3Dto1D(i, j, k)].genTerrain();
+                                        }
                                     }
                                 }
                             }
                         }
                     }
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
             }
             return null;
@@ -233,7 +242,7 @@ public class WorldProvider extends AbstractAppState {
 
     /*SOME USEFUL METHOD OVERRIDING*/
     public void setCell(Cell c, int id) {
-        this.setCell(c.x, c.y, c.z, id);
+        this.setCell(c.worldX, c.worldY, c.worldZ, id);
     }
 
     public void setCell(Vector3f v, int id) {
@@ -245,7 +254,7 @@ public class WorldProvider extends AbstractAppState {
     }
 
     public Cell getCell(Vector3f v) {
-        return getCell((int) v.x, (int) v.y, (int) v.z);
+        return v != null ? getCell((int) v.x, (int) v.y, (int) v.z) : null;
     }
 
     public Cell getCell(float i, float j, float k) {

@@ -1,6 +1,7 @@
 package voxelengine;
 
 import com.jme3.app.SimpleApplication;
+import voxelengine.utils.Globals;
 
 public class Main extends SimpleApplication {
 
@@ -13,6 +14,9 @@ public class Main extends SimpleApplication {
     @Override
     public void simpleInitApp() {
         stateManager.attach(new VoxelEngine(settings));
+        
+        
+        Globals.setPhysicsEnabled(true);
     }
 
     protected void initCrossHairs() {
