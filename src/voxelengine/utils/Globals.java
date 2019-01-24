@@ -32,6 +32,8 @@ public class Globals extends AbstractAppState {
     public static boolean LOAD_FROM_FILE = false;
     public static boolean SAVE_ON_EXIT = true;
     
+    public static String workingDir = System.getProperty("user.dir") + "/chunks/";
+    
     public static ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(2);
     
 
@@ -81,5 +83,13 @@ public class Globals extends AbstractAppState {
     
     public static boolean wireFrameEnabled(){
         return enableWireframe;
+    }
+    
+    public static void setWorkingDir(String s){
+        workingDir = s;
+    }
+    
+    public static String getWorkingDir(){
+        return workingDir;
     }
 }

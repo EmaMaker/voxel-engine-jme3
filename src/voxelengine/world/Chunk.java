@@ -205,26 +205,29 @@ public class Chunk extends AbstractControl {
             this.unloadPhysics();
 
             if (Math.sqrt(Math.pow(x - pX, 2) + Math.pow(y - pY, 2) + Math.pow(z - pZ, 2)) > renderDistance * 1.5f) {
+                saveToFile();
+            }
+        }
+    }
 
-                f = Paths.get(System.getProperty("user.dir") + "/chunks/" + x + "-" + y + "-" + z + ".chunk").toFile();
+    public void saveToFile() {
+        f = Paths.get(Globals.workingDir + x + "-" + y + "-" + z + ".chunk").toFile();
 
-                if (!f.exists() && !isEmpty()) {
-                    try {
-                        PrintWriter writer = new PrintWriter(f);
-                        for (int i = 0; i < cells.length; i++) {
-                            if (cells[i] != null) {
-                                writer.println(cells[i].x + "," + cells[i].y + "," + cells[i].z
-                                        + "," + cells[i].id);
-                            }
-                        }
-
-                        Globals.terrainNode.removeControl(this);
-                        WorldProvider.chunks[MathHelper.flat3Dto1D(x, y, z)] = null;
-                        writer.close();
-                    } catch (Exception e) {
-                        e.printStackTrace();
+        if (!f.exists() && !isEmpty()) {
+            try {
+                PrintWriter writer = new PrintWriter(f);
+                for (int i = 0; i < cells.length; i++) {
+                    if (cells[i] != null) {
+                        writer.println(cells[i].x + "," + cells[i].y + "," + cells[i].z
+                                + "," + cells[i].id);
                     }
                 }
+
+                Globals.terrainNode.removeControl(this);
+                WorldProvider.chunks[MathHelper.flat3Dto1D(x, y, z)] = null;
+                writer.close();
+            } catch (Exception e) {
+                e.printStackTrace();
             }
         }
     }

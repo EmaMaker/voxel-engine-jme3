@@ -180,10 +180,6 @@ public class WorldProvider extends AbstractAppState {
 
     final Callable<Object> chunkManager = new Callable<Object>() {
 
-        File f;
-        List<String> lines;
-
-        String[] datas = new String[4];
         int j = 0;
 
         @Override
@@ -199,35 +195,7 @@ public class WorldProvider extends AbstractAppState {
                                     chunks[MathHelper.flat3Dto1D(i, j, k)].processCells();
                                 } else {
                                     chunks[MathHelper.flat3Dto1D(i, j, k)] = new Chunk(i, j, k);
-                                    f = Paths.get(System.getProperty("user.dir") + "/chunks/" + i + "-" + j + "-" + k + ".chunk").toFile();
-
-                                    if (f.exists()) {
-                                        if (!(f.length() == 0)) {
-                                            try {
-
-                                                lines = Files.readAllLines(f.toPath());
-
-                                                for (String s : lines) {
-                                                    datas = s.split(",");
-                                                    chunks[MathHelper.flat3Dto1D(i, j, k)].setCell(Integer.valueOf(datas[0]), Integer.valueOf(datas[1]), Integer.valueOf(datas[2]), Integer.valueOf(datas[3]));
-                                                }
-
-                                                f.delete();
-
-                                            } catch (Exception e) {
-                                                e.printStackTrace();
-                                            }
-
-                                        } else {
-                                            //if (j == 0) {
-                                            chunks[MathHelper.flat3Dto1D(i, j, k)].genTerrain();
-                                            //}
-                                        }
-                                    } else {
-                                        if (j == 0) {
-                                            chunks[MathHelper.flat3Dto1D(i, j, k)].genTerrain();
-                                        }
-                                    }
+                                    loadFromFile(i, j, k);
                                 }
                             }
                         }
@@ -239,6 +207,42 @@ public class WorldProvider extends AbstractAppState {
             return null;
         }
     };
+
+    public void loadFromFile(int i, int j, int k) {
+        File f;
+        List<String> lines;
+
+        String[] datas = new String[4];
+        f = Paths.get(Globals.workingDir + i + "-" + j + "-" + k + ".chunk").toFile();
+
+        if (f.exists()) {
+            if (!(f.length() == 0)) {
+                try {
+
+                    lines = Files.readAllLines(f.toPath());
+
+                    for (String s : lines) {
+                        datas = s.split(",");
+                        chunks[MathHelper.flat3Dto1D(i, j, k)].setCell(Integer.valueOf(datas[0]), Integer.valueOf(datas[1]), Integer.valueOf(datas[2]), Integer.valueOf(datas[3]));
+                    }
+
+                    f.delete();
+
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+
+            } else {
+                //if (j == 0) {
+                chunks[MathHelper.flat3Dto1D(i, j, k)].genTerrain();
+                //}
+            }
+        } else {
+            if (j == 0) {
+                chunks[MathHelper.flat3Dto1D(i, j, k)].genTerrain();
+            }
+        }
+    }
 
     /*SOME USEFUL METHOD OVERRIDING*/
     public void setCell(Cell c, int id) {

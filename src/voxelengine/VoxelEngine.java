@@ -23,12 +23,10 @@ import voxelengine.control.ControlState;
 import voxelengine.control.PlayerControlState;
 import voxelengine.utils.GuiManager;
 import voxelengine.utils.Globals;
+import voxelengine.utils.math.SimplexNoise;
+import voxelengine.world.Chunk;
 import voxelengine.world.WorldProvider;
 
-/**
- *
- * @author emamaker
- */
 public class VoxelEngine extends AbstractAppState {
 
     public static Thread mainThread;
@@ -55,7 +53,7 @@ public class VoxelEngine extends AbstractAppState {
         stateManager = main.getStateManager();
         flyCam = main.getFlyByCamera();
 
-        File f = new File(System.getProperty("user.dir") + "/chunks/");
+        File f = new File(Globals.workingDir);
 
         if (!f.exists()) {
             f.mkdir();
@@ -77,6 +75,12 @@ public class VoxelEngine extends AbstractAppState {
 
         stateManager.getState(BulletAppState.class).setEnabled(Globals.phyEnabled());
         stateManager.getState(PlayerControlState.class).setEnabled(Globals.phyEnabled());
+        
+        if(Globals.LOAD_FROM_FILE){
+            
+        }else{
+            exitWithoutSaving();
+        }
     }
 
     @Override
@@ -86,14 +90,20 @@ public class VoxelEngine extends AbstractAppState {
         } else {
             exitWithoutSaving();
         }
+        super.cleanup();
     }
 
     private void exitAndSave() {
-
+        for(int i = 0; i < WorldProvider.chunks.length; i++){
+            if(WorldProvider.chunks[i] != null){
+                WorldProvider.chunks[i].saveToFile();
+            }
+        }
+        SimplexNoise.saveToFile();
     }
 
     private void exitWithoutSaving() {
-        File folder = new File(System.getProperty("user.dir") + "/chunks/");
+        File folder = new File(Globals.workingDir);
         File list[] = folder.listFiles();
 
         for (int i = 0; i < list.length; i++) {
@@ -102,7 +112,6 @@ public class VoxelEngine extends AbstractAppState {
                 list[i].delete();
             }
         }
-        super.cleanup();
     }
 
     protected void initCrossHairs() {
