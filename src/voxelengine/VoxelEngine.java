@@ -19,13 +19,12 @@ import com.jme3.scene.Node;
 import com.jme3.system.AppSettings;
 import java.io.File;
 import voxelengine.block.TextureManager;
-import voxelengine.control.ControlState;
-import voxelengine.control.PlayerControlState;
+import voxelengine.control.ControlsHandler;
 import voxelengine.utils.GuiManager;
 import voxelengine.utils.Globals;
 import voxelengine.utils.math.SimplexNoise;
 import voxelengine.world.Chunk;
-import voxelengine.world.WorldProvider;
+import voxelengine.world.WorldManager;
 
 public class VoxelEngine extends AbstractAppState {
 
@@ -64,52 +63,61 @@ public class VoxelEngine extends AbstractAppState {
 
         stateManager.attach(new BulletAppState());
         stateManager.attach(new Globals());
-        stateManager.attach(new ControlState());
-        stateManager.attach(new PlayerControlState());
+        stateManager.attach(new ControlsHandler());
         stateManager.attach(new GuiManager());
         stateManager.attach(new TextureManager());
-        stateManager.attach(new WorldProvider());
+        stateManager.attach(new WorldManager());
 
         initCrossHairs();
         main.getViewPort().setBackgroundColor(ColorRGBA.Cyan);
 
         stateManager.getState(BulletAppState.class).setEnabled(Globals.phyEnabled());
-        stateManager.getState(PlayerControlState.class).setEnabled(Globals.phyEnabled());
-        
-        if(Globals.LOAD_FROM_FILE){
-            
-        }else{
-            exitWithoutSaving();
-        }
-    }
 
-    @Override
-    public void cleanup() {
-        if (Globals.SAVE_ON_EXIT) {
-            exitAndSave();
+        if (Globals.LOAD_FROM_FILE) {
+            loadSaveFiles();
         } else {
-            exitWithoutSaving();
+            deleteSaveFiles();
         }
-        super.cleanup();
     }
 
-    private void exitAndSave() {
-        for(int i = 0; i < WorldProvider.chunks.length; i++){
-            if(WorldProvider.chunks[i] != null){
-                WorldProvider.chunks[i].saveToFile();
-            }
-        }
-        SimplexNoise.saveToFile();
-    }
-
-    private void exitWithoutSaving() {
+    private void loadSaveFiles() {
+        //SIMPLEX NOISE IN A STATIC CLASS, SO IT'S INIT METHOD IS AUTOMATICALLY CALLED AND IT DOES ITS OWN FILE INITIALIZATION
         File folder = new File(Globals.workingDir);
         File list[] = folder.listFiles();
 
-        for (int i = 0; i < list.length; i++) {
-            list[i].delete();
-            if (list[i].getName().endsWith(".chunk")) {
-                list[i].delete();
+        String s;
+        String data[] = new String[3];
+
+        for (File f : list) {
+            if (f.getName().endsWith(".chunk")) {
+                s = f.getName();
+                s = s.replace(".chunk", "");
+                data = s.split("-");
+
+                //System.out.println(Arrays.toString(data));
+                Chunk chunk = new Chunk(Integer.valueOf(data[0]), Integer.valueOf(data[1]), Integer.valueOf(data[2]));
+                chunk.loadFromFile(f);
+            }
+        }
+    }
+
+    private void exitAndSave() {
+        SimplexNoise.saveToFile();
+        for (Chunk chunk : WorldManager.chunks) {
+            if (chunk != null) {
+                chunk.saveToFile();
+            }
+        }
+    }
+
+    private void deleteSaveFiles() {
+        File folder = new File(Globals.workingDir);
+        File list[] = folder.listFiles();
+
+        for (File f : list) {
+            f.delete();
+            if (f.getName().endsWith(".chunk") || f.getName().endsWith(".table")) {
+                f.delete();
             }
         }
     }
@@ -122,6 +130,16 @@ public class VoxelEngine extends AbstractAppState {
         ch.setText("+"); // crosshairs
         ch.setLocalTranslation(settings.getWidth() / 2 - ch.getLineWidth() / 2, settings.getHeight() / 2 + ch.getLineHeight() / 2, 0);
         main.getGuiNode().attachChild(ch);
+    }
+
+    @Override
+    public void cleanup() {
+        if (Globals.SAVE_ON_EXIT) {
+            exitAndSave();
+        } else {
+            deleteSaveFiles();
+        }
+        super.cleanup();
     }
 
     public AppStateManager getStateManager() {

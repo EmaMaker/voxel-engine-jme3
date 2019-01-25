@@ -10,9 +10,8 @@ import com.jme3.app.state.AbstractAppState;
 import com.jme3.app.state.AppStateManager;
 import com.jme3.font.BitmapText;
 import com.jme3.math.ColorRGBA;
-import voxelengine.control.ControlState;
+import voxelengine.control.ControlsHandler;
 import voxelengine.VoxelEngine;
-import voxelengine.control.PlayerControlState;
 
 public class GuiManager extends AbstractAppState {
 
@@ -21,16 +20,14 @@ public class GuiManager extends AbstractAppState {
     BitmapText playerPos;
 
     VoxelEngine engine;
-    ControlState controlState;
-    PlayerControlState playerState;
+    ControlsHandler controlState;
 
     @Override
     public void initialize(AppStateManager stateManager, Application app) {
         super.initialize(stateManager, app);
         engine = stateManager.getState(VoxelEngine.class);
 
-        controlState = engine.getStateManager().getState(ControlState.class);
-        playerState = engine.getStateManager().getState(PlayerControlState.class);
+        controlState = engine.getStateManager().getState(ControlsHandler.class);
 
         blockName = new BitmapText(this.engine.getGuiFont(), false);
         playerPos = new BitmapText(this.engine.getGuiFont(), false);
@@ -44,9 +41,9 @@ public class GuiManager extends AbstractAppState {
     public void update(float tpf) {
 
         /*START PLAYER COORDS UPDATE*/
-        if (engine.getStateManager().getState(PlayerControlState.class).isEnabled()) {
+        if (Globals.playerEnabled()) {
             playerPos.setSize(this.engine.getGuiFont().getCharSet().getRenderedSize());
-            playerPos.setText("X: " + (int) playerState.playerModel.getLocalTranslation().x + ", " + "Y: " + (int) playerState.playerModel.getLocalTranslation().y + ", " + "Z: " + (int) playerState.playerModel.getLocalTranslation().z + "   (PLAYER)"); // crosshairs
+            playerPos.setText("X: " + (int) controlState.playerModel.getLocalTranslation().x + ", " + "Y: " + (int) controlState.playerModel.getLocalTranslation().y + ", " + "Z: " + (int) controlState.playerModel.getLocalTranslation().z + "   (PLAYER)"); // crosshairs
             playerPos.setLocalTranslation(engine.getSettings().getWidth() - playerPos.getLineWidth() * 1.1f, engine.getSettings().getHeight() - playerPos.getLineHeight(), 0);
             /*END PLAYER COORDS UPDATE*/
         } else {

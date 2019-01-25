@@ -1,15 +1,22 @@
 package voxelengine.utils.math;
 
+import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.PrintWriter;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import voxelengine.utils.Globals;
+import static voxelengine.utils.Globals.debug;
 
-public class SimplexNoise {  // Simplex noise in 2D, 3D and 4D
+public class SimplexNoise {
 
+    // Simplex noise in 2D, 3D and 4D
     private static Grad grad3[] = {new Grad(1, 1, 0), new Grad(-1, 1, 0), new Grad(1, -1, 0), new Grad(-1, -1, 0),
         new Grad(1, 0, 1), new Grad(-1, 0, 1), new Grad(1, 0, -1), new Grad(-1, 0, -1),
         new Grad(0, 1, 1), new Grad(0, -1, 1), new Grad(0, 1, -1), new Grad(0, -1, -1)};
@@ -42,10 +49,18 @@ public class SimplexNoise {  // Simplex noise in 2D, 3D and 4D
     private static short permMod12[] = new short[512];
 
     static {
+        Random rand = new Random();
+
         if (p == null) {
-            p = new short[256];
-            for (int i = 0; i < 256; i++) {
-                p[i] = (short) new Random().nextInt(255);
+            if (Globals.LOAD_FROM_FILE) {
+                loadFromFile(Paths.get(Globals.workingDir + "/" + Globals.permtableName).toFile());
+            } else {
+                p = new short[256];
+                for (int i = 0; i < 256; i++) {
+                    p[i] = (short) (rand.nextInt(255));
+                }
+                debug("Generated new permutation table, values: " + Arrays.toString(p));
+
             }
         }
 
@@ -419,7 +434,7 @@ public class SimplexNoise {  // Simplex noise in 2D, 3D and 4D
     public static void saveToFile() {
         PrintWriter write = null;
         try {
-            write = new PrintWriter(Globals.workingDir + "perm.table");
+            write = new PrintWriter(Globals.workingDir + Globals.permtableName);
             write.write(Arrays.toString(p));
             write.close();
         } catch (FileNotFoundException ex) {
@@ -427,8 +442,31 @@ public class SimplexNoise {  // Simplex noise in 2D, 3D and 4D
         }
     }
 
-    public static void loadFromFile() {
+    public static void loadFromFile(File f) {
+        if (f.exists()) {
+            try {
+                List<String> lines = Files.readAllLines(f.toPath());
+                String s = "";
 
+                StringBuilder builder = new StringBuilder(s);
+                for (String s1 : lines) {
+                    builder.append(s1);
+                }
+
+                s = builder.toString();
+                s = s.replace("[", "");
+                s = s.replace("]", "");
+
+                String values[] = s.split(", ");
+                p = new short[values.length];
+                for (int i = 0; i < values.length; i++) {
+                    p[i] = Short.parseShort(values[i]);
+                }
+                debug("Loaded permutation table from file, values: " + Arrays.toString(p));
+
+            } catch (IOException ex) {
+            }
+        }
     }
 
     // Inner class to speed upp gradient computations

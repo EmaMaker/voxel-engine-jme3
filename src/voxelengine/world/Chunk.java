@@ -13,17 +13,19 @@ import com.jme3.scene.Geometry;
 import com.jme3.scene.control.AbstractControl;
 import java.io.File;
 import java.io.PrintWriter;
+import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.List;
 import voxelengine.block.Cell;
 import voxelengine.block.CellId;
 import voxelengine.utils.math.MathHelper;
 import static voxelengine.utils.Globals.chunkSize;
 import static voxelengine.utils.Globals.debug;
+import static voxelengine.utils.Globals.pX;
+import static voxelengine.utils.Globals.pY;
+import static voxelengine.utils.Globals.pZ;
+import static voxelengine.utils.Globals.renderDistance;
 import voxelengine.utils.math.SimplexNoise;
-import static voxelengine.world.WorldProvider.pX;
-import static voxelengine.world.WorldProvider.pY;
-import static voxelengine.world.WorldProvider.pZ;
-import static voxelengine.world.WorldProvider.renderDistance;
 
 public class Chunk extends AbstractControl {
 
@@ -56,21 +58,19 @@ public class Chunk extends AbstractControl {
         Globals.terrainNode.addControl((AbstractControl) this);
         chunkGeom.setLocalTranslation(pos);
 
+        markForUpdate(true);
     }
 
     public void processCells() {
         if (toBeSet) {
-            //unload();
-            /*chunkMesh = new ChunkMesh(this);
-            chunkGeom = new Geometry(this.toString(), chunkMesh);
-            chunkGeom.setMaterial(Globals.mat);
-             */
+            debug("Updating " + this.toString());
+
             if (Thread.currentThread() == Globals.engine.mainThread) {
+                /*CHECK OUT THE chunkMesh.updateBound() for a better chunkMesh managing instead of regenerating it:
+                actually gives some problems with the buffers, it has to be tested*/
                 chunkMesh = new ChunkMesh(this);
                 chunkGeom.setMesh(chunkMesh);
             }
-
-            debug("Updating " + this.toString());
 
             for (Cell cell : cells) {
                 if (cell != null) {
@@ -87,6 +87,11 @@ public class Chunk extends AbstractControl {
     }
 
     public void load() {
+        //on first load, Global material is null because it hasn't been initialized yet, so it's set here
+        if (chunkGeom.getMaterial() == null) {
+            chunkGeom.setMaterial(Globals.mat);
+        }
+        
         chunkGeom.setModelBound(new BoundingSphere(chunkSize * 2f, new Vector3f(x + (chunkSize / 2), y + (chunkSize / 2), z + (chunkSize / 2))));
         if (!loaded && (Globals.main.getCamera().contains(chunkGeom.getWorldBound()) == Camera.FrustumIntersect.Inside
                 || Globals.main.getCamera().contains(chunkGeom.getWorldBound()) == Camera.FrustumIntersect.Intersects)) {
@@ -165,7 +170,6 @@ public class Chunk extends AbstractControl {
         markForUpdate(true);
     }
 
-    //returns the Cell object of the cells[i][j][k]. Could return null if index is null
     public Cell getCell(int i, int j, int k) {
         if (i >= 0 && j >= 0 && k >= 0 && i < chunkSize && j < chunkSize && k < chunkSize) {
             return cells[MathHelper.flat3Dto1D(i, j, k)];
@@ -173,7 +177,6 @@ public class Chunk extends AbstractControl {
         return null;
     }
 
-    //sets the cells index at x,y,z to the given ID, if index is null, it creates a new cell
     public void setCell(int i, int j, int k, int id) {
         try {
             if (cells[MathHelper.flat3Dto1D(i, j, k)] != null) {
@@ -188,7 +191,9 @@ public class Chunk extends AbstractControl {
         }
     }
 
-    File f;
+    @Override
+    protected void controlRender(RenderManager rm, ViewPort vp) {
+    }
 
     @Override
     protected void controlUpdate(float tpf) {
@@ -211,7 +216,7 @@ public class Chunk extends AbstractControl {
     }
 
     public void saveToFile() {
-        f = Paths.get(Globals.workingDir + x + "-" + y + "-" + z + ".chunk").toFile();
+        File f = Paths.get(Globals.workingDir + x + "-" + y + "-" + z + ".chunk").toFile();
 
         if (!f.exists() && !isEmpty()) {
             try {
@@ -224,7 +229,7 @@ public class Chunk extends AbstractControl {
                 }
 
                 Globals.terrainNode.removeControl(this);
-                WorldProvider.chunks[MathHelper.flat3Dto1D(x, y, z)] = null;
+                WorldManager.chunks[MathHelper.flat3Dto1D(x, y, z)] = null;
                 writer.close();
             } catch (Exception e) {
                 e.printStackTrace();
@@ -232,8 +237,29 @@ public class Chunk extends AbstractControl {
         }
     }
 
-    @Override
-    protected void controlRender(RenderManager rm, ViewPort vp) {
+    public void loadFromFile(File f) {
+        List<String> lines;
+        String[] datas = new String[4];
+
+        if (f.exists()) {
+            if (!(f.length() == 0)) {
+                try {
+                    lines = Files.readAllLines(f.toPath());
+
+                    for (String s : lines) {
+                        datas = s.split(",");
+                        setCell(Integer.valueOf(datas[0]), Integer.valueOf(datas[1]), Integer.valueOf(datas[2]), Integer.valueOf(datas[3]));
+                    }
+                    f.delete();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            } else {
+                genTerrain();
+            }
+        } else {
+            genTerrain();
+        }
     }
 
     public boolean isEmpty() {
@@ -249,7 +275,7 @@ public class Chunk extends AbstractControl {
         toBeSet = b;
     }
 
-    /*THIS CODE HIS SUPER UGLY AND IT'S NOT NEEDED TO BE SO LONG. BUT IT ACTUALLY WORKS. AT LEAST BUGS HAVE BEEN FIXED*/
+    /*THIS CODE IS SUPER UGLY AND IT'S NOT NEEDED TO BE SO LONG. BUT IT ACTUALLY WORKS*/
     public void dumbGreedy() {
         debug("Dumb gredding " + this);
         dumbGreedyWestEast(false);

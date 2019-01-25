@@ -1,30 +1,27 @@
 package voxelengine.world;
 
-import voxelengine.control.PlayerControlState;
 import com.jme3.app.Application;
 import com.jme3.app.SimpleApplication;
 import com.jme3.app.state.AbstractAppState;
 import com.jme3.app.state.AppStateManager;
 import com.jme3.math.Vector3f;
-import com.sun.javafx.collections.NonIterableChange;
 import java.io.File;
-import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 import java.util.Random;
 import java.util.concurrent.Callable;
 import voxelengine.block.CellId;
-import voxelengine.Main;
 import voxelengine.block.Cell;
 import voxelengine.utils.math.MathHelper;
 import voxelengine.utils.Globals;
 import static voxelengine.utils.Globals.TESTING;
 import static voxelengine.utils.Globals.chunkSize;
 import static voxelengine.utils.Globals.debug;
+import static voxelengine.utils.Globals.pX;
+import static voxelengine.utils.Globals.pZ;
+import static voxelengine.utils.Globals.renderDistance;
 
-public class WorldProvider extends AbstractAppState {
+public class WorldManager extends AbstractAppState {
 
     public final static int MAXX = 20, MAXY = 20, MAXZ = 20;
     public static Chunk[] chunks = new Chunk[MAXX * MAXY * MAXZ];
@@ -32,36 +29,14 @@ public class WorldProvider extends AbstractAppState {
     SimpleApplication app;
     Random rand = new Random();
 
-    //player coords in chunks
-    public static int pX = 8, pY = 8, pZ = 8;
-
-    PlayerControlState playerControl;
-
-    public static byte renderDistance = 8;
     public boolean updateChunks = true;
 
     @Override
     public void initialize(AppStateManager stateManager, Application app) {
         super.initialize(stateManager, app);
         this.app = (SimpleApplication) app;
-        playerControl = this.app.getStateManager().getState(PlayerControlState.class);
 
         preload();
-    }
-
-    @Override
-    public synchronized void update(float tpf) {
-
-        if (this.app.getStateManager().getState(PlayerControlState.class).isEnabled()) {
-            pX = playerControl.getX() / chunkSize;
-            pY = playerControl.getY() / chunkSize;
-            pZ = playerControl.getZ() / chunkSize;
-        } else {
-            pX = (int) app.getCamera().getLocation().getX() / chunkSize;
-            pY = (int) app.getCamera().getLocation().getY() / chunkSize;
-            pZ = (int) app.getCamera().getLocation().getZ() / chunkSize;
-        }
-
     }
 
     public void preload() {
@@ -185,23 +160,19 @@ public class WorldProvider extends AbstractAppState {
         @Override
         public Object call() {
             while (updateChunks) {
-                try {
-                    for (int i = pX - renderDistance; i < pX + renderDistance; i++) {
-                        for (int k = pZ - renderDistance; k < pZ + renderDistance; k++) {
+                for (int i = pX - renderDistance; i < pX + renderDistance; i++) {
+                    for (int k = pZ - renderDistance; k < pZ + renderDistance; k++) {
 
-                            if (i >= 0 && i < MAXX && j >= 0 && j < MAXY && k >= 0 && k < MAXZ) {
+                        if (i >= 0 && i < MAXX && j >= 0 && j < MAXY && k >= 0 && k < MAXZ) {
 
-                                if (chunks[MathHelper.flat3Dto1D(i, j, k)] != null) {
-                                    chunks[MathHelper.flat3Dto1D(i, j, k)].processCells();
-                                } else {
-                                    chunks[MathHelper.flat3Dto1D(i, j, k)] = new Chunk(i, j, k);
-                                    loadFromFile(i, j, k);
-                                }
+                            if (chunks[MathHelper.flat3Dto1D(i, j, k)] != null) {
+                                chunks[MathHelper.flat3Dto1D(i, j, k)].processCells();
+                            } else {
+                                chunks[MathHelper.flat3Dto1D(i, j, k)] = new Chunk(i, j, k);
+                                loadFromFile(i, j, k);
                             }
                         }
                     }
-                } catch (Exception e) {
-                    e.printStackTrace();
                 }
             }
             return null;
@@ -209,39 +180,8 @@ public class WorldProvider extends AbstractAppState {
     };
 
     public void loadFromFile(int i, int j, int k) {
-        File f;
-        List<String> lines;
-
-        String[] datas = new String[4];
-        f = Paths.get(Globals.workingDir + i + "-" + j + "-" + k + ".chunk").toFile();
-
-        if (f.exists()) {
-            if (!(f.length() == 0)) {
-                try {
-
-                    lines = Files.readAllLines(f.toPath());
-
-                    for (String s : lines) {
-                        datas = s.split(",");
-                        chunks[MathHelper.flat3Dto1D(i, j, k)].setCell(Integer.valueOf(datas[0]), Integer.valueOf(datas[1]), Integer.valueOf(datas[2]), Integer.valueOf(datas[3]));
-                    }
-
-                    f.delete();
-
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-
-            } else {
-                //if (j == 0) {
-                chunks[MathHelper.flat3Dto1D(i, j, k)].genTerrain();
-                //}
-            }
-        } else {
-            if (j == 0) {
-                chunks[MathHelper.flat3Dto1D(i, j, k)].genTerrain();
-            }
-        }
+        File f = Paths.get(Globals.workingDir + i + "-" + j + "-" + k + ".chunk").toFile();
+        chunks[MathHelper.flat3Dto1D(i, j, k)].loadFromFile(f);
     }
 
     /*SOME USEFUL METHOD OVERRIDING*/

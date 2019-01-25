@@ -5,11 +5,12 @@
         <group>
             <file>file:/home/emamaker/jMonkeyProjects/voxel-engine-jme3/src/voxelengine/VoxelEngine.java</file>
             <file>file:/home/emamaker/jMonkeyProjects/voxel-engine-jme3/src/voxelengine/utils/Globals.java</file>
-            <file>file:/home/emamaker/jMonkeyProjects/voxel-engine-jme3/src/voxelengine/utils/math/SimplexNoise.java</file>
-            <file>file:/home/emamaker/jMonkeyProjects/voxel-engine-jme3/src/voxelengine/control/ControlState.java</file>
+            <file>file:/home/emamaker/jMonkeyProjects/voxel-engine-jme3/src/voxelengine/world/ChunkMesh.java</file>
+            <file>file:/home/emamaker/jMonkeyProjects/voxel-engine-jme3/src/voxelengine/utils/GuiManager.java</file>
+            <file>file:/home/emamaker/jMonkeyProjects/voxel-engine-jme3/src/voxelengine/control/ControlsHandler.java</file>
+            <file>file:/home/emamaker/jMonkeyProjects/voxel-engine-jme3/src/voxelengine/world/WorldManager.java</file>
             <file>file:/home/emamaker/jMonkeyProjects/voxel-engine-jme3/src/voxelengine/Main.java</file>
             <file>file:/home/emamaker/jMonkeyProjects/voxel-engine-jme3/src/voxelengine/world/Chunk.java</file>
-            <file>file:/home/emamaker/jMonkeyProjects/voxel-engine-jme3/src/voxelengine/world/WorldProvider.java</file>
         </group>
     </open-files>
 </project-private>

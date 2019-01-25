@@ -13,16 +13,12 @@ public class Main extends SimpleApplication {
 
     @Override
     public void simpleInitApp() {
+        Globals.setPlayerEnabled(false);
         Globals.setPhysicsEnabled(true);
         Globals.LOAD_FROM_FILE = false;
         Globals.SAVE_ON_EXIT = true;
-                
-        stateManager.attach(new VoxelEngine(settings));
-        
-        
-    }
 
-    protected void initCrossHairs() {
+        stateManager.attach(new VoxelEngine(settings));
     }
 
     @Override
