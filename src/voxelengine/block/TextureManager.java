@@ -23,7 +23,7 @@ public class TextureManager extends AbstractAppState {
 
     public static List<Image> images = new ArrayList<Image>();
     public static List<int[]> textures = new ArrayList<int[]>();
-            
+
     SimpleApplication main;
 
     @Override
@@ -37,25 +37,24 @@ public class TextureManager extends AbstractAppState {
         addImage(OFF_WOOD_SIDE, main.getAssetManager().loadTexture("Textures/wood_side.png").getImage());
         addImage(OFF_WOOD_TOP_BOTTOM, main.getAssetManager().loadTexture("Textures/wood_bottom_top.png").getImage());
         //images.add(OFF_STONE, main.getAssetManager().loadTexture("Textures/stone.png").getImage());
-        
+
         TextureArray array = new TextureArray(images);
         array.setWrap(Texture.WrapMode.Repeat);
-        
+
         Globals.mat.setTexture("ColorMap", array);
-        
-        setIdTexture(CellId.ID_GRASS, OFF_GRASS_SIDE, OFF_GRASS_SIDE, OFF_GRASS_SIDE, OFF_GRASS_SIDE, OFF_GRASS_TOP, OFF_DIRT);
+
+        setIdTexture(CellId.ID_GRASS, OFF_GRASS_SIDE, OFF_GRASS_SIDE, OFF_GRASS_SIDE, OFF_GRASS_SIDE, OFF_DIRT, OFF_GRASS_TOP);
         setIdTexture(CellId.ID_DIRT, OFF_DIRT, OFF_DIRT, OFF_DIRT, OFF_DIRT, OFF_DIRT, OFF_DIRT);
-        setIdTexture(CellId.ID_WOOD, OFF_WOOD_SIDE, OFF_WOOD_SIDE, OFF_WOOD_SIDE, OFF_WOOD_SIDE, OFF_WOOD_TOP_BOTTOM, OFF_WOOD_TOP_BOTTOM );
+        setIdTexture(CellId.ID_WOOD, OFF_WOOD_SIDE, OFF_WOOD_SIDE, OFF_WOOD_SIDE, OFF_WOOD_SIDE, OFF_WOOD_TOP_BOTTOM, OFF_WOOD_TOP_BOTTOM);
     }
 
-    public void setIdTexture(int id, int offWest, int offEast, int offNorth, int offSouth,int offTop,int offBottom){
-        int[] offsets = {offWest, offEast, offNorth, offSouth, offTop, offBottom};
+    public void setIdTexture(int id, int offWest, int offEast, int offNorth, int offSouth, int offBottom, int offTop) {
+        int[] offsets = {offWest, offEast, offNorth, offSouth,  offBottom, offTop};
         textures.add(id, offsets);
     }
-    
-    
-    public void addImage(int offset, Image img){
-        images.add(offset, img);        
+
+    public void addImage(int offset, Image img) {
+        images.add(offset, img);
     }
-    
+
 }

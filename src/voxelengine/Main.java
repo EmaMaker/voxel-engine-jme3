@@ -13,10 +13,12 @@ public class Main extends SimpleApplication {
 
     @Override
     public void simpleInitApp() {
-        Globals.setPlayerEnabled(false);
+        Globals.setPlayerEnabled(true);
         Globals.setPhysicsEnabled(true);
+        Globals.setTesting(false);
+        Globals.setWireFrameEnabled(false);
         Globals.LOAD_FROM_FILE = false;
-        Globals.SAVE_ON_EXIT = true;
+        Globals.SAVE_ON_EXIT = false;
 
         stateManager.attach(new VoxelEngine(settings));
     }

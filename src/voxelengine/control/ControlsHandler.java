@@ -192,7 +192,7 @@ public class ControlsHandler extends AbstractAppState implements ActionListener,
         //removes the pointed
         switch (name) {
             case "remove":
-                if (!fastBlock) {
+                /*if (!fastBlock) {
                     if (breakStep % 25 == 0) {
                         breakBlock();
                     }
@@ -203,10 +203,11 @@ public class ControlsHandler extends AbstractAppState implements ActionListener,
                     breakStep++;
                 } else {
                     breakStep = 0;
-                }
+                }*/
+                breakBlock();
                 break;
             case "place":
-                if (!fastBlock) {
+                /*if (!fastBlock) {
                     if (placeStep % 25 == 0) {
                         placeblock();
                     }
@@ -217,7 +218,8 @@ public class ControlsHandler extends AbstractAppState implements ActionListener,
                     placeStep++;
                 } else {
                     placeStep = 0;
-                }
+                }*/
+                placeblock();
                 debug("!===========================================!");
                 break;
 

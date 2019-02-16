@@ -59,7 +59,7 @@ public class VoxelEngine extends AbstractAppState {
         }
 
         flyCam.setZoomSpeed(0);
-        flyCam.setMoveSpeed(60f);
+        flyCam.setMoveSpeed(45f);
 
         stateManager.attach(new BulletAppState());
         stateManager.attach(new Globals());

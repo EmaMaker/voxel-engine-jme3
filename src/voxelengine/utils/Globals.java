@@ -23,23 +23,25 @@ public class Globals extends AbstractAppState {
     public static WorldManager prov;
     public static Material mat;
     public static Node terrainNode = new Node();
-        
-    public static final boolean TESTING = false;
+
+    //settings
+    static boolean TESTING = true;
     static boolean enableDebug = false;
     static boolean enablePhysics = true;
     static boolean enablePlayer = true;
     static boolean enableWireframe = false;
-    
+
     public static boolean LOAD_FROM_FILE = false;
     public static boolean SAVE_ON_EXIT = true;
-    
+
+
     public static String workingDir = System.getProperty("user.dir") + "/chunks/";
     public static String permtableName = "perm.table";
+
     public static ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(2);
-    
+
     public static int pX = 8, pY = 8, pZ = 8;
     public static int renderDistance = 8;
-    
 
     @Override
     public void initialize(AppStateManager stateManager, Application app) {
@@ -64,58 +66,66 @@ public class Globals extends AbstractAppState {
     public static void debug(Exception e) {
         debug(Arrays.toString(e.getStackTrace()));
     }
-    
-    public static void setPhysicsEnabled(boolean enable){
+
+    public static void setPhysicsEnabled(boolean enable) {
         enablePhysics = enable;
     }
-    
-    public static boolean playerEnabled(){
+
+    public static boolean playerEnabled() {
         return enablePlayer;
     }
-    
-    public static void setPlayerEnabled(boolean enable){
+
+    public static void setPlayerEnabled(boolean enable) {
         enablePlayer = enable;
     }
-    
-    public static boolean phyEnabled(){
+
+    public static boolean phyEnabled() {
         return enablePhysics;
     }
-    
-    public static void setDebugEnabled(boolean enable){
+
+    public static void setDebugEnabled(boolean enable) {
         enableDebug = enable;
     }
-    
-    public static boolean debugEnabled(){
+
+    public static boolean debugEnabled() {
         return enableDebug;
     }
-    
-    public static void setWireFrameEnabled(boolean enable){
+
+    public static void setWireFrameEnabled(boolean enable) {
         enableWireframe = enable;
     }
-    
-    public static boolean wireFrameEnabled(){
+
+    public static boolean wireFrameEnabled() {
         return enableWireframe;
     }
-    
-    public static void setWorkingDir(String s){
+
+    public static void setWorkingDir(String s) {
         workingDir = s;
     }
-    
-    public static String getWorkingDir(){
+
+    public static String getWorkingDir() {
         return workingDir;
     }
-    
-    public static void setStartPoint(int x, int y, int z){
+
+    public static void setStartPoint(int x, int y, int z) {
         pX = x;
         pY = y;
         pZ = z;
     }
-    
-    public static void setRenderDistance(int render){
+
+    public static void setRenderDistance(int render) {
         renderDistance = render;
     }
-    
-    public static int getRenderDistance(){
+
+    public static int getRenderDistance() {
         return renderDistance;
+    }
+
+    public static void setTesting(boolean b) {
+        TESTING = b;
+    }
+
+    public static boolean isTesting() {
+        return TESTING;
     }
 }

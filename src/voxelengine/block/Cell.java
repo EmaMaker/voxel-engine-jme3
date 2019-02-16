@@ -52,41 +52,42 @@ public class Cell implements Serializable {
         meshed[4] = false;
         meshed[5] = false;
 
-        //sides[0] free
-        if (this.chunk.getCell(x + 1, y, z) == null || this.chunk.getCell(x + 1, y, z).id == CellId.ID_AIR) {
-            sides[0] = true;
-        }
-
-        //sides[1] free
-        if (this.chunk.getCell(x - 1, y, z) == null || this.chunk.getCell(x - 1, y, z).id == CellId.ID_AIR) {
-            sides[1] = true;
-        }
-
-        //sides[2] free
-        if (this.chunk.getCell(x, y, z + 1) == null || this.chunk.getCell(x, y, z + 1).id == CellId.ID_AIR) {
-            sides[2] = true;
-        }
-
-        //sides[3] free
-        if (this.chunk.getCell(x, y, z - 1) == null || this.chunk.getCell(x, y, z - 1).id == CellId.ID_AIR) {
-            sides[3] = true;
-        }
-
-        //sides[4] free
-        if (this.chunk.getCell(x, y + 1, z) == null || this.chunk.getCell(x, y + 1, z).id == CellId.ID_AIR) {
-            sides[4] = true;
-            if (this.id == CellId.ID_DIRT) {
-                setId(CellId.ID_GRASS);
+        if (id != CellId.ID_AIR) {
+            //sides[0] free
+            if (this.chunk.getCell(x - 1, y, z) == null || this.chunk.getCell(x - 1, y, z).id == CellId.ID_AIR) {
+                sides[0] = true;
             }
-        } else {
-            if (this.id == CellId.ID_GRASS) {
-                setId(CellId.ID_DIRT);
-            }
-        }
 
-        //Bottom free
-        if (this.chunk.getCell(x, y - 1, z) == null || this.chunk.getCell(x, y - 1, z).id == CellId.ID_AIR) {
-            sides[5] = true;
+            //sides[1] free
+            if (this.chunk.getCell(x + 1, y, z) == null || this.chunk.getCell(x + 1, y, z).id == CellId.ID_AIR) {
+                sides[1] = true;
+            }
+
+            //sides[2] free
+            if (this.chunk.getCell(x, y, z - 1) == null || this.chunk.getCell(x, y, z - 1).id == CellId.ID_AIR) {
+                sides[2] = true;
+            }
+
+            //sides[3] free
+            if (this.chunk.getCell(x, y, z + 1) == null || this.chunk.getCell(x, y, z + 1).id == CellId.ID_AIR) {
+                sides[3] = true;
+            }
+
+            //sides[5 free
+            if (this.chunk.getCell(x, y - 1, z) == null || this.chunk.getCell(x, y - 1, z).id == CellId.ID_AIR) {
+                sides[4] = true;
+            }
+            //sides[4] free
+            if (this.chunk.getCell(x, y + 1, z) == null || this.chunk.getCell(x, y + 1, z).id == CellId.ID_AIR) {
+                sides[5] = true;
+//                if (this.id == CellId.ID_DIRT) {
+//                    setId(CellId.ID_GRASS);
+//                }
+            } else {
+//                if (this.id == CellId.ID_GRASS) {
+//                    setId(CellId.ID_DIRT);
+//                }
+            }
         }
     }
 
@@ -97,20 +98,24 @@ public class Cell implements Serializable {
             offsets = TextureManager.textures.get(id);
         }
     }
-    
-    public byte getFaceFromVertices(ArrayList<Vector3f> al){
+
+    public boolean equals(Cell c) {
+        return worldX == c.worldX && worldY == c.worldY && worldZ == c.worldZ;
+    }
+
+    public byte getFaceFromVertices(ArrayList<Vector3f> al) {
         if (al.get(0).x == al.get(1).x && al.get(0).x == al.get(2).x && al.get(0).x == al.get(3).x) {
-            if(al.get(0).x == worldX){
+            if (al.get(0).x == worldX) {
                 return 0;
             }
             return 1;
         } else if (al.get(0).y == al.get(1).y && al.get(0).y == al.get(2).y && al.get(0).y == al.get(3).y) {
-            if(al.get(0).y == worldY){
+            if (al.get(0).y == worldY) {
                 return 5;
             }
             return 4;
         } else if (al.get(0).z == al.get(1).z && al.get(0).z == al.get(2).z && al.get(0).z == al.get(3).z) {
-            if(al.get(0).z == worldZ){
+            if (al.get(0).z == worldZ) {
                 return 2;
             }
             return 3;

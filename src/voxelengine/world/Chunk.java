@@ -39,7 +39,7 @@ public class Chunk extends AbstractControl {
     //the cells contained in the chunk, as an arraylist. using a three-dimensional array would cause to json-serialization to retrive StackOverflowException
     public Cell[] cells = new Cell[chunkSize * chunkSize * chunkSize];
 
-    public ChunkMesh chunkMesh = new ChunkMesh(this);
+    public ChunkMesh chunkMesh = new ChunkMesh();
     public Geometry chunkGeom;
     Vector3f pos = new Vector3f();
 
@@ -65,22 +65,22 @@ public class Chunk extends AbstractControl {
         if (toBeSet) {
             debug("Updating " + this.toString());
 
-            if (Thread.currentThread() == Globals.engine.mainThread) {
-                /*CHECK OUT THE chunkMesh.updateBound() for a better chunkMesh managing instead of regenerating it:
-                actually gives some problems with the buffers, it has to be tested*/
-                chunkMesh = new ChunkMesh(this);
-                chunkGeom.setMesh(chunkMesh);
-            }
-
             for (Cell cell : cells) {
                 if (cell != null) {
                     cell.update();
                 }
             }
 
-            dumbGreedy();
-            chunkMesh.set();
+            if (Thread.currentThread() == Globals.engine.mainThread) {
+                /*CHECK OUT THE chunkMesh.updateBound() for a better chunkMesh managing instead of regenerating it:
+                actually gives some problems with the buffers, it has to be tested*/
+                chunkMesh = new ChunkMesh();
 
+                kindaBetterGreedy();
+                chunkGeom.setMesh(chunkMesh);
+
+                chunkMesh.set();
+            }
             toBeSet = false;
             loaded = false;
         }
@@ -91,7 +91,7 @@ public class Chunk extends AbstractControl {
         if (chunkGeom.getMaterial() == null) {
             chunkGeom.setMaterial(Globals.mat);
         }
-        
+
         chunkGeom.setModelBound(new BoundingSphere(chunkSize * 2f, new Vector3f(x + (chunkSize / 2), y + (chunkSize / 2), z + (chunkSize / 2))));
         if (!loaded && (Globals.main.getCamera().contains(chunkGeom.getWorldBound()) == Camera.FrustumIntersect.Inside
                 || Globals.main.getCamera().contains(chunkGeom.getWorldBound()) == Camera.FrustumIntersect.Intersects)) {
@@ -232,7 +232,6 @@ public class Chunk extends AbstractControl {
                 WorldManager.chunks[MathHelper.flat3Dto1D(x, y, z)] = null;
                 writer.close();
             } catch (Exception e) {
-                e.printStackTrace();
             }
         }
     }
@@ -252,7 +251,6 @@ public class Chunk extends AbstractControl {
                     }
                     f.delete();
                 } catch (Exception e) {
-                    e.printStackTrace();
                 }
             } else {
                 genTerrain();
@@ -275,370 +273,125 @@ public class Chunk extends AbstractControl {
         toBeSet = b;
     }
 
-    /*THIS CODE IS SUPER UGLY AND IT'S NOT NEEDED TO BE SO LONG. BUT IT ACTUALLY WORKS*/
-    public void dumbGreedy() {
-        debug("Dumb gredding " + this);
-        dumbGreedyWestEast(false);
-        dumbGreedyWestEast(true);
-        dumbGreedyNorthSouth(false);
-        dumbGreedyNorthSouth(true);
-        dumbGreedyTopBottom(true);
-        dumbGreedyTopBottom(false);
-
-        markForUpdate(true);
-        debug("End dumb gredding " + this);
-    }
-
-    public void dumbGreedyWestEast(boolean backface) {
-        Vector3f v0, v1, v2, v3;
-        short i0, i1, i2, i3;
-        boolean done;
-        int startX, startY, startZ;
-        int offX, offY, offZ;
+    public void kindaBetterGreedy() {
+        int startX, startY, startZ, offX, offY, offZ, index;
+        short i0 = 0, i1 = 0, i2 = 0, i3 = 0;
         Cell c1;
-
-        int indexOfSide = backface ? 0 : 1;
+        Vector3f v0, v1, v2, v3;
 
         for (Cell c : cells) {
-            if (c != null && c.id != CellId.ID_AIR) {
-                offX = backface ? 1 : 0;
-                offY = 0;
-                offZ = 0;
-                //System.out.println(c + " at " + c.x + ", " + c.y + ", " + c.z + "    (" + c.sides[indexOfSide] + ")    (" + c.meshed[indexOfSide] + ")");
 
-                if (c.id != CellId.ID_AIR && c.sides[indexOfSide] && !c.meshed[indexOfSide]) {
-                    startX = c.x;
-                    startY = c.y;
-                    startZ = c.z;
+            //for every coord (x,y,z. Actually x,z,y)
+            for (int s = 0; s < 3; s++) {
+                //for every face (two for each coord: face and backface)
+                for (int i = 0; i < 2; i++) {
+                    int backfaces[] = {0, 0, 0};
 
-                    done = false;
+                    backfaces[s] = i;
+                    index = s * 2 + i;
 
-                    while (!done) {
-                        c1 = getCell(startX, startY + offY, startZ - 1);
-                        if (c1 != null && !c1.meshed[indexOfSide] && c1.id != CellId.ID_AIR && c1.id == c.id && c1.sides[indexOfSide]) {
-                            startZ--;
+                    if (c != null && c.id != CellId.ID_AIR && c.sides[index] && !c.meshed[index]) {
+
+                        startX = c.x;
+                        startY = c.y;
+                        startZ = c.z;
+
+                        offX = 0;
+                        offY = 0;
+                        offZ = 0;
+
+                        if (s == 0 || s == 2) {
                             offZ++;
-                            c1.meshed[indexOfSide] = true;
-                            //System.out.println(c1 + " at " + c1.x + ", " + c1.y + ", " + c1.z + " can be added z-");
                         } else {
-                            while (!done) {
-                                c1 = getCell(startX, startY + offY, startZ + offZ);
-                                if (c1 != null && c1.sides[indexOfSide] && !c1.meshed[indexOfSide] && c1.id != CellId.ID_AIR && c1.id == c.id) {
-                                    c1.meshed[indexOfSide] = true;
-                                    //System.out.println(c1 + " at " + c1.x + ", " + c1.y + ", " + c1.z + " can be added z+");
-                                    offZ++;
-                                } else {
-                                    while (!done) {
-                                        offY++;
-                                        for (int k = startZ; k < startZ + offZ; k++) {
-                                            c1 = getCell(startX, startY + offY, k);
-
-                                            if (c1 == null || c1.meshed[indexOfSide] || c1.id == CellId.ID_AIR || c1.id != c.id || !c1.sides[indexOfSide]) {
-                                                done = true;
-                                                break;
-                                            }
-                                        }
-                                        if (!done) {
-                                            for (int k = startZ; k < startZ + offZ; k++) {
-                                                c1 = getCell(startX, startY + offY, k);
-                                                c1.meshed[indexOfSide] = true;
-                                            }
-                                        }
-                                    }
-
-                                    done = false;
-                                    while (!done) {
-                                        startY--;
-                                        offY++;
-                                        for (int k = startZ; k < startZ + offZ; k++) {
-                                            c1 = getCell(startX, startY, k);
-
-                                            if (c1 == null || c1.meshed[indexOfSide] || c1.id == CellId.ID_AIR || c1.id != c.id || !c1.sides[indexOfSide]) {
-                                                done = true;
-                                                startY++;
-                                                offY--;
-                                                break;
-                                            }
-                                        }
-                                        if (!done) {
-                                            for (int k = startZ; k < startZ + offZ; k++) {
-                                                c1 = getCell(startX, startY, k);
-                                                c1.meshed[indexOfSide] = true;
-                                            }
-                                        }
-                                    }
-                                    done = true;
-                                }
-                            }
-                        }
-                    }
-
-                    v0 = new Vector3f(startX + offX, startY, startZ);
-                    v1 = new Vector3f(startX + offX, startY + offY, startZ);
-                    v2 = new Vector3f(startX + offX, startY + offY, startZ + offZ);
-                    v3 = new Vector3f(startX + offX, startY, startZ + offZ);
-
-                    i0 = chunkMesh.addVertex(v0);
-                    i1 = chunkMesh.addVertex(v1);
-                    i2 = chunkMesh.addVertex(v2);
-                    i3 = chunkMesh.addVertex(v3);
-
-                    chunkMesh.addTextureVertex(i0, new Vector3f(0, 0, c.offsets[indexOfSide]));
-                    chunkMesh.addTextureVertex(i1, new Vector3f(0, offY, c.offsets[indexOfSide]));
-                    chunkMesh.addTextureVertex(i2, new Vector3f(offZ, offY, c.offsets[indexOfSide]));
-                    chunkMesh.addTextureVertex(i3, new Vector3f(offZ, 0, c.offsets[indexOfSide]));
-
-                    if (backface) {
-                        chunkMesh.indicesList.add(i0);
-                        chunkMesh.indicesList.add(i1);
-                        chunkMesh.indicesList.add(i2);
-                        chunkMesh.indicesList.add(i2);
-                        chunkMesh.indicesList.add(i3);
-                        chunkMesh.indicesList.add(i0);
-                    } else {
-                        chunkMesh.indicesList.add(i0);
-                        chunkMesh.indicesList.add(i3);
-                        chunkMesh.indicesList.add(i2);
-                        chunkMesh.indicesList.add(i2);
-                        chunkMesh.indicesList.add(i1);
-                        chunkMesh.indicesList.add(i0);
-                    }
-                }
-            }
-        }
-    }
-
-    public void dumbGreedyNorthSouth(boolean backface) {
-        Vector3f v0, v1, v2, v3;
-        short i0, i1, i2, i3;
-        boolean done;
-        int startX, startY, startZ;
-        int offX, offY, offZ;
-        Cell c1;
-
-        int indexOfSide = backface ? 2 : 3;
-
-        for (Cell c : cells) {
-            if (c != null && c.id != CellId.ID_AIR) {
-                offX = 0;
-                offY = 0;
-                offZ = backface ? 1 : 0;
-                //System.out.println(c + " at " + c.x + ", " + c.y + ", " + c.z + "    (" + c.sides[indexOfSide] + ")    (" + c.meshed[indexOfSide] + ")");
-
-                if (c.id != CellId.ID_AIR && c.sides[indexOfSide] && !c.meshed[indexOfSide]) {
-                    startX = c.x;
-                    startY = c.y;
-                    startZ = c.z;
-
-                    done = false;
-
-                    while (!done) {
-                        c1 = getCell(startX - 1, startY + offY, startZ);
-                        if (c1 != null && !c1.meshed[indexOfSide] && c1.id != CellId.ID_AIR && c1.id == c.id && c1.sides[indexOfSide]) {
-                            startX--;
                             offX++;
-                            c1.meshed[indexOfSide] = true;
-                            //System.out.println(c1 + " at " + c1.x + ", " + c1.y + ", " + c1.z + " can be added z-");
-                        } else {
-                            while (!done) {
-                                c1 = getCell(startX + offX, startY + offY, startZ);
-                                if (c1 != null && c1.sides[indexOfSide] && !c1.meshed[indexOfSide] && c1.id != CellId.ID_AIR && c1.id == c.id) {
-                                    c1.meshed[indexOfSide] = true;
-                                    //System.out.println(c1 + " at " + c1.x + ", " + c1.y + ", " + c1.z + " can be added z+");
-                                    offX++;
-                                } else {
-                                    while (!done) {
-                                        offY++;
-                                        for (int k = startX; k < startX + offX; k++) {
-                                            c1 = getCell(k, startY + offY, startZ);
-
-                                            if (c1 == null || c1.meshed[indexOfSide] || c1.id == CellId.ID_AIR || c1.id != c.id || !c1.sides[indexOfSide]) {
-                                                done = true;
-                                                break;
-                                            }
-                                        }
-                                        if (!done) {
-                                            for (int k = startX; k < startX + offX; k++) {
-                                                c1 = getCell(k, startY + offY, startZ);
-                                                c1.meshed[indexOfSide] = true;
-                                            }
-                                        }
-                                    }
-
-                                    done = false;
-                                    while (!done) {
-                                        startY--;
-                                        offY++;
-                                        for (int k = startX; k < startX + offX; k++) {
-                                            c1 = getCell(k, startY + offY, startZ);
-
-                                            if (c1 == null || c1.meshed[indexOfSide] || c1.id == CellId.ID_AIR || c1.id != c.id || !c1.sides[indexOfSide]) {
-                                                done = true;
-                                                startY++;
-                                                offY--;
-                                                break;
-                                            }
-                                        }
-                                        if (!done) {
-                                            for (int k = startX; k < startX + offX; k++) {
-                                                c1 = getCell(k, startY + offY, startZ);
-                                                c1.meshed[indexOfSide] = true;
-                                            }
-                                        }
-                                    }
-                                    done = true;
-                                }
-                            }
                         }
-                    }
 
-                    v0 = new Vector3f(startX, startY, startZ + offZ);
-                    v1 = new Vector3f(startX, startY + offY, startZ + offZ);
-                    v2 = new Vector3f(startX + offX, startY + offY, startZ + offZ);
-                    v3 = new Vector3f(startX + offX, startY, startZ + offZ);
-
-                    i0 = chunkMesh.addVertex(v0);
-                    i1 = chunkMesh.addVertex(v1);
-                    i2 = chunkMesh.addVertex(v2);
-                    i3 = chunkMesh.addVertex(v3);
-
-                    chunkMesh.addTextureVertex(i0, new Vector3f(0, 0, c.offsets[indexOfSide]));
-                    chunkMesh.addTextureVertex(i1, new Vector3f(0, offY, c.offsets[indexOfSide]));
-                    chunkMesh.addTextureVertex(i2, new Vector3f(offX, offY, c.offsets[indexOfSide]));
-                    chunkMesh.addTextureVertex(i3, new Vector3f(offX, 0, c.offsets[indexOfSide]));
-
-                    if (backface) {
-                        chunkMesh.indicesList.add(i0);
-                        chunkMesh.indicesList.add(i3);
-                        chunkMesh.indicesList.add(i2);
-                        chunkMesh.indicesList.add(i2);
-                        chunkMesh.indicesList.add(i1);
-                        chunkMesh.indicesList.add(i0);
-                    } else {
-                        chunkMesh.indicesList.add(i0);
-                        chunkMesh.indicesList.add(i1);
-                        chunkMesh.indicesList.add(i2);
-                        chunkMesh.indicesList.add(i2);
-                        chunkMesh.indicesList.add(i3);
-                        chunkMesh.indicesList.add(i0);
-                    }
-                }
-            }
-        }
-    }
-
-    public void dumbGreedyTopBottom(boolean backface) {
-        Vector3f v0, v1, v2, v3;
-        short i0, i1, i2, i3;
-        boolean done;
-        int startX, startY, startZ;
-        int offX, offY, offZ;
-        Cell c1;
-
-        int indexOfSide = backface ? 4 : 5;
-
-        for (Cell c : cells) {
-            if (c != null && c.id != CellId.ID_AIR) {
-                offX = 0;
-                offY = backface ? 1 : 0;
-                offZ = 0;
-                //System.out.println(c + " at " + c.x + ", " + c.y + ", " + c.z + "    (" + c.sides[indexOfSide] + ")    (" + c.meshed[indexOfSide] + ")");
-
-                if (c.id != CellId.ID_AIR && c.sides[indexOfSide] && !c.meshed[indexOfSide]) {
-                    startX = c.x;
-                    startY = c.y;
-                    startZ = c.z;
-
-                    done = false;
-
-                    while (!done) {
-                        c1 = getCell(startX + offX, startY, startZ - 1);
-                        if (c1 != null && !c1.meshed[indexOfSide] && c1.id != CellId.ID_AIR && c1.id == c.id && c1.sides[indexOfSide]) {
-                            startZ--;
-                            offZ++;
-                            c1.meshed[indexOfSide] = true;
-                            //System.out.println(c1 + " at " + c1.x + ", " + c1.y + ", " + c1.z + " can be added z-");
-                        } else {
-                            while (!done) {
-                                c1 = getCell(startX + offX, startY, startZ + offZ);
-                                if (c1 != null && c1.sides[indexOfSide] && !c1.meshed[indexOfSide] && c1.id != CellId.ID_AIR && c1.id == c.id) {
-                                    c1.meshed[indexOfSide] = true;
-                                    //System.out.println(c1 + " at " + c1.x + ", " + c1.y + ", " + c1.z + " can be added z+");
-                                    offZ++;
-                                } else {
-                                    while (!done) {
-                                        offX++;
-                                        for (int k = startZ; k < startZ + offZ; k++) {
-                                            c1 = getCell(startX + offX, startY, k);
-
-                                            if (c1 == null || c1.meshed[indexOfSide] || c1.id == CellId.ID_AIR || c1.id != c.id || !c1.sides[indexOfSide]) {
-                                                done = true;
-                                                break;
-                                            }
-                                        }
-                                        if (!done) {
-                                            for (int k = startZ; k < startZ + offZ; k++) {
-                                                c1 = getCell(startX + offX, startY, k);
-                                                c1.meshed[indexOfSide] = true;
-                                            }
-                                        }
-                                    }
-
-                                    done = false;
-                                    while (!done) {
-                                        startX--;
-                                        offX++;
-                                        for (int k = startZ; k < startZ + offZ; k++) {
-                                            c1 = getCell(startX, startY, k);
-
-                                            if (c1 == null || c1.meshed[indexOfSide] || c1.id == CellId.ID_AIR || c1.id != c.id || !c1.sides[indexOfSide]) {
-                                                done = true;
-                                                startX++;
-                                                offX--;
-                                                break;
-                                            }
-                                        }
-                                        if (!done) {
-                                            for (int k = startZ; k < startZ + offZ; k++) {
-                                                c1 = getCell(startX, startY, k);
-                                                c1.meshed[indexOfSide] = true;
-                                            }
-                                        }
-                                    }
-                                    done = true;
-                                }
+                        c1 = getCell(startX + offX, startY + offY, startZ + offZ);
+                        while (c1 != null && c1.id != CellId.ID_AIR && c1.sides[index] && !c1.meshed[index] && c.id == c1.id) {
+                            if (s == 0 || s == 2) {
+                                offZ++;
+                            } else {
+                                offX++;
                             }
+
+                            c1.meshed[index] = true;
+                            c1 = getCell(startX + offX, startY + offY, startZ + offZ);
                         }
-                    }
 
-                    v0 = new Vector3f(startX, startY + offY, startZ);
-                    v1 = new Vector3f(startX + offX, startY + offY, startZ);
-                    v2 = new Vector3f(startX + offX, startY + offY, startZ + offZ);
-                    v3 = new Vector3f(startX, startY + offY, startZ + offZ);
+                        if (s == 0 || s == 1) {
+                            //if considering x or z axis, increment the y axis
+                            offY++;
+                        } else {
+                            //here's considering the y axis, so increment the x
+                            offX++;
+                        }
 
-                    i0 = chunkMesh.addVertex(v0);
-                    i1 = chunkMesh.addVertex(v1);
-                    i2 = chunkMesh.addVertex(v2);
-                    i3 = chunkMesh.addVertex(v3);
+                        //finished, the cell has been used!
+                        c.meshed[index] = true;
 
-                    chunkMesh.addTextureVertex(i0, new Vector3f(0, 0, c.offsets[indexOfSide]));
-                    chunkMesh.addTextureVertex(i1, new Vector3f(0, offX, c.offsets[indexOfSide]));
-                    chunkMesh.addTextureVertex(i2, new Vector3f(offZ, offX, c.offsets[indexOfSide]));
-                    chunkMesh.addTextureVertex(i3, new Vector3f(offZ, 0, c.offsets[indexOfSide]));
+                        //sets the vertices
+                        switch (s) {
+                            case 0:
+                                v0 = new Vector3f(startX + backfaces[0], startY, startZ);
+                                v1 = new Vector3f(startX + backfaces[0], startY + offY, startZ);
+                                v2 = new Vector3f(startX + backfaces[0], startY + offY, startZ + offZ);
+                                v3 = new Vector3f(startX + backfaces[0], startY, startZ + offZ);
 
-                    if (backface) {
+                                i0 = chunkMesh.addVertex(v0);
+                                i1 = chunkMesh.addVertex(v1);
+                                i2 = chunkMesh.addVertex(v2);
+                                i3 = chunkMesh.addVertex(v3);
+
+                                chunkMesh.addTextureVertex(i0, new Vector3f(0, 0, c.offsets[index]));
+                                chunkMesh.addTextureVertex(i1, new Vector3f(0, offY, c.offsets[index]));
+                                chunkMesh.addTextureVertex(i2, new Vector3f(offZ, offY, c.offsets[index]));
+                                chunkMesh.addTextureVertex(i3, new Vector3f(offZ, 0, c.offsets[index]));
+
+                                break;
+                            case 1:
+                                v0 = new Vector3f(startX, startY, startZ + backfaces[1]);
+                                v1 = new Vector3f(startX, startY + offY, startZ + backfaces[1]);
+                                v2 = new Vector3f(startX + offX, startY + offY, startZ + backfaces[1]);
+                                v3 = new Vector3f(startX + offX, startY, startZ + backfaces[1]);
+
+                                i0 = chunkMesh.addVertex(v0);
+                                i1 = chunkMesh.addVertex(v1);
+                                i2 = chunkMesh.addVertex(v2);
+                                i3 = chunkMesh.addVertex(v3);
+
+                                chunkMesh.addTextureVertex(i0, new Vector3f(0, 0, c.offsets[index]));
+                                chunkMesh.addTextureVertex(i1, new Vector3f(0, offY, c.offsets[index]));
+                                chunkMesh.addTextureVertex(i2, new Vector3f(offX, offY, c.offsets[index]));
+                                chunkMesh.addTextureVertex(i3, new Vector3f(offX, 0, c.offsets[index]));
+
+                                break;
+                            case 2:
+                                v0 = new Vector3f(startX, startY + backfaces[2], startZ);
+                                v1 = new Vector3f(startX + offX, startY + backfaces[2], startZ);
+                                v2 = new Vector3f(startX + offX, startY + backfaces[2], startZ + offZ);
+                                v3 = new Vector3f(startX, startY + backfaces[2], startZ + offZ);
+
+                                i0 = chunkMesh.addVertex(v0);
+                                i1 = chunkMesh.addVertex(v1);
+                                i2 = chunkMesh.addVertex(v2);
+                                i3 = chunkMesh.addVertex(v3);
+
+                                chunkMesh.addTextureVertex(i0, new Vector3f(0, 0, c.offsets[index]));
+                                chunkMesh.addTextureVertex(i1, new Vector3f(0, offX, c.offsets[index]));
+                                chunkMesh.addTextureVertex(i2, new Vector3f(offZ, offX, c.offsets[index]));
+                                chunkMesh.addTextureVertex(i3, new Vector3f(offZ, 0, c.offsets[index]));
+                                break;
+                            default:
+                                System.out.println("puzzette");
+                                break;
+                        }
+                        //now constructs the mesh
+
                         chunkMesh.indicesList.add(i0);
                         chunkMesh.indicesList.add(i3);
                         chunkMesh.indicesList.add(i2);
                         chunkMesh.indicesList.add(i2);
                         chunkMesh.indicesList.add(i1);
-                        chunkMesh.indicesList.add(i0);
-                    } else {
-                        chunkMesh.indicesList.add(i0);
-                        chunkMesh.indicesList.add(i1);
-                        chunkMesh.indicesList.add(i2);
-                        chunkMesh.indicesList.add(i2);
-                        chunkMesh.indicesList.add(i3);
                         chunkMesh.indicesList.add(i0);
                     }
                 }

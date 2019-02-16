@@ -14,7 +14,6 @@ import voxelengine.block.CellId;
 import voxelengine.block.Cell;
 import voxelengine.utils.math.MathHelper;
 import voxelengine.utils.Globals;
-import static voxelengine.utils.Globals.TESTING;
 import static voxelengine.utils.Globals.chunkSize;
 import static voxelengine.utils.Globals.debug;
 import static voxelengine.utils.Globals.pX;
@@ -40,17 +39,18 @@ public class WorldManager extends AbstractAppState {
     }
 
     public void preload() {
-        if (TESTING) {
+        if (Globals.isTesting()) {
             updateChunks = false;
 
-            chunks[MathHelper.flat3Dto1D(0, 0, 0)] = new Chunk(0, 0, 0);
-            chunks[MathHelper.flat3Dto1D(0, 0, 0)].genTerrain();
-            chunks[MathHelper.flat3Dto1D(0, 0, 0)].processCells();
-            chunks[MathHelper.flat3Dto1D(0, 0, 0)].load();
-            chunks[MathHelper.flat3Dto1D(0, 0, 0)].loadPhysics();
-
-            chunks[MathHelper.flat3Dto1D(0, 0, 0)].chunkMesh.contains(new Vector3f(0, 0, 0));
-
+            for (int i = 0; i < 5; i++) {
+                for (int j = 0; j < 5; j++) {
+                    chunks[MathHelper.flat3Dto1D(i, 0, j)] = new Chunk(i, 0, j);
+                    chunks[MathHelper.flat3Dto1D(i, 0, j)].genTerrain();
+                    chunks[MathHelper.flat3Dto1D(i, 0, j)].processCells();
+                    chunks[MathHelper.flat3Dto1D(i, 0, j)].load();
+                    chunks[MathHelper.flat3Dto1D(i, 0, j)].loadPhysics();
+                }
+            }
         } else {
             Globals.executor.submit(chunkManager);
         }
@@ -190,7 +190,9 @@ public class WorldManager extends AbstractAppState {
     }
 
     public void setCell(Vector3f v, int id) {
-        this.setCell((int) v.x, (int) v.y, (int) v.z, id);
+        if (v != null) {
+            this.setCell((int) v.x, (int) v.y, (int) v.z, id);
+        }
     }
 
     public void setCell(float i, float j, float k, int id) {

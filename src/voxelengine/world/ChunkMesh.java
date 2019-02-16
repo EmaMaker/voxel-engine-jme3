@@ -17,12 +17,6 @@ public class ChunkMesh extends Mesh {
     Short[] short1;
     short[] indices;
 
-    public Chunk chunk;
-
-    public ChunkMesh(Chunk chunk) {
-        this.chunk = chunk;
-    }
-
     //usually called at the end of the update() method of chunk. creates the mesh from the vertices, indices and texCoord set by Cell and adds it to a geometry with a material with correct texture loaded
     public void set() {
         short1 = indicesList.toArray(new Short[indicesList.size()]);
@@ -61,8 +55,7 @@ public class ChunkMesh extends Mesh {
             textureList.add(index, texVec);
         } catch (IndexOutOfBoundsException e) {
             while (textureList.size() < index + 1) {
-                textureList.add(new Vector3f(0, 0, 0));
-                System.out.println(textureList.size());
+                textureList.add(Vector3f.NAN);
             }
             textureList.add(index, texVec);
 
