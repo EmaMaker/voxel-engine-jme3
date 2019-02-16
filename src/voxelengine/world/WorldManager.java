@@ -9,7 +9,6 @@ import java.io.File;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Random;
-import java.util.concurrent.Callable;
 import voxelengine.block.CellId;
 import voxelengine.block.Cell;
 import voxelengine.utils.math.MathHelper;
@@ -45,14 +44,37 @@ public class WorldManager extends AbstractAppState {
             for (int i = 0; i < 5; i++) {
                 for (int j = 0; j < 5; j++) {
                     chunks[MathHelper.flat3Dto1D(i, 0, j)] = new Chunk(i, 0, j);
-                    chunks[MathHelper.flat3Dto1D(i, 0, j)].genTerrain();
+                    chunks[MathHelper.flat3Dto1D(i, 0, j)].generate();
                     chunks[MathHelper.flat3Dto1D(i, 0, j)].processCells();
                     chunks[MathHelper.flat3Dto1D(i, 0, j)].load();
                     chunks[MathHelper.flat3Dto1D(i, 0, j)].loadPhysics();
                 }
             }
         } else {
-            Globals.executor.submit(chunkManager);
+            //Globals.executor.submit(chunkManager);
+        }
+    }
+
+    int j = 0;
+    @Override
+    public void update(float tpf) {
+        if (updateChunks) {
+            for (int i = pX - renderDistance; i < pX + renderDistance; i++) {
+                //for (int j = pY - renderDistance; j < pY + renderDistance; j++) {
+                for (int k = pZ - renderDistance; k < pZ + renderDistance; k++) {
+
+                    if (i >= 0 && i < MAXX && j >= 0 && j < MAXY && k >= 0 && k < MAXZ) {
+
+                        if (chunks[MathHelper.flat3Dto1D(i, j, k)] != null) {
+                            chunks[MathHelper.flat3Dto1D(i, j, k)].processCells();
+                        } else {
+                            chunks[MathHelper.flat3Dto1D(i, j, k)] = new Chunk(i, j, k);
+                            loadFromFile(i, j, k);
+                        }
+                    }
+                }
+                // }
+            }
         }
     }
 
@@ -150,10 +172,10 @@ public class WorldManager extends AbstractAppState {
     @Override
     public void cleanup() {
         updateChunks = false;
-        Globals.executor.shutdownNow();
+        //Globals.executor.shutdownNow();
     }
 
-    final Callable<Object> chunkManager = new Callable<Object>() {
+    /*final Callable<Object> chunkManager = new Callable<Object>() {
 
         int j = 0;
 
@@ -177,8 +199,7 @@ public class WorldManager extends AbstractAppState {
             }
             return null;
         }
-    };
-
+    };*/
     public void loadFromFile(int i, int j, int k) {
         File f = Paths.get(Globals.workingDir + i + "-" + j + "-" + k + ".chunk").toFile();
         chunks[MathHelper.flat3Dto1D(i, j, k)].loadFromFile(f);

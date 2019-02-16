@@ -11,6 +11,8 @@ import java.util.Arrays;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import voxelengine.VoxelEngine;
 import voxelengine.world.WorldManager;
+import voxelengine.world.generators.WorldGenerator;
+import voxelengine.world.generators.WorldGeneratorBase;
 
 public class Globals extends AbstractAppState {
 
@@ -31,6 +33,7 @@ public class Globals extends AbstractAppState {
     static boolean enablePlayer = true;
     static boolean enableWireframe = false;
 
+    static WorldGenerator generator = new WorldGeneratorBase();
     public static boolean LOAD_FROM_FILE = false;
     public static boolean SAVE_ON_EXIT = true;
 
@@ -128,4 +131,13 @@ public class Globals extends AbstractAppState {
     public static boolean isTesting() {
         return TESTING;
     }
+    
+    public static void setWorldGenerator(WorldGenerator g) {
+        generator = g;
+    }
+
+    public static WorldGenerator getWorldGenerator() {
+        return generator;
+    }
+
 }

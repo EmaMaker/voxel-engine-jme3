@@ -192,35 +192,10 @@ public class ControlsHandler extends AbstractAppState implements ActionListener,
         //removes the pointed
         switch (name) {
             case "remove":
-                /*if (!fastBlock) {
-                    if (breakStep % 25 == 0) {
-                        breakBlock();
-                    }
-                } else {
-                    breakBlock();
-                }
-                if (breakStep < 127) {
-                    breakStep++;
-                } else {
-                    breakStep = 0;
-                }*/
                 breakBlock();
                 break;
             case "place":
-                /*if (!fastBlock) {
-                    if (placeStep % 25 == 0) {
-                        placeblock();
-                    }
-                } else {
-                    placeblock();
-                }
-                if (placeStep < 127) {
-                    placeStep++;
-                } else {
-                    placeStep = 0;
-                }*/
                 placeblock();
-                debug("!===========================================!");
                 break;
 
             case "changeBlock+":
@@ -282,72 +257,78 @@ public class ControlsHandler extends AbstractAppState implements ActionListener,
     }
 
     public void breakBlock() {
-        debug("\n|===========================================|");
-        Ray ray = new Ray(Globals.main.getCamera().getLocation(), Globals.main.getCamera().getDirection());
-        Globals.terrainNode.collideWith(ray, results);
+        try {
+            debug("\n|===========================================|");
+            Ray ray = new Ray(Globals.main.getCamera().getLocation(), Globals.main.getCamera().getDirection());
+            Globals.terrainNode.collideWith(ray, results);
 
-        if (results.getClosestCollision() != null) {
-            Vector3f pt = fixCoords(results.getClosestCollision().getContactPoint());
-            prov.setCellFromVertices(findNearestVertices(pt), CellId.ID_AIR);
-            Cell c = prov.getCellFromVertices(findNearestVertices(pt));
-            if (c != null) {
-                c.setId(CellId.ID_AIR);
-                c.chunk.markForUpdate(true);
-                c.chunk.processCells();
-                c.chunk.refreshPhysics();
-            }
-        }
-        results.clear();
-        breakStep = 0;
-
-        debug("|===========================================|\n");
-    }
-
-    public void placeblock() {
-        debug("\n|===========================================|");
-        Ray ray = new Ray(Globals.main.getCamera().getLocation(), Globals.main.getCamera().getDirection());
-        Globals.terrainNode.collideWith(ray, results);
-
-        if (results.getClosestCollision() != null) {
-            Vector3f pt = fixCoords(results.getClosestCollision().getContactPoint());
-            Cell c = prov.getCellFromVertices(findNearestVertices(pt));
-            if (c != null) {
-                int newX = c.worldX, newY = c.worldY, newZ = c.worldZ;
-                switch (c.getFaceFromVertices(findNearestVertices(pt))) {
-                    case 0:
-                        newX = c.worldX - 1;
-                        break;
-                    case 1:
-                        newX = c.worldX + 1;
-                        break;
-                    case 2:
-                        newZ = c.worldZ - 1;
-                        break;
-                    case 3:
-                        newZ = c.worldZ + 1;
-                        break;
-                    case 4:
-                        newY = c.worldY + 1;
-                        break;
-                    case 5:
-                        newY = c.worldY - 1;
-                        break;
-                    default:
-                        break;
-                }
-                prov.setCell(newX, newY, newZ, currentBlockId);
-
-                if (prov.getCell(newX, newY, newZ) != null) {
-                    prov.getCell(newX, newY, newZ).chunk.markForUpdate(true);
-                    prov.getCell(newX, newY, newZ).chunk.processCells();
-                    prov.getCell(newX, newY, newZ).chunk.refreshPhysics();
+            if (results.getClosestCollision() != null) {
+                Vector3f pt = fixCoords(results.getClosestCollision().getContactPoint());
+                prov.setCellFromVertices(findNearestVertices(pt), CellId.ID_AIR);
+                Cell c = prov.getCellFromVertices(findNearestVertices(pt));
+                if (c != null) {
+                    c.setId(CellId.ID_AIR);
+                    c.chunk.markForUpdate(true);
+                    c.chunk.processCells();
+                    c.chunk.refreshPhysics();
                 }
             }
             results.clear();
             breakStep = 0;
-        }
 
-        debug("|===========================================|\n");
+            debug("|===========================================|\n");
+        } catch (Exception e) {
+        }
+    }
+
+    public void placeblock() {
+        try {
+            debug("\n|===========================================|");
+            Ray ray = new Ray(Globals.main.getCamera().getLocation(), Globals.main.getCamera().getDirection());
+            Globals.terrainNode.collideWith(ray, results);
+
+            if (results.getClosestCollision() != null) {
+                Vector3f pt = fixCoords(results.getClosestCollision().getContactPoint());
+                Cell c = prov.getCellFromVertices(findNearestVertices(pt));
+                if (c != null) {
+                    int newX = c.worldX, newY = c.worldY, newZ = c.worldZ;
+                    switch (c.getFaceFromVertices(findNearestVertices(pt))) {
+                        case 0:
+                            newX = c.worldX - 1;
+                            break;
+                        case 1:
+                            newX = c.worldX + 1;
+                            break;
+                        case 2:
+                            newZ = c.worldZ - 1;
+                            break;
+                        case 3:
+                            newZ = c.worldZ + 1;
+                            break;
+                        case 4:
+                            newY = c.worldY + 1;
+                            break;
+                        case 5:
+                            newY = c.worldY - 1;
+                            break;
+                        default:
+                            break;
+                    }
+                    prov.setCell(newX, newY, newZ, currentBlockId);
+
+                    if (prov.getCell(newX, newY, newZ) != null) {
+                        prov.getCell(newX, newY, newZ).chunk.markForUpdate(true);
+                        prov.getCell(newX, newY, newZ).chunk.processCells();
+                        prov.getCell(newX, newY, newZ).chunk.refreshPhysics();
+                    }
+                }
+                results.clear();
+                breakStep = 0;
+            }
+
+            debug("|===========================================|\n");
+        } catch (Exception e) {
+        }
     }
 
     public Vector3f fixCoords(Vector3f v) {

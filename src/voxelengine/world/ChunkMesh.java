@@ -19,15 +19,20 @@ public class ChunkMesh extends Mesh {
 
     //usually called at the end of the update() method of chunk. creates the mesh from the vertices, indices and texCoord set by Cell and adds it to a geometry with a material with correct texture loaded
     public void set() {
-        short1 = indicesList.toArray(new Short[indicesList.size()]);
-        indices = new short[short1.length];
-        for (int i = 0; i < short1.length; i++) {
-            indices[i] = Short.valueOf(Integer.toString(short1[i]));
-        }
+        //checking if there are empty buffers is important: loading empty buffers causes a core dumped crash
+        if (!verticesList.isEmpty() && !textureList.isEmpty() && !indicesList.isEmpty()) {
+            short1 = indicesList.toArray(new Short[indicesList.size()]);
+            indices = new short[short1.length];
+            for (int i = 0; i < short1.length; i++) {
+                indices[i] = Short.valueOf(Integer.toString(short1[i]));
+            }
 
-        setBuffer(Type.Position, 3, BufferUtils.createFloatBuffer(verticesList.toArray(new Vector3f[verticesList.size()])));
-        setBuffer(Type.TexCoord, 3, BufferUtils.createFloatBuffer(textureList.toArray(new Vector3f[textureList.size()])));
-        setBuffer(Type.Index, 3, BufferUtils.createShortBuffer(indices));
+            setBuffer(Type.Position, 3, BufferUtils.createFloatBuffer(verticesList.toArray(new Vector3f[verticesList.size()])));
+            setBuffer(Type.TexCoord, 3, BufferUtils.createFloatBuffer(textureList.toArray(new Vector3f[textureList.size()])));
+            setBuffer(Type.Index, 3, BufferUtils.createShortBuffer(indices));
+            
+            updateBound();
+        }
     }
 
     public void clearAll() {

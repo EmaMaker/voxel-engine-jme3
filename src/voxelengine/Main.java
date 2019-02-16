@@ -2,6 +2,7 @@ package voxelengine;
 
 import com.jme3.app.SimpleApplication;
 import voxelengine.utils.Globals;
+import voxelengine.world.generators.WorldGeneratorTerrain;
 
 public class Main extends SimpleApplication {
 
@@ -17,6 +18,9 @@ public class Main extends SimpleApplication {
         Globals.setPhysicsEnabled(true);
         Globals.setTesting(false);
         Globals.setWireFrameEnabled(false);
+        Globals.setWorldGenerator(new WorldGeneratorTerrain());
+        Globals.setRenderDistance(16);
+        
         Globals.LOAD_FROM_FILE = false;
         Globals.SAVE_ON_EXIT = false;
 

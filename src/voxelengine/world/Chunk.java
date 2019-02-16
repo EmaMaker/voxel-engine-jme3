@@ -36,7 +36,6 @@ public class Chunk extends AbstractControl {
     //the chunk coords in the world
     public int x, y, z;
 
-    //the cells contained in the chunk, as an arraylist. using a three-dimensional array would cause to json-serialization to retrive StackOverflowException
     public Cell[] cells = new Cell[chunkSize * chunkSize * chunkSize];
 
     public ChunkMesh chunkMesh = new ChunkMesh();
@@ -61,8 +60,11 @@ public class Chunk extends AbstractControl {
         markForUpdate(true);
     }
 
+    long t;
+
     public void processCells() {
         if (toBeSet) {
+            t = System.currentTimeMillis();
             debug("Updating " + this.toString());
 
             for (Cell cell : cells) {
@@ -71,18 +73,24 @@ public class Chunk extends AbstractControl {
                 }
             }
 
-            if (Thread.currentThread() == Globals.engine.mainThread) {
-                /*CHECK OUT THE chunkMesh.updateBound() for a better chunkMesh managing instead of regenerating it:
+            /*CHECK OUT THE chunkMesh.updateBound() for a better chunkMesh managing instead of regenerating it:
                 actually gives some problems with the buffers, it has to be tested*/
-                chunkMesh = new ChunkMesh();
+            chunkMesh = new ChunkMesh();
 
-                kindaBetterGreedy();
-                chunkGeom.setMesh(chunkMesh);
+            kindaBetterGreedy();
+            chunkGeom.setMesh(chunkMesh);
 
-                chunkMesh.set();
-            }
+            chunkMesh.set();
             toBeSet = false;
             loaded = false;
+
+            for (int i = 0; i < cells.length; i++) {
+                if (cells[i] != null && cells[i].id == CellId.ID_AIR) {
+                    cells[i] = null;
+                }
+            }
+
+            debug("Update took: " + (System.currentTimeMillis() - t));
         }
     }
 
@@ -110,14 +118,10 @@ public class Chunk extends AbstractControl {
         }
     }
 
-    //sets all the blocks in the bottom layer (relative y = 0) to grass
-    public void genBase() {
-        for (int i = 0; i < chunkSize; i++) {
-            for (int j = 0; j < chunkSize; j++) {
-                setCell(i, 0, j, CellId.ID_GRASS);
-            }
-        }
+    public void generate(){
+        Globals.getWorldGenerator().generate(this);
     }
+
 
     public void loadPhysics() {
         if (!phyLoaded && Globals.phyEnabled()) {
@@ -147,28 +151,6 @@ public class Chunk extends AbstractControl {
 
     }
 
-    public void genCube() {
-        for (int i = 0; i < chunkSize; i++) {
-            for (int j = 0; j < chunkSize; j++) {
-                for (int k = 0; k < chunkSize; k++) {
-                    setCell(i, j, k, CellId.ID_GRASS);
-                    this.markForUpdate(true);
-                }
-            }
-        }
-    }
-
-    //System.out.println(Math.abs(SimplexNoise.noise((x*chunkSize+i)*0.025, (z*chunkSize+k)*0.025)));
-    public void genTerrain() {
-        for (int i = 0; i < chunkSize; i++) {
-            for (int k = 0; k < chunkSize; k++) {
-                for (int a = 0; a <= Math.abs(SimplexNoise.noise((x * chunkSize + i) * 0.01, (z * chunkSize + k) * 0.01)) * 10; a++) {
-                    setCell(i, a, k, CellId.ID_GRASS);
-                }
-            }
-        }
-        markForUpdate(true);
-    }
 
     public Cell getCell(int i, int j, int k) {
         if (i >= 0 && j >= 0 && k >= 0 && i < chunkSize && j < chunkSize && k < chunkSize) {
@@ -197,24 +179,42 @@ public class Chunk extends AbstractControl {
 
     @Override
     protected void controlUpdate(float tpf) {
-        if (Math.sqrt(Math.pow(x - pX, 2) + Math.pow(y - pY, 2) + Math.pow(z - pZ, 2)) < renderDistance) {
-            this.load();
-            if (Math.sqrt(Math.pow(x - pX, 2) + Math.pow(y - pY, 2) + Math.pow(z - pZ, 2)) <= 1) {
-                this.refreshPhysics();
-            } else {
-                this.unloadPhysics();
-            }
-
+        if (isEmpty()) {
+            unload();
+            unloadPhysics();
         } else {
-            this.unload();
-            this.unloadPhysics();
+            if (Math.sqrt(Math.pow(x - pX, 2) + Math.pow(y - pY, 2) + Math.pow(z - pZ, 2)) < renderDistance) {
+                this.load();
+                if (Math.sqrt(Math.pow(x - pX, 2) + Math.pow(y - pY, 2) + Math.pow(z - pZ, 2)) <= 1) {
+                    this.refreshPhysics();
+                } else {
+                    this.unloadPhysics();
+                }
 
-            if (Math.sqrt(Math.pow(x - pX, 2) + Math.pow(y - pY, 2) + Math.pow(z - pZ, 2)) > renderDistance * 1.5f) {
-                saveToFile();
+            } else {
+                this.unload();
+                this.unloadPhysics();
+
+                if (Math.sqrt(Math.pow(x - pX, 2) + Math.pow(y - pY, 2) + Math.pow(z - pZ, 2)) > renderDistance * 1.5f) {
+                    saveToFile();
+                }
             }
         }
     }
 
+    public boolean isEmpty() {
+        for (int i = 0; i < cells.length; i++) {
+            if (cells[i] != null) {
+                if (cells[i].id != CellId.ID_AIR) {
+                    return false;
+                }
+            }
+            return false;
+        }
+        return true;
+    }
+
+    //Saves the chunk to text file, with format X Y Z ID, separated by spaces
     public void saveToFile() {
         File f = Paths.get(Globals.workingDir + x + "-" + y + "-" + z + ".chunk").toFile();
 
@@ -236,6 +236,7 @@ public class Chunk extends AbstractControl {
         }
     }
 
+    //Retrives back from the text file (X Y Z ID separated by spaces)
     public void loadFromFile(File f) {
         List<String> lines;
         String[] datas = new String[4];
@@ -253,26 +254,18 @@ public class Chunk extends AbstractControl {
                 } catch (Exception e) {
                 }
             } else {
-                genTerrain();
+                generate();
             }
         } else {
-            genTerrain();
+            generate();
         }
-    }
-
-    public boolean isEmpty() {
-        for (int i = 0; i < cells.length; i++) {
-            if (cells[i] != null) {
-                return false;
-            }
-        }
-        return true;
     }
 
     public void markForUpdate(boolean b) {
         toBeSet = b;
     }
 
+    //Kinda better greedy meshing algorithm then before. Y expanding still missing, not gonna try to connect in negative side
     public void kindaBetterGreedy() {
         int startX, startY, startZ, offX, offY, offZ, index;
         short i0 = 0, i1 = 0, i2 = 0, i3 = 0;
