@@ -30,7 +30,6 @@ import voxelengine.block.CellId;
 import voxelengine.block.TextureManager;
 import static voxelengine.utils.Globals.chunkSize;
 import static voxelengine.utils.Globals.debug;
-import static voxelengine.utils.Globals.main;
 import voxelengine.world.WorldManager;
 import static voxelengine.utils.Globals.pX;
 import static voxelengine.utils.Globals.pY;
@@ -264,6 +263,7 @@ public class ControlsHandler extends AbstractAppState implements ActionListener,
 
             if (results.getClosestCollision() != null) {
                 Vector3f pt = fixCoords(results.getClosestCollision().getContactPoint());
+                //if (Math.sqrt(Math.pow(pt.x - pX * chunkSize, 2) + Math.pow(pt.y - pY * chunkSize, 2) + Math.pow(pt.z - pZ * chunkSize, 2)) <= Globals.getPickingDistance()) {
                 prov.setCellFromVertices(findNearestVertices(pt), CellId.ID_AIR);
                 Cell c = prov.getCellFromVertices(findNearestVertices(pt));
                 if (c != null) {
@@ -275,7 +275,7 @@ public class ControlsHandler extends AbstractAppState implements ActionListener,
             }
             results.clear();
             breakStep = 0;
-
+            //}
             debug("|===========================================|\n");
         } catch (Exception e) {
         }
@@ -289,6 +289,8 @@ public class ControlsHandler extends AbstractAppState implements ActionListener,
 
             if (results.getClosestCollision() != null) {
                 Vector3f pt = fixCoords(results.getClosestCollision().getContactPoint());
+                //if (Math.sqrt(Math.pow(pt.x - pX * chunkSize, 2) + Math.pow(pt.y - pY * chunkSize, 2) + Math.pow(pt.z - pZ * chunkSize, 2)) <= Globals.getPickingDistance()) {
+
                 Cell c = prov.getCellFromVertices(findNearestVertices(pt));
                 if (c != null) {
                     int newX = c.worldX, newY = c.worldY, newZ = c.worldZ;
@@ -324,8 +326,8 @@ public class ControlsHandler extends AbstractAppState implements ActionListener,
                 }
                 results.clear();
                 breakStep = 0;
+                //}
             }
-
             debug("|===========================================|\n");
         } catch (Exception e) {
         }

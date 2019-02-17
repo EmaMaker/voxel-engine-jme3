@@ -11,6 +11,8 @@ import java.util.Arrays;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import voxelengine.VoxelEngine;
 import voxelengine.world.WorldManager;
+import voxelengine.world.decorators.WorldDecorator;
+import voxelengine.world.decorators.WorldDecoratorTrees;
 import voxelengine.world.generators.WorldGenerator;
 import voxelengine.world.generators.WorldGeneratorBase;
 
@@ -34,17 +36,19 @@ public class Globals extends AbstractAppState {
     static boolean enableWireframe = false;
 
     static WorldGenerator generator = new WorldGeneratorBase();
+    static WorldDecorator decorator = new WorldDecoratorTrees();
+
     public static boolean LOAD_FROM_FILE = false;
     public static boolean SAVE_ON_EXIT = true;
 
-
-    public static String workingDir = System.getProperty("user.dir") + "/chunks/";
+    public static String workingDir = System.getProperty("user.dir") + "/bleble/";
     public static String permtableName = "perm.table";
 
     public static ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(2);
 
     public static int pX = 8, pY = 8, pZ = 8;
     public static int renderDistance = 8;
+    static int pickingDistance = 6;
 
     @Override
     public void initialize(AppStateManager stateManager, Application app) {
@@ -124,6 +128,15 @@ public class Globals extends AbstractAppState {
         return renderDistance;
     }
 
+
+    public static void setPickingDistance(int picking) {
+        pickingDistance = picking;
+    }
+
+    public static int getPickingDistance() {
+        return pickingDistance;
+    }
+
     public static void setTesting(boolean b) {
         TESTING = b;
     }
@@ -131,13 +144,21 @@ public class Globals extends AbstractAppState {
     public static boolean isTesting() {
         return TESTING;
     }
-    
+
     public static void setWorldGenerator(WorldGenerator g) {
         generator = g;
     }
 
     public static WorldGenerator getWorldGenerator() {
         return generator;
+    }
+
+    public static void setWorldDecorator(WorldDecorator d) {
+        decorator = d;
+    }
+
+    public static WorldDecorator getWorldDecorator() {
+        return decorator;
     }
 
 }

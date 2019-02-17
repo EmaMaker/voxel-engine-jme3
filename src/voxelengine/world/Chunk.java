@@ -18,20 +18,22 @@ import java.nio.file.Paths;
 import java.util.List;
 import voxelengine.block.Cell;
 import voxelengine.block.CellId;
-import voxelengine.utils.math.MathHelper;
 import static voxelengine.utils.Globals.chunkSize;
+import voxelengine.utils.math.MathHelper;
 import static voxelengine.utils.Globals.debug;
 import static voxelengine.utils.Globals.pX;
 import static voxelengine.utils.Globals.pY;
 import static voxelengine.utils.Globals.pZ;
 import static voxelengine.utils.Globals.renderDistance;
-import voxelengine.utils.math.SimplexNoise;
+import static voxelengine.world.WorldManager.MAXY;
 
 public class Chunk extends AbstractControl {
 
     boolean toBeSet = true;
     boolean loaded = false;
     boolean phyLoaded = false;
+    public boolean generated = false;
+    public boolean decorated = false;
 
     //the chunk coords in the world
     public int x, y, z;
@@ -52,7 +54,8 @@ public class Chunk extends AbstractControl {
         this.z = z;
 
         pos = new Vector3f(x * chunkSize, y * chunkSize, z * chunkSize);
-        chunkGeom = new Geometry(this.toString(), chunkMesh);
+        debug("Creating chunk starting at world coords" + pos.toString());
+        chunkGeom = new Geometry(this.toString() + pos.toString(), chunkMesh);
         chunkGeom.setMaterial(Globals.mat);
         Globals.terrainNode.addControl((AbstractControl) this);
         chunkGeom.setLocalTranslation(pos);
@@ -65,7 +68,7 @@ public class Chunk extends AbstractControl {
     public void processCells() {
         if (toBeSet) {
             t = System.currentTimeMillis();
-            debug("Updating " + this.toString());
+            debug("Updating " + this.toString() + " at " + x + ", " + y + ", " + z);
 
             for (Cell cell : cells) {
                 if (cell != null) {
@@ -84,11 +87,12 @@ public class Chunk extends AbstractControl {
             toBeSet = false;
             loaded = false;
 
-            for (int i = 0; i < cells.length; i++) {
+            //makes Cells with ID AIR null, to save up  bit of memory
+            /*for (int i = 0; i < cells.length; i++) {
                 if (cells[i] != null && cells[i].id == CellId.ID_AIR) {
                     cells[i] = null;
                 }
-            }
+            }*/
 
             debug("Update took: " + (System.currentTimeMillis() - t));
         }
@@ -100,14 +104,10 @@ public class Chunk extends AbstractControl {
             chunkGeom.setMaterial(Globals.mat);
         }
 
-        chunkGeom.setModelBound(new BoundingSphere(chunkSize * 2f, new Vector3f(x + (chunkSize / 2), y + (chunkSize / 2), z + (chunkSize / 2))));
-        if (!loaded && (Globals.main.getCamera().contains(chunkGeom.getWorldBound()) == Camera.FrustumIntersect.Inside
-                || Globals.main.getCamera().contains(chunkGeom.getWorldBound()) == Camera.FrustumIntersect.Intersects)) {
+        if (!isEmpty() && !loaded) {
             loaded = true;
             Globals.terrainNode.attachChild(chunkGeom);
-        } else if (!loaded) {
-            loaded = true;
-            Globals.terrainNode.attachChild(chunkGeom);
+            //debug("Loading " + this.toString() + " at " + x + ", " + y + ", " + z);
         }
     }
 
@@ -118,10 +118,17 @@ public class Chunk extends AbstractControl {
         }
     }
 
-    public void generate(){
-        Globals.getWorldGenerator().generate(this);
+    public void generate() {
+        if (!generated) {
+            Globals.getWorldGenerator().generate(this);
+        }
     }
 
+    public void decorate() {
+        if (!decorated) {
+            Globals.getWorldDecorator().decorate(this);
+        }
+    }
 
     public void loadPhysics() {
         if (!phyLoaded && Globals.phyEnabled()) {
@@ -148,9 +155,20 @@ public class Chunk extends AbstractControl {
     public void refreshPhysics() {
         unloadPhysics();
         loadPhysics();
-
     }
 
+    public Cell getHighestCellAt(int i, int j) {
+        return getCell(i, getHighestYAt(i, j), j);
+    }
+
+    public int getHighestYAt(int i, int j) {
+        for (int a = MAXY * chunkSize; a >= 0; a--) {
+            if (getCell(i, a, j) != null) {
+                return getCell(i, a, j).y;
+            }
+        }
+        return Integer.MAX_VALUE;
+    }
 
     public Cell getCell(int i, int j, int k) {
         if (i >= 0 && j >= 0 && k >= 0 && i < chunkSize && j < chunkSize && k < chunkSize) {
@@ -160,7 +178,7 @@ public class Chunk extends AbstractControl {
     }
 
     public void setCell(int i, int j, int k, int id) {
-        try {
+        if (i >= 0 && j >= 0 && k >= 0 && i < chunkSize && j < chunkSize && k < chunkSize) {
             if (cells[MathHelper.flat3Dto1D(i, j, k)] != null) {
                 cells[MathHelper.flat3Dto1D(i, j, k)].setId(id);
                 markForUpdate(true);
@@ -168,8 +186,6 @@ public class Chunk extends AbstractControl {
                 cells[MathHelper.flat3Dto1D(i, j, k)] = new Cell(id, i, j, k, this);
                 markForUpdate(true);
             }
-        } catch (Exception e) {
-
         }
     }
 
@@ -179,25 +195,20 @@ public class Chunk extends AbstractControl {
 
     @Override
     protected void controlUpdate(float tpf) {
-        if (isEmpty()) {
-            unload();
-            unloadPhysics();
-        } else {
-            if (Math.sqrt(Math.pow(x - pX, 2) + Math.pow(y - pY, 2) + Math.pow(z - pZ, 2)) < renderDistance) {
-                this.load();
-                if (Math.sqrt(Math.pow(x - pX, 2) + Math.pow(y - pY, 2) + Math.pow(z - pZ, 2)) <= 1) {
-                    this.refreshPhysics();
-                } else {
-                    this.unloadPhysics();
-                }
-
+        if (Math.sqrt(Math.pow(x - pX, 2) + Math.pow(y - pY, 2) + Math.pow(z - pZ, 2)) < renderDistance) {
+            this.load();
+            if (Math.sqrt(Math.pow(x - pX, 2) + Math.pow(y - pY, 2) + Math.pow(z - pZ, 2)) <= 1) {
+                this.refreshPhysics();
             } else {
-                this.unload();
                 this.unloadPhysics();
+            }
 
-                if (Math.sqrt(Math.pow(x - pX, 2) + Math.pow(y - pY, 2) + Math.pow(z - pZ, 2)) > renderDistance * 1.5f) {
-                    saveToFile();
-                }
+        } else {
+            this.unload();
+            this.unloadPhysics();
+
+            if (Math.sqrt(Math.pow(x - pX, 2) + Math.pow(y - pY, 2) + Math.pow(z - pZ, 2)) > renderDistance * 1.5f) {
+                saveToFile();
             }
         }
     }
@@ -250,13 +261,20 @@ public class Chunk extends AbstractControl {
                         datas = s.split(",");
                         setCell(Integer.valueOf(datas[0]), Integer.valueOf(datas[1]), Integer.valueOf(datas[2]), Integer.valueOf(datas[3]));
                     }
+
+                    generated = true;
+                    decorated = true;
                     f.delete();
                 } catch (Exception e) {
                 }
             } else {
+                generated = false;
+                decorated = false;
                 generate();
             }
         } else {
+            generated = false;
+            decorated = false;
             generate();
         }
     }

@@ -2,6 +2,7 @@ package voxelengine;
 
 import com.jme3.app.SimpleApplication;
 import voxelengine.utils.Globals;
+import voxelengine.world.decorators.WorldDecoratorTrees;
 import voxelengine.world.generators.WorldGeneratorTerrain;
 
 public class Main extends SimpleApplication {
@@ -19,7 +20,10 @@ public class Main extends SimpleApplication {
         Globals.setTesting(false);
         Globals.setWireFrameEnabled(false);
         Globals.setWorldGenerator(new WorldGeneratorTerrain());
-        Globals.setRenderDistance(16);
+        Globals.setWorldDecorator(new WorldDecoratorTrees());
+        Globals.setRenderDistance(45);
+        Globals.setDebugEnabled(true
+        );
         
         Globals.LOAD_FROM_FILE = false;
         Globals.SAVE_ON_EXIT = false;
