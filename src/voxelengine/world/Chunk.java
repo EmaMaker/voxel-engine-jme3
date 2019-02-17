@@ -181,11 +181,10 @@ public class Chunk extends AbstractControl {
         if (i >= 0 && j >= 0 && k >= 0 && i < chunkSize && j < chunkSize && k < chunkSize) {
             if (cells[MathHelper.flat3Dto1D(i, j, k)] != null) {
                 cells[MathHelper.flat3Dto1D(i, j, k)].setId(id);
-                markForUpdate(true);
             } else {
                 cells[MathHelper.flat3Dto1D(i, j, k)] = new Cell(id, i, j, k, this);
-                markForUpdate(true);
             }
+                markForUpdate(true);
         }
     }
 

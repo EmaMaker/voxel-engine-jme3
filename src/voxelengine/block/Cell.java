@@ -34,6 +34,8 @@ public class Cell implements Serializable {
         this.worldZ = chunkZ * chunkSize + z;
 
         this.chunk = c;
+        
+        System.out.println("Creating cell at: " + worldX + ", " + worldY + ", " + worldZ + " with id " + id);
         setId(id);
     }
 

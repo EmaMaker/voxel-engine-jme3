@@ -85,10 +85,10 @@ public class WorldManager extends AbstractAppState {
 
     //replaces the Cell.setId(id), and replaces making all the cell air when chunk is created. Commento storico del 2016 (Si, lo so che è il 2019 ora) - historical comment from 2016 (Yes, I know it's 2019 now)
     public void setCell(int i, int j, int k, int id) {
-        //debug("Cell being placed in world coords: " + i + ", " + j + ", " + k);
+        debug("Cell being placed in world coords: " + i + ", " + j + ", " + k);
         int plusX = i % chunkSize, plusY = j % chunkSize, plusZ = k % chunkSize;
         int chunkX = (i - plusX) / chunkSize, chunkY = (j - plusY) / chunkSize, chunkZ = (k - plusZ) / chunkSize;
-        //debug("Cell at: " + plusX + ", " + plusY + ", " + plusZ + "in chunk at" + chunkX + ", " + chunkY + ", " + chunkZ);
+        debug("Cell at: " + plusX + ", " + plusY + ", " + plusZ + "in chunk at" + chunkX + ", " + chunkY + ", " + chunkZ);
         if (chunkX >= 0 && chunkY >= 0 && chunkZ >= 0 && chunkX < MAXX && chunkY < MAXY && chunkZ < MAXZ) {
             if (chunks[MathHelper.flat3Dto1D(chunkX, chunkY, chunkZ)] == null) {
                 chunks[MathHelper.flat3Dto1D(chunkX, chunkY, chunkZ)] = new Chunk(chunkX, chunkY, chunkZ);
