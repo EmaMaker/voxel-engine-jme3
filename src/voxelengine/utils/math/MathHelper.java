@@ -3,6 +3,9 @@ package voxelengine.utils.math;
 import com.jme3.math.Vector3f;
 import java.math.BigDecimal;
 import static voxelengine.utils.Globals.chunkSize;
+import static voxelengine.world.WorldManager.MAXX;
+import static voxelengine.world.WorldManager.MAXY;
+import static voxelengine.world.WorldManager.MAXZ;
 
 public class MathHelper {
 
@@ -46,7 +49,12 @@ public class MathHelper {
         return bd.floatValue();
     }
 
-    public static int flat3Dto1D(int x, int y, int z) {
+    public static int flatChunk3Dto1D(int x, int y, int z) {
+        //return (z * MAXX * MAXY) + (y * MAXX) + x;
+        return x + y * MAXX + z * MAXX * MAXZ;
+    }
+
+    public static int flatCell3Dto1D(int x, int y, int z) {
         return (z * chunkSize * chunkSize) + (y * chunkSize) + x;
     }
 

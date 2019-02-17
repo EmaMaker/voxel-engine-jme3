@@ -5,6 +5,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import voxelengine.world.Chunk;
 import static voxelengine.utils.Globals.chunkSize;
+import voxelengine.utils.Globals;
 
 public class Cell implements Serializable {
 
@@ -34,8 +35,8 @@ public class Cell implements Serializable {
         this.worldZ = chunkZ * chunkSize + z;
 
         this.chunk = c;
-        
-        System.out.println("Creating cell at: " + worldX + ", " + worldY + ", " + worldZ + " with id " + id);
+
+        //System.out.println("Creating cell at: " + worldX + ", " + worldY + ", " + worldZ + " with id " + id);
         setId(id);
     }
 
@@ -55,7 +56,24 @@ public class Cell implements Serializable {
         meshed[5] = false;
 
         if (id != CellId.ID_AIR) {
-            sides[0] = (this.chunk.getCell(x - 1, y, z) == null || this.chunk.getCell(x - 1, y, z).id == CellId.ID_AIR);
+            sides[0] = (Globals.prov.getCell(worldX - 1, worldY, worldZ) == null || Globals.prov.getCell(worldX - 1, worldY, worldZ).id == CellId.ID_AIR);
+            sides[1] = (Globals.prov.getCell(worldX + 1, worldY, worldZ) == null || Globals.prov.getCell(worldX + 1, worldY, worldZ).id == CellId.ID_AIR);
+            sides[2] = (Globals.prov.getCell(worldX, worldY, worldZ - 1) == null || Globals.prov.getCell(worldX, worldY, worldZ - 1).id == CellId.ID_AIR);
+            sides[3] = (Globals.prov.getCell(worldX, worldY, worldZ + 1) == null || Globals.prov.getCell(worldX, worldY, worldZ + 1).id == CellId.ID_AIR);
+            sides[4] = (Globals.prov.getCell(worldX, worldY - 1, worldZ) == null || Globals.prov.getCell(worldX, worldY - 1, worldZ).id == CellId.ID_AIR);
+
+            if (Globals.prov.getCell(worldX, worldY + 1, worldZ) == null || Globals.prov.getCell(worldX, worldY + 1, worldZ).id == CellId.ID_AIR) {
+                sides[5] = true;
+                if (this.id == CellId.ID_DIRT) {
+                    setId(CellId.ID_GRASS);
+                }
+            } else {
+                if (this.id == CellId.ID_GRASS) {
+                    setId(CellId.ID_DIRT);
+                }
+            }
+
+            /*sides[0] = (this.chunk.getCell(x - 1, y, z) == null || this.chunk.getCell(x - 1, y, z).id == CellId.ID_AIR);
             sides[1] = (this.chunk.getCell(x + 1, y, z) == null || this.chunk.getCell(x + 1, y, z).id == CellId.ID_AIR);
             sides[2] = (this.chunk.getCell(x, y, z - 1) == null || this.chunk.getCell(x, y, z - 1).id == CellId.ID_AIR);
             sides[3] = (this.chunk.getCell(x, y, z + 1) == null || this.chunk.getCell(x, y, z + 1).id == CellId.ID_AIR);
@@ -70,7 +88,7 @@ public class Cell implements Serializable {
                 if (this.id == CellId.ID_GRASS) {
                     setId(CellId.ID_DIRT);
                 }
-            }
+            }*/
         }
     }
 

@@ -4,7 +4,6 @@ import java.util.Random;
 import voxelengine.block.CellId;
 import voxelengine.utils.Globals;
 import static voxelengine.utils.Globals.chunkSize;
-import static voxelengine.utils.Globals.debug;
 import voxelengine.world.Chunk;
 
 public class WorldDecoratorTrees extends WorldDecorator {
@@ -18,23 +17,24 @@ public class WorldDecoratorTrees extends WorldDecorator {
             for (int i = 0; i < chunkSize; i++) {
                 for (int k = 0; k < chunkSize; k++) {
                     a = c.getHighestYAt(i, k) + 1;
-                    if (rand.nextFloat() <= 0.0009f && a != Integer.MAX_VALUE) {
+                    if (rand.nextFloat() <= 0.0009f && a != Integer.MAX_VALUE && c.getCell(i, a-1, k).id == CellId.ID_GRASS) {
                         generateTree(c, i, a, k);
                         c.decorated = true;
                         c.markForUpdate(true);
                     }
                 }
             }
+            
         }
     }
 
     public void generateTree(Chunk c, int startX, int startY, int startZ) {
         int height = 4 + rand.nextInt() % 2;
+        
+        generateLeavesSphere(c, startX, startY + height + 2, startZ, 3);
         for (int i = 0; i <= height; i++) {
             c.setCell(startX, startY + i, startZ, CellId.ID_WOOD);
         }
-        generateLeavesSphere(c, startX, startY + height + 2, startZ, 3);
-
     }
 
     //this is handled in world coords, because of leaves
@@ -45,7 +45,7 @@ public class WorldDecoratorTrees extends WorldDecorator {
             for (int j = y - radius; j <= y + radius; j++) {
                 for (int k = z - radius; k <= z + radius; k++) {
                     if (Math.sqrt(Math.pow(x - i, 2) + Math.pow(y - j, 2) + Math.pow(z - k, 2)) <= radius) {
-                        debug("Leave being placed in world coords: " + i + ", " + j + ", " + k);
+                        //debug("Leave being placed in world coords: " + i + ", " + j + ", " + k);
 
                         Globals.prov.setCell(i, j, k, CellId.ID_LEAVES);
                     }

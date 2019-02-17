@@ -44,11 +44,11 @@ public class WorldManager extends AbstractAppState {
 
             for (int i = 0; i < 5; i++) {
                 for (int j = 0; j < 5; j++) {
-                    chunks[MathHelper.flat3Dto1D(i, 0, j)] = new Chunk(i, 0, j);
-                    chunks[MathHelper.flat3Dto1D(i, 0, j)].generate();
-                    chunks[MathHelper.flat3Dto1D(i, 0, j)].processCells();
-                    chunks[MathHelper.flat3Dto1D(i, 0, j)].load();
-                    chunks[MathHelper.flat3Dto1D(i, 0, j)].loadPhysics();
+                    chunks[MathHelper.flatChunk3Dto1D(i, 0, j)] = new Chunk(i, 0, j);
+                    chunks[MathHelper.flatChunk3Dto1D(i, 0, j)].generate();
+                    chunks[MathHelper.flatChunk3Dto1D(i, 0, j)].processCells();
+                    chunks[MathHelper.flatChunk3Dto1D(i, 0, j)].load();
+                    chunks[MathHelper.flatChunk3Dto1D(i, 0, j)].loadPhysics();
                 }
             }
         } else {
@@ -66,13 +66,13 @@ public class WorldManager extends AbstractAppState {
                     for (int k = pZ - renderDistance; k < pZ + renderDistance; k++) {
 
                         if (i >= 0 && i < MAXX && j >= 0 && j < MAXY && k >= 0 && k < MAXZ) {
-                            if (chunks[MathHelper.flat3Dto1D(i, j, k)] != null) {
-                                chunks[MathHelper.flat3Dto1D(i, j, k)].generate();
-                                chunks[MathHelper.flat3Dto1D(i, j, k)].decorate();
-                                chunks[MathHelper.flat3Dto1D(i, j, k)].processCells();
+                            if (chunks[MathHelper.flatChunk3Dto1D(i, j, k)] != null) {
+                                chunks[MathHelper.flatChunk3Dto1D(i, j, k)].generate();
+                                chunks[MathHelper.flatChunk3Dto1D(i, j, k)].decorate();
+                                chunks[MathHelper.flatChunk3Dto1D(i, j, k)].processCells();
                             } else {
                                 if (j == 0) {
-                                    chunks[MathHelper.flat3Dto1D(i, j, k)] = new Chunk(i, j, k);
+                                    chunks[MathHelper.flatChunk3Dto1D(i, j, k)] = new Chunk(i, j, k);
                                     loadFromFile(i, j, k);
                                 }
                             }
@@ -85,15 +85,15 @@ public class WorldManager extends AbstractAppState {
 
     //replaces the Cell.setId(id), and replaces making all the cell air when chunk is created. Commento storico del 2016 (Si, lo so che è il 2019 ora) - historical comment from 2016 (Yes, I know it's 2019 now)
     public void setCell(int i, int j, int k, int id) {
-        debug("Cell being placed in world coords: " + i + ", " + j + ", " + k);
         int plusX = i % chunkSize, plusY = j % chunkSize, plusZ = k % chunkSize;
         int chunkX = (i - plusX) / chunkSize, chunkY = (j - plusY) / chunkSize, chunkZ = (k - plusZ) / chunkSize;
-        debug("Cell at: " + plusX + ", " + plusY + ", " + plusZ + "in chunk at" + chunkX + ", " + chunkY + ", " + chunkZ);
+        //debug("Cell being placed in world coords: " + i + ", " + j + ", " + k);
+        //debug("Cell at: " + plusX + ", " + plusY + ", " + plusZ + "in chunk at" + chunkX + ", " + chunkY + ", " + chunkZ);
         if (chunkX >= 0 && chunkY >= 0 && chunkZ >= 0 && chunkX < MAXX && chunkY < MAXY && chunkZ < MAXZ) {
-            if (chunks[MathHelper.flat3Dto1D(chunkX, chunkY, chunkZ)] == null) {
-                chunks[MathHelper.flat3Dto1D(chunkX, chunkY, chunkZ)] = new Chunk(chunkX, chunkY, chunkZ);
+            if (chunks[MathHelper.flatChunk3Dto1D(chunkX, chunkY, chunkZ)] == null) {
+                chunks[MathHelper.flatChunk3Dto1D(chunkX, chunkY, chunkZ)] = new Chunk(chunkX, chunkY, chunkZ);
             }
-            chunks[MathHelper.flat3Dto1D(chunkX, chunkY, chunkZ)].setCell(plusX, plusY, plusZ, id);
+            chunks[MathHelper.flatChunk3Dto1D(chunkX, chunkY, chunkZ)].setCell(plusX, plusY, plusZ, id);
         }
     }
 
@@ -101,8 +101,10 @@ public class WorldManager extends AbstractAppState {
         int plusX = i % chunkSize, plusY = j % chunkSize, plusZ = k % chunkSize;
         int chunkX = (i - plusX) / chunkSize, chunkY = (j - plusY) / chunkSize, chunkZ = (k - plusZ) / chunkSize;
 
-        if (chunks[MathHelper.flat3Dto1D(chunkX, chunkY, chunkZ)] != null) {
-            return chunks[MathHelper.flat3Dto1D(chunkX, chunkY, chunkZ)].getCell(plusX, plusY, plusZ);
+        if (chunkX >= 0 && chunkY >= 0 && chunkZ >= 0 && chunkX < MAXX && chunkY < MAXY && chunkZ < MAXZ) {
+            if (chunks[MathHelper.flatChunk3Dto1D(chunkX, chunkY, chunkZ)] != null) {
+                return chunks[MathHelper.flatChunk3Dto1D(chunkX, chunkY, chunkZ)].getCell(plusX, plusY, plusZ);
+            }
         }
         return null;
     }
@@ -112,7 +114,7 @@ public class WorldManager extends AbstractAppState {
         int plusX = i % chunkSize, plusY = j % chunkSize, plusZ = k % chunkSize;
         int chunkX = (i - plusX) / chunkSize, chunkY = (j - plusY) / chunkSize, chunkZ = (k - plusZ) / chunkSize;
 
-        return chunks[MathHelper.flat3Dto1D(chunkX, chunkY, chunkZ)];
+        return chunks[MathHelper.flatChunk3Dto1D(chunkX, chunkY, chunkZ)];
     }
 
     public Cell getCellFromVertices(ArrayList<Vector3f> al) {
@@ -184,10 +186,10 @@ public class WorldManager extends AbstractAppState {
 
                         if (i >= 0 && i < MAXX && j >= 0 && j < MAXY && k >= 0 && k < MAXZ) {
 
-                            if (chunks[MathHelper.flat3Dto1D(i, j, k)] != null) {
-                                chunks[MathHelper.flat3Dto1D(i, j, k)].processCells();
+                            if (chunks[MathHelper.flatChunk3Dto1D(i, j, k)] != null) {
+                                chunks[MathHelper.flatChunk3Dto1D(i, j, k)].processCells();
                             } else {
-                                chunks[MathHelper.flat3Dto1D(i, j, k)] = new Chunk(i, j, k);
+                                chunks[MathHelper.flatChunk3Dto1D(i, j, k)] = new Chunk(i, j, k);
                                 loadFromFile(i, j, k);
                             }
                         }
@@ -199,7 +201,7 @@ public class WorldManager extends AbstractAppState {
     };*/
     public void loadFromFile(int i, int j, int k) {
         File f = Paths.get(Globals.workingDir + i + "-" + j + "-" + k + ".chunk").toFile();
-        chunks[MathHelper.flat3Dto1D(i, j, k)].loadFromFile(f);
+        chunks[MathHelper.flatChunk3Dto1D(i, j, k)].loadFromFile(f);
     }
 
     /*SOME USEFUL METHOD OVERRIDING*/

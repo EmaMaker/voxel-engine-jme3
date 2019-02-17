@@ -172,17 +172,17 @@ public class Chunk extends AbstractControl {
 
     public Cell getCell(int i, int j, int k) {
         if (i >= 0 && j >= 0 && k >= 0 && i < chunkSize && j < chunkSize && k < chunkSize) {
-            return cells[MathHelper.flat3Dto1D(i, j, k)];
+            return cells[MathHelper.flatCell3Dto1D(i, j, k)];
         }
         return null;
     }
 
     public void setCell(int i, int j, int k, int id) {
         if (i >= 0 && j >= 0 && k >= 0 && i < chunkSize && j < chunkSize && k < chunkSize) {
-            if (cells[MathHelper.flat3Dto1D(i, j, k)] != null) {
-                cells[MathHelper.flat3Dto1D(i, j, k)].setId(id);
+            if (cells[MathHelper.flatCell3Dto1D(i, j, k)] != null) {
+                cells[MathHelper.flatCell3Dto1D(i, j, k)].setId(id);
             } else {
-                cells[MathHelper.flat3Dto1D(i, j, k)] = new Cell(id, i, j, k, this);
+                cells[MathHelper.flatCell3Dto1D(i, j, k)] = new Cell(id, i, j, k, this);
             }
                 markForUpdate(true);
         }
@@ -239,7 +239,7 @@ public class Chunk extends AbstractControl {
                 }
 
                 Globals.terrainNode.removeControl(this);
-                WorldManager.chunks[MathHelper.flat3Dto1D(x, y, z)] = null;
+                WorldManager.chunks[MathHelper.flatCell3Dto1D(x, y, z)] = null;
                 writer.close();
             } catch (Exception e) {
             }

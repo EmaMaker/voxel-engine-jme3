@@ -41,7 +41,7 @@ public class Globals extends AbstractAppState {
     public static boolean LOAD_FROM_FILE = false;
     public static boolean SAVE_ON_EXIT = true;
 
-    public static String workingDir = System.getProperty("user.dir") + "/bleble/";
+    public static String workingDir = System.getProperty("user.dir") + "/chunks/";
     public static String permtableName = "perm.table";
 
     public static ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(2);
@@ -112,6 +112,14 @@ public class Globals extends AbstractAppState {
 
     public static String getWorkingDir() {
         return workingDir;
+    }
+
+    public static void setPermTable(String s) {
+        permtableName = s;
+    }
+
+    public static String getPermTable() {
+        return permtableName;
     }
 
     public static void setStartPoint(int x, int y, int z) {

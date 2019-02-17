@@ -256,81 +256,75 @@ public class ControlsHandler extends AbstractAppState implements ActionListener,
     }
 
     public void breakBlock() {
-        try {
-            debug("\n|===========================================|");
-            Ray ray = new Ray(Globals.main.getCamera().getLocation(), Globals.main.getCamera().getDirection());
-            Globals.terrainNode.collideWith(ray, results);
+        debug("\n|===========================================|");
+        Ray ray = new Ray(Globals.main.getCamera().getLocation(), Globals.main.getCamera().getDirection());
+        Globals.terrainNode.collideWith(ray, results);
 
-            if (results.getClosestCollision() != null) {
-                Vector3f pt = fixCoords(results.getClosestCollision().getContactPoint());
-                //if (Math.sqrt(Math.pow(pt.x - pX * chunkSize, 2) + Math.pow(pt.y - pY * chunkSize, 2) + Math.pow(pt.z - pZ * chunkSize, 2)) <= Globals.getPickingDistance()) {
-                prov.setCellFromVertices(findNearestVertices(pt), CellId.ID_AIR);
-                Cell c = prov.getCellFromVertices(findNearestVertices(pt));
-                if (c != null) {
-                    c.setId(CellId.ID_AIR);
-                    c.chunk.markForUpdate(true);
-                    c.chunk.processCells();
-                    c.chunk.refreshPhysics();
+        if (results.getClosestCollision() != null) {
+            Vector3f pt = fixCoords(results.getClosestCollision().getContactPoint());
+            //if (Math.sqrt(Math.pow(pt.x - pX * chunkSize, 2) + Math.pow(pt.y - pY * chunkSize, 2) + Math.pow(pt.z - pZ * chunkSize, 2)) <= Globals.getPickingDistance()) {
+            prov.setCellFromVertices(findNearestVertices(pt), CellId.ID_AIR);
+            Cell c = prov.getCellFromVertices(findNearestVertices(pt));
+            if (c != null) {
+                c.setId(CellId.ID_AIR);
+                c.chunk.markForUpdate(true);
+                c.chunk.processCells();
+                c.chunk.refreshPhysics();
+            }
+        }
+        results.clear();
+        breakStep = 0;
+        //}
+        debug("|===========================================|\n");
+    }
+
+    public void placeblock() {
+        debug("\n|===========================================|");
+        Ray ray = new Ray(Globals.main.getCamera().getLocation(), Globals.main.getCamera().getDirection());
+        Globals.terrainNode.collideWith(ray, results);
+
+        if (results.getClosestCollision() != null) {
+            Vector3f pt = fixCoords(results.getClosestCollision().getContactPoint());
+            //if (Math.sqrt(Math.pow(pt.x - pX * chunkSize, 2) + Math.pow(pt.y - pY * chunkSize, 2) + Math.pow(pt.z - pZ * chunkSize, 2)) <= Globals.getPickingDistance()) {
+
+            Cell c = prov.getCellFromVertices(findNearestVertices(pt));
+            if (c != null) {
+                int newX = c.worldX, newY = c.worldY, newZ = c.worldZ;
+                switch (c.getFaceFromVertices(findNearestVertices(pt))) {
+                    case 0:
+                        newX = c.worldX - 1;
+                        break;
+                    case 1:
+                        newX = c.worldX + 1;
+                        break;
+                    case 2:
+                        newZ = c.worldZ - 1;
+                        break;
+                    case 3:
+                        newZ = c.worldZ + 1;
+                        break;
+                    case 4:
+                        newY = c.worldY + 1;
+                        break;
+                    case 5:
+                        newY = c.worldY - 1;
+                        break;
+                    default:
+                        break;
+                }
+                prov.setCell(newX, newY, newZ, currentBlockId);
+
+                if (prov.getCell(newX, newY, newZ) != null) {
+                    prov.getCell(newX, newY, newZ).chunk.markForUpdate(true);
+                    prov.getCell(newX, newY, newZ).chunk.processCells();
+                    prov.getCell(newX, newY, newZ).chunk.refreshPhysics();
                 }
             }
             results.clear();
             breakStep = 0;
             //}
-            debug("|===========================================|\n");
-        } catch (Exception e) {
         }
-    }
-
-    public void placeblock() {
-        try {
-            debug("\n|===========================================|");
-            Ray ray = new Ray(Globals.main.getCamera().getLocation(), Globals.main.getCamera().getDirection());
-            Globals.terrainNode.collideWith(ray, results);
-
-            if (results.getClosestCollision() != null) {
-                Vector3f pt = fixCoords(results.getClosestCollision().getContactPoint());
-                //if (Math.sqrt(Math.pow(pt.x - pX * chunkSize, 2) + Math.pow(pt.y - pY * chunkSize, 2) + Math.pow(pt.z - pZ * chunkSize, 2)) <= Globals.getPickingDistance()) {
-
-                Cell c = prov.getCellFromVertices(findNearestVertices(pt));
-                if (c != null) {
-                    int newX = c.worldX, newY = c.worldY, newZ = c.worldZ;
-                    switch (c.getFaceFromVertices(findNearestVertices(pt))) {
-                        case 0:
-                            newX = c.worldX - 1;
-                            break;
-                        case 1:
-                            newX = c.worldX + 1;
-                            break;
-                        case 2:
-                            newZ = c.worldZ - 1;
-                            break;
-                        case 3:
-                            newZ = c.worldZ + 1;
-                            break;
-                        case 4:
-                            newY = c.worldY + 1;
-                            break;
-                        case 5:
-                            newY = c.worldY - 1;
-                            break;
-                        default:
-                            break;
-                    }
-                    prov.setCell(newX, newY, newZ, currentBlockId);
-
-                    if (prov.getCell(newX, newY, newZ) != null) {
-                        prov.getCell(newX, newY, newZ).chunk.markForUpdate(true);
-                        prov.getCell(newX, newY, newZ).chunk.processCells();
-                        prov.getCell(newX, newY, newZ).chunk.refreshPhysics();
-                    }
-                }
-                results.clear();
-                breakStep = 0;
-                //}
-            }
-            debug("|===========================================|\n");
-        } catch (Exception e) {
-        }
+        debug("|===========================================|\n");
     }
 
     public Vector3f fixCoords(Vector3f v) {
