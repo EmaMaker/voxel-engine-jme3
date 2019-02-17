@@ -465,6 +465,21 @@ public class SimplexNoise {
                 debug("Loaded permutation table from file, values: " + Arrays.toString(p));
 
             } catch (IOException ex) {
+                //Oh, wait: there were some problems with loading the file. Let's make a random permutation table as nothing happened :)
+                Random rand = new Random();
+
+                p = new short[256];
+                for (int i = 0; i < 256; i++) {
+                    p[i] = (short) (rand.nextInt(255));
+                }
+            }
+        } else {
+            //Oh, wait: the file doesn't exist. Let's make a random permutation table as nothing happened :)
+            Random rand = new Random();
+
+            p = new short[256];
+            for (int i = 0; i < 256; i++) {
+                p[i] = (short) (rand.nextInt(255));
             }
         }
     }

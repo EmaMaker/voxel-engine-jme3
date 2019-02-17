@@ -31,7 +31,7 @@ public class WorldDecoratorTrees extends WorldDecorator {
     public void generateTree(Chunk c, int startX, int startY, int startZ) {
         int height = 4 + rand.nextInt() % 2;
         
-        generateLeavesSphere(c, startX, startY + height + 2, startZ, 3);
+        generateLeavesSphere(c, startX, startY + height + 1, startZ, 3);
         for (int i = 0; i <= height; i++) {
             c.setCell(startX, startY + i, startZ, CellId.ID_WOOD);
         }
@@ -42,7 +42,7 @@ public class WorldDecoratorTrees extends WorldDecorator {
         //System.out.println(cx + ", " + cy + ", " + cz);
         int x = c.x * chunkSize + cx, y = c.y * chunkSize + cy, z = c.z * chunkSize + cz;
         for (int i = x - radius; i <= x + radius; i++) {
-            for (int j = y - radius; j <= y + radius; j++) {
+            for (int j = y - radius + 2; j <= y + radius; j++) {
                 for (int k = z - radius; k <= z + radius; k++) {
                     if (Math.sqrt(Math.pow(x - i, 2) + Math.pow(y - j, 2) + Math.pow(z - k, 2)) <= radius) {
                         //debug("Leave being placed in world coords: " + i + ", " + j + ", " + k);

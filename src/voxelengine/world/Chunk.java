@@ -68,7 +68,7 @@ public class Chunk extends AbstractControl {
     public void processCells() {
         if (toBeSet) {
             t = System.currentTimeMillis();
-            debug("Updating " + this.toString() + " at " + x + ", " + y + ", " + z);
+            //debug("Updating " + this.toString() + " at " + x + ", " + y + ", " + z);
 
             for (Cell cell : cells) {
                 if (cell != null) {
@@ -88,13 +88,12 @@ public class Chunk extends AbstractControl {
             loaded = false;
 
             //makes Cells with ID AIR null, to save up  bit of memory
-            /*for (int i = 0; i < cells.length; i++) {
+            for (int i = 0; i < cells.length; i++) {
                 if (cells[i] != null && cells[i].id == CellId.ID_AIR) {
                     cells[i] = null;
                 }
-            }*/
-
-            debug("Update took: " + (System.currentTimeMillis() - t));
+            }
+            //debug("Update took: " + (System.currentTimeMillis() - t));
         }
     }
 
@@ -121,12 +120,14 @@ public class Chunk extends AbstractControl {
     public void generate() {
         if (!generated) {
             Globals.getWorldGenerator().generate(this);
+            generated = true;
         }
     }
 
     public void decorate() {
         if (!decorated) {
             Globals.getWorldDecorator().decorate(this);
+            decorated = true;
         }
     }
 
@@ -137,7 +138,6 @@ public class Chunk extends AbstractControl {
                 Globals.main.getStateManager().getState(BulletAppState.class).getPhysicsSpace().add(chunkGeom.getControl(RigidBodyControl.class));
                 phyLoaded = true;
             } catch (Exception e) {
-                //e.printStackTrace();
             }
         }
     }
@@ -184,12 +184,8 @@ public class Chunk extends AbstractControl {
             } else {
                 cells[MathHelper.flatCell3Dto1D(i, j, k)] = new Cell(id, i, j, k, this);
             }
-                markForUpdate(true);
+            markForUpdate(true);
         }
-    }
-
-    @Override
-    protected void controlRender(RenderManager rm, ViewPort vp) {
     }
 
     @Override
@@ -212,6 +208,10 @@ public class Chunk extends AbstractControl {
         }
     }
 
+    @Override
+    protected void controlRender(RenderManager rm, ViewPort vp) {
+    }
+
     public boolean isEmpty() {
         for (int i = 0; i < cells.length; i++) {
             if (cells[i] != null) {
@@ -224,7 +224,7 @@ public class Chunk extends AbstractControl {
         return true;
     }
 
-    //Saves the chunk to text file, with format X Y Z ID, separated by spaces
+    //Saves the chunk to text file, with format X Y Z ID, separated by commas
     public void saveToFile() {
         File f = Paths.get(Globals.workingDir + x + "-" + y + "-" + z + ".chunk").toFile();
 
@@ -246,7 +246,7 @@ public class Chunk extends AbstractControl {
         }
     }
 
-    //Retrives back from the text file (X Y Z ID separated by spaces)
+    //Retrives back from the text file (X Y Z ID separated by commas)
     public void loadFromFile(File f) {
         List<String> lines;
         String[] datas = new String[4];
@@ -263,6 +263,7 @@ public class Chunk extends AbstractControl {
 
                     generated = true;
                     decorated = true;
+                    markForUpdate(true);
                     f.delete();
                 } catch (Exception e) {
                 }
