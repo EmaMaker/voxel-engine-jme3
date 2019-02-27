@@ -24,8 +24,8 @@ public class Main extends SimpleApplication {
         Globals.setRenderDistance(16);
         Globals.setDebugEnabled(false);
         
-        Globals.LOAD_FROM_FILE = true;
-        Globals.SAVE_ON_EXIT = false;
+        Globals.LOAD_FROM_FILE = false;
+        Globals.SAVE_ON_EXIT = true;
 
         stateManager.attach(new VoxelEngine(settings));
     }

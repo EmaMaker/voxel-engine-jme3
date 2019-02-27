@@ -41,7 +41,7 @@ public class Globals extends AbstractAppState {
     public static boolean LOAD_FROM_FILE = false;
     public static boolean SAVE_ON_EXIT = true;
 
-    public static String workingDir = System.getProperty("user.dir") + "/chunks/";
+    public static String workingDir = System.getProperty("user.dir") + "/chunk-saves/";
     public static String permtableName = "perm.table";
 
     public static ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(2);

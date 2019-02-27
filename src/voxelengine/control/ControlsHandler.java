@@ -69,7 +69,7 @@ public class ControlsHandler extends AbstractAppState implements ActionListener,
     Vector3f camLeft = new Vector3f();
     Vector3f camPos = new Vector3f();
 
-    float speed = .4f, strafeSpeed = .2f, headHeight = 3f;
+    float speed = .4f, strafeSpeed = .2f, headHeight = 1.75f;
 
     @Override
     public void initialize(AppStateManager stateManager, Application app) {

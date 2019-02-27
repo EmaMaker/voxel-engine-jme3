@@ -17,20 +17,18 @@ public class WorldDecoratorTrees extends WorldDecorator {
             for (int i = 0; i < chunkSize; i++) {
                 for (int k = 0; k < chunkSize; k++) {
                     a = c.getHighestYAt(i, k) + 1;
-                    if (rand.nextFloat() <= 0.0009f && a != Integer.MAX_VALUE && c.getCell(i, a-1, k).id == CellId.ID_GRASS) {
+                    if (rand.nextFloat() <= 0.0009f && a != Integer.MAX_VALUE && c.getCell(i, a - 1, k).id == CellId.ID_GRASS) {
                         generateTree(c, i, a, k);
-                        c.decorated = true;
                         c.markForUpdate(true);
                     }
                 }
             }
-            
         }
     }
 
     public void generateTree(Chunk c, int startX, int startY, int startZ) {
         int height = 4 + rand.nextInt() % 2;
-        
+
         generateLeavesSphere(c, startX, startY + height + 1, startZ, 3);
         for (int i = 0; i <= height; i++) {
             c.setCell(startX, startY + i, startZ, CellId.ID_WOOD);

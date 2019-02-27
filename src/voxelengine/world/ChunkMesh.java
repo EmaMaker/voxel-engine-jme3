@@ -30,7 +30,7 @@ public class ChunkMesh extends Mesh {
             setBuffer(Type.Position, 3, BufferUtils.createFloatBuffer(verticesList.toArray(new Vector3f[verticesList.size()])));
             setBuffer(Type.TexCoord, 3, BufferUtils.createFloatBuffer(textureList.toArray(new Vector3f[textureList.size()])));
             setBuffer(Type.Index, 3, BufferUtils.createShortBuffer(indices));
-            
+
             updateBound();
         }
     }
@@ -107,5 +107,4 @@ public class ChunkMesh extends Mesh {
         buff.flip();
         return buff;
     }
-
 }

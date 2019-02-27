@@ -1,21 +1,22 @@
 package voxelengine.world;
 
-import com.jme3.bounding.BoundingSphere;
 import voxelengine.utils.Globals;
 import com.jme3.bullet.BulletAppState;
 import com.jme3.bullet.control.RigidBodyControl;
 import com.jme3.bullet.util.CollisionShapeFactory;
 import com.jme3.math.Vector3f;
-import com.jme3.renderer.Camera;
 import com.jme3.renderer.RenderManager;
 import com.jme3.renderer.ViewPort;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.control.AbstractControl;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.Random;
 import voxelengine.block.Cell;
 import voxelengine.block.CellId;
 import static voxelengine.utils.Globals.chunkSize;
@@ -43,6 +44,7 @@ public class Chunk extends AbstractControl {
     public ChunkMesh chunkMesh = new ChunkMesh();
     public Geometry chunkGeom;
     Vector3f pos = new Vector3f();
+    Random rand = new Random();
 
     public Chunk() {
         this(0, 0, 0);
@@ -82,8 +84,8 @@ public class Chunk extends AbstractControl {
 
             kindaBetterGreedy();
             chunkGeom.setMesh(chunkMesh);
-
             chunkMesh.set();
+            chunkMesh.clearAll();
             toBeSet = false;
             loaded = false;
 
@@ -103,10 +105,13 @@ public class Chunk extends AbstractControl {
             chunkGeom.setMaterial(Globals.mat);
         }
 
-        if (!isEmpty() && !loaded) {
-            loaded = true;
-            Globals.terrainNode.attachChild(chunkGeom);
-            //debug("Loading " + this.toString() + " at " + x + ", " + y + ", " + z);
+        if (!isEmpty()) {
+            if (!loaded) {
+                loaded = true;
+                Globals.terrainNode.attachChild(chunkGeom);
+            }
+        } else {
+            unload();
         }
     }
 
@@ -114,20 +119,6 @@ public class Chunk extends AbstractControl {
         if (loaded) {
             loaded = false;
             Globals.terrainNode.detachChild(chunkGeom);
-        }
-    }
-
-    public void generate() {
-        if (!generated) {
-            Globals.getWorldGenerator().generate(this);
-            generated = true;
-        }
-    }
-
-    public void decorate() {
-        if (!decorated) {
-            Globals.getWorldDecorator().decorate(this);
-            decorated = true;
         }
     }
 
@@ -188,6 +179,20 @@ public class Chunk extends AbstractControl {
         }
     }
 
+    public void generate() {
+        if (!generated) {
+            Globals.getWorldGenerator().generate(this);
+            generated = true;
+        }
+    }
+
+    public void decorate() {
+        if (!decorated) {
+            Globals.getWorldDecorator().decorate(this);
+            decorated = true;
+        }
+    }
+
     @Override
     protected void controlUpdate(float tpf) {
         if (Math.sqrt(Math.pow(x - pX, 2) + Math.pow(y - pY, 2) + Math.pow(z - pZ, 2)) < renderDistance) {
@@ -199,12 +204,14 @@ public class Chunk extends AbstractControl {
             }
 
         } else {
+            //if (rand.nextFloat() < 0.25f) {
             this.unload();
             this.unloadPhysics();
 
             if (Math.sqrt(Math.pow(x - pX, 2) + Math.pow(y - pY, 2) + Math.pow(z - pZ, 2)) > renderDistance * 1.5f) {
                 saveToFile();
             }
+            //}
         }
     }
 
@@ -239,17 +246,16 @@ public class Chunk extends AbstractControl {
                 }
 
                 Globals.terrainNode.removeControl(this);
-                WorldManager.chunks[MathHelper.flatCell3Dto1D(x, y, z)] = null;
+                WorldManager.chunks[MathHelper.flatChunk3Dto1D(x, y, z)] = null;
                 writer.close();
-            } catch (Exception e) {
+            } catch (FileNotFoundException e) {
             }
         }
     }
 
-    //Retrives back from the text file (X Y Z ID separated by commas)
+    //Retrieves back from the text file (X Y Z ID separated by commas)
     public void loadFromFile(File f) {
         List<String> lines;
-        String[] datas = new String[4];
 
         if (f.exists()) {
             if (!(f.length() == 0)) {
@@ -257,15 +263,14 @@ public class Chunk extends AbstractControl {
                     lines = Files.readAllLines(f.toPath());
 
                     for (String s : lines) {
-                        datas = s.split(",");
-                        setCell(Integer.valueOf(datas[0]), Integer.valueOf(datas[1]), Integer.valueOf(datas[2]), Integer.valueOf(datas[3]));
+                        setCell(Integer.valueOf(s.split(",")[0]), Integer.valueOf(s.split(",")[1]), Integer.valueOf(s.split(",")[2]), Integer.valueOf(s.split(",")[3]));
                     }
 
                     generated = true;
                     decorated = true;
                     markForUpdate(true);
                     f.delete();
-                } catch (Exception e) {
+                } catch (IOException | NumberFormatException e) {
                 }
             } else {
                 generated = false;
@@ -283,12 +288,13 @@ public class Chunk extends AbstractControl {
         toBeSet = b;
     }
 
-    //Kinda better greedy meshing algorithm then before. Y expanding still missing, not gonna try to connect in negative side
+    //Kinda better greedy meshing algorithm than before. Now expanding in both axis (X-Y, Z-Y, X-Z), not gonna try to connect in negative side, it's not needed
     public void kindaBetterGreedy() {
         int startX, startY, startZ, offX, offY, offZ, index;
         short i0 = 0, i1 = 0, i2 = 0, i3 = 0;
         Cell c1;
         Vector3f v0, v1, v2, v3;
+        boolean done;
 
         for (Cell c : cells) {
 
@@ -329,12 +335,68 @@ public class Chunk extends AbstractControl {
                             c1 = getCell(startX + offX, startY + offY, startZ + offZ);
                         }
 
-                        if (s == 0 || s == 1) {
-                            //if considering x or z axis, increment the y axis
-                            offY++;
-                        } else {
-                            //here's considering the y axis, so increment the x
-                            offX++;
+                        done = false;
+                        switch (s) {
+                            case 0:
+                                //offY++;
+                                while (!done) {
+                                    offY++;
+                                    for (int k = startZ; k < startZ + offZ; k++) {
+                                        c1 = getCell(startX + offX, startY + offY, k);
+
+                                        if (c1 == null || c1.meshed[index] || c1.id == CellId.ID_AIR || c1.id != c.id || !c1.sides[index]) {
+                                            done = true;
+                                            break;
+                                        }
+                                    }
+                                    if (!done) {
+                                        for (int k = startZ; k < startZ + offZ; k++) {
+                                            c1 = getCell(startX + offX, startY + offY, k);
+                                            c1.meshed[index] = true;
+                                        }
+                                    }
+                                }
+                                break;
+                            case 1:
+                                //offY++;
+                                while (!done) {
+                                    offY++;
+                                    for (int k = startX; k < startX + offX; k++) {
+                                        c1 = getCell(k, startY + offY, startZ + offZ);
+
+                                        if (c1 == null || c1.meshed[index] || c1.id == CellId.ID_AIR || c1.id != c.id || !c1.sides[index]) {
+                                            done = true;
+                                            break;
+                                        }
+                                    }
+                                    if (!done) {
+                                        for (int k = startX; k < startX + offX; k++) {
+                                            c1 = getCell(k, startY + offY, startZ + offZ);
+                                            c1.meshed[index] = true;
+                                        }
+                                    }
+                                }
+                                break;
+                            case 2:
+                                //offX++;
+                                while (!done) {
+                                    offX++;
+                                    for (int k = startZ; k < startZ + offZ; k++) {
+                                        c1 = getCell(startX + offX, startY + offY, k);
+
+                                        if (c1 == null || c1.meshed[index] || c1.id == CellId.ID_AIR || c1.id != c.id || !c1.sides[index]) {
+                                            done = true;
+                                            break;
+                                        }
+                                    }
+                                    if (!done) {
+                                        for (int k = startZ; k < startZ + offZ; k++) {
+                                            c1 = getCell(startX + offX, startY + offY, k);
+                                            c1.meshed[index] = true;
+                                        }
+                                    }
+                                }
+                                break;
                         }
 
                         //finished, the cell has been used!
