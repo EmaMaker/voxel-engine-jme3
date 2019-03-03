@@ -89,6 +89,7 @@ public class ControlsHandler extends AbstractAppState implements ActionListener,
         playerModel.addControl(playerControl);
         this.app.getStateManager().getState(BulletAppState.class).getPhysicsSpace().add(playerControl);
         playerControl.warp(respawnPoint);
+        //System.out.println(respawnPoint);
 
         initControls();
     }
@@ -160,7 +161,15 @@ public class ControlsHandler extends AbstractAppState implements ActionListener,
                 break;
             case "camera":
                 if (keyPressed) {
-                    Globals.setPlayerEnabled(!Globals.playerEnabled());
+                    if(Globals.playerEnabled()){
+                        Globals.setPlayerEnabled(false);
+                        Globals.main.getRootNode().detachChild(playerModel);
+                    }else{
+                        Globals.setPlayerEnabled(true);
+                        Globals.main.getRootNode().attachChild(playerModel);
+                        playerControl.warp(Globals.main.getCamera().getLocation());
+                        playerModel.setLocalTranslation(Globals.main.getCamera().getLocation());
+                    }
                 }
                 break;
             //PLAYER CONTROLS
@@ -222,7 +231,7 @@ public class ControlsHandler extends AbstractAppState implements ActionListener,
             pZ = getZ() / chunkSize;
 
             if (playerModel.getLocalTranslation().y < -10) {
-                playerControl.warp(new Vector3f(8, 8, 8));
+                playerControl.warp(respawnPoint);
             }
             /*END POSITION UTILS
             
