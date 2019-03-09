@@ -71,6 +71,8 @@ public class ControlsHandler extends AbstractAppState implements ActionListener,
 
     float speed = .4f, strafeSpeed = .2f, headHeight = 1.75f;
 
+    int blockDistance = 12;
+
     @Override
     public void initialize(AppStateManager stateManager, Application app) {
         //MISC
@@ -161,10 +163,10 @@ public class ControlsHandler extends AbstractAppState implements ActionListener,
                 break;
             case "camera":
                 if (keyPressed) {
-                    if(Globals.playerEnabled()){
+                    if (Globals.playerEnabled()) {
                         Globals.setPlayerEnabled(false);
                         Globals.main.getRootNode().detachChild(playerModel);
-                    }else{
+                    } else {
                         Globals.setPlayerEnabled(true);
                         Globals.main.getRootNode().attachChild(playerModel);
                         playerControl.warp(Globals.main.getCamera().getLocation());
@@ -271,14 +273,17 @@ public class ControlsHandler extends AbstractAppState implements ActionListener,
 
         if (results.getClosestCollision() != null) {
             Vector3f pt = fixCoords(results.getClosestCollision().getContactPoint());
-            //if (Math.sqrt(Math.pow(pt.x - pX * chunkSize, 2) + Math.pow(pt.y - pY * chunkSize, 2) + Math.pow(pt.z - pZ * chunkSize, 2)) <= Globals.getPickingDistance()) {
-            prov.setCellFromVertices(findNearestVertices(pt), CellId.ID_AIR);
-            Cell c = prov.getCellFromVertices(findNearestVertices(pt));
-            if (c != null) {
-                c.setId(CellId.ID_AIR);
-                c.chunk.markForUpdate(true);
-                c.chunk.processCells();
-                c.chunk.refreshPhysics();
+
+            if (pt.distance(playerModel.getLocalTranslation()) < blockDistance) {
+                //if (Math.sqrt(Math.pow(pt.x - pX * chunkSize, 2) + Math.pow(pt.y - pY * chunkSize, 2) + Math.pow(pt.z - pZ * chunkSize, 2)) <= Globals.getPickingDistance()) {
+                prov.setCellFromVertices(findNearestVertices(pt), CellId.ID_AIR);
+                Cell c = prov.getCellFromVertices(findNearestVertices(pt));
+                if (c != null) {
+                    c.setId(CellId.ID_AIR);
+                    c.chunk.markForUpdate(true);
+                    c.chunk.processCells();
+                    c.chunk.refreshPhysics();
+                }
             }
         }
         results.clear();
@@ -295,43 +300,45 @@ public class ControlsHandler extends AbstractAppState implements ActionListener,
         if (results.getClosestCollision() != null) {
             Vector3f pt = fixCoords(results.getClosestCollision().getContactPoint());
             //if (Math.sqrt(Math.pow(pt.x - pX * chunkSize, 2) + Math.pow(pt.y - pY * chunkSize, 2) + Math.pow(pt.z - pZ * chunkSize, 2)) <= Globals.getPickingDistance()) {
+            if (pt.distance(playerModel.getLocalTranslation()) < blockDistance) {
 
-            Cell c = prov.getCellFromVertices(findNearestVertices(pt));
-            if (c != null) {
-                int newX = c.worldX, newY = c.worldY, newZ = c.worldZ;
-                switch (c.getFaceFromVertices(findNearestVertices(pt))) {
-                    case 0:
-                        newX = c.worldX - 1;
-                        break;
-                    case 1:
-                        newX = c.worldX + 1;
-                        break;
-                    case 2:
-                        newZ = c.worldZ - 1;
-                        break;
-                    case 3:
-                        newZ = c.worldZ + 1;
-                        break;
-                    case 4:
-                        newY = c.worldY + 1;
-                        break;
-                    case 5:
-                        newY = c.worldY - 1;
-                        break;
-                    default:
-                        break;
-                }
-                prov.setCell(newX, newY, newZ, currentBlockId);
+                Cell c = prov.getCellFromVertices(findNearestVertices(pt));
+                if (c != null) {
+                    int newX = c.worldX, newY = c.worldY, newZ = c.worldZ;
+                    switch (c.getFaceFromVertices(findNearestVertices(pt))) {
+                        case 0:
+                            newX = c.worldX - 1;
+                            break;
+                        case 1:
+                            newX = c.worldX + 1;
+                            break;
+                        case 2:
+                            newZ = c.worldZ - 1;
+                            break;
+                        case 3:
+                            newZ = c.worldZ + 1;
+                            break;
+                        case 4:
+                            newY = c.worldY + 1;
+                            break;
+                        case 5:
+                            newY = c.worldY - 1;
+                            break;
+                        default:
+                            break;
+                    }
+                    prov.setCell(newX, newY, newZ, currentBlockId);
 
-                if (prov.getCell(newX, newY, newZ) != null) {
-                    prov.getCell(newX, newY, newZ).chunk.markForUpdate(true);
-                    prov.getCell(newX, newY, newZ).chunk.processCells();
-                    prov.getCell(newX, newY, newZ).chunk.refreshPhysics();
+                    if (prov.getCell(newX, newY, newZ) != null) {
+                        prov.getCell(newX, newY, newZ).chunk.markForUpdate(true);
+                        prov.getCell(newX, newY, newZ).chunk.processCells();
+                        prov.getCell(newX, newY, newZ).chunk.refreshPhysics();
+                    }
                 }
+                results.clear();
+                breakStep = 0;
+                //}
             }
-            results.clear();
-            breakStep = 0;
-            //}
         }
         debug("|===========================================|\n");
     }
