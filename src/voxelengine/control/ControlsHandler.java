@@ -148,7 +148,7 @@ public class ControlsHandler extends AbstractAppState implements ActionListener,
                     Globals.setDebugEnabled(!Globals.debugEnabled());
                 }
                 break;
-            case "fastBlock":
+            case "fastblock":
                 if (keyPressed) {
                     fastBlock = !fastBlock;
                 }
@@ -161,10 +161,10 @@ public class ControlsHandler extends AbstractAppState implements ActionListener,
                 break;
             case "camera":
                 if (keyPressed) {
-                    if(Globals.playerEnabled()){
+                    if (Globals.playerEnabled()) {
                         Globals.setPlayerEnabled(false);
                         Globals.main.getRootNode().detachChild(playerModel);
-                    }else{
+                    } else {
                         Globals.setPlayerEnabled(true);
                         Globals.main.getRootNode().attachChild(playerModel);
                         playerControl.warp(Globals.main.getCamera().getLocation());
@@ -200,10 +200,19 @@ public class ControlsHandler extends AbstractAppState implements ActionListener,
         //removes the pointed
         switch (name) {
             case "remove":
-                breakBlock();
+                breakStep++;
+                if (fastBlock || breakStep > 10) {
+                    breakBlock();
+                    breakStep = 0;
+                }
                 break;
             case "place":
-                placeblock();
+                placeStep++;
+                if (fastBlock || placeStep > 10) {
+                    placeBlock();
+                    placeStep = 0;
+                }
+                System.out.println(placeStep);
                 break;
 
             case "changeBlock+":
@@ -287,7 +296,7 @@ public class ControlsHandler extends AbstractAppState implements ActionListener,
         debug("|===========================================|\n");
     }
 
-    public void placeblock() {
+    public void placeBlock() {
         debug("\n|===========================================|");
         Ray ray = new Ray(Globals.main.getCamera().getLocation(), Globals.main.getCamera().getDirection());
         Globals.terrainNode.collideWith(ray, results);
