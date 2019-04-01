@@ -3,6 +3,7 @@
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
+<<<<<<< HEAD
             <file>file:/home/emamaker/jMonkeyProjects/voxel-engine-jme3/src/voxelengine/VoxelEngine.java</file>
             <file>file:/home/emamaker/jMonkeyProjects/voxel-engine-jme3/src/voxelengine/utils/Globals.java</file>
             <file>file:/home/emamaker/jMonkeyProjects/voxel-engine-jme3/src/voxelengine/world/ChunkMesh.java</file>
@@ -15,6 +16,10 @@
             <file>file:/home/emamaker/jMonkeyProjects/voxel-engine-jme3/src/voxelengine/world/Chunk.java</file>
             <file>file:/home/emamaker/jMonkeyProjects/voxel-engine-jme3/src/voxelengine/block/Cell.java</file>
             <file>file:/home/emamaker/jMonkeyProjects/voxel-engine-jme3/src/voxelengine/block/CellId.java</file>
+=======
+            <file>file:/home/emamaker/jMonkeyEngine%20Projects/voxel-engine-jme3/src/voxelengine/control/ControlsHandler.java</file>
+            <file>file:/home/emamaker/jMonkeyEngine%20Projects/voxel-engine-jme3/src/voxelengine/Main.java</file>
+>>>>>>> 1cdea6573ec57b977286e5a5a51ba2ded32d3565
         </group>
     </open-files>
 </project-private>
