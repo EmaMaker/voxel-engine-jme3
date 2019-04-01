@@ -4,7 +4,7 @@ import voxelengine.block.CellId;
 import static voxelengine.utils.Globals.chunkSize;
 import voxelengine.world.Chunk;
 
-public class WorldGeneratorCube extends WorldGenerator{
+public class WorldGeneratorCube extends WorldGenerator {
 
     @Override
     public void generate(Chunk c) {
@@ -15,7 +15,7 @@ public class WorldGeneratorCube extends WorldGenerator{
                 }
             }
         }
-                    c.markForUpdate(true);
+        c.markForUpdate(true);
     }
-    
+
 }

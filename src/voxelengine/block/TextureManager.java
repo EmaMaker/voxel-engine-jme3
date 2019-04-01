@@ -19,7 +19,7 @@ public class TextureManager extends AbstractAppState {
     public static final int OFF_GRASS_TOP = 2;
     public static final int OFF_WOOD_SIDE = 3;
     public static final int OFF_WOOD_TOP_BOTTOM = 4;
-    //public static final int OFF_STONE = 5;
+    public static final int OFF_STONE = 5;
     public static final int OFF_LEAVES = 5;
 
     public static List<Image> images = new ArrayList<Image>();
@@ -38,6 +38,7 @@ public class TextureManager extends AbstractAppState {
         addImage(OFF_WOOD_SIDE, main.getAssetManager().loadTexture("Textures/wood_side.png").getImage());
         addImage(OFF_WOOD_TOP_BOTTOM, main.getAssetManager().loadTexture("Textures/wood_bottom_top.png").getImage());
         addImage(OFF_LEAVES, main.getAssetManager().loadTexture("Textures/leaves.jpg").getImage());
+        addImage(OFF_STONE, main.getAssetManager().loadTexture("Textures/stone.jpg").getImage());
 
         TextureArray array = new TextureArray(images);
         array.setWrap(Texture.WrapMode.Repeat);
@@ -48,6 +49,7 @@ public class TextureManager extends AbstractAppState {
         setIdTexture(CellId.ID_DIRT, OFF_DIRT, OFF_DIRT, OFF_DIRT, OFF_DIRT, OFF_DIRT, OFF_DIRT);
         setIdTexture(CellId.ID_WOOD, OFF_WOOD_SIDE, OFF_WOOD_SIDE, OFF_WOOD_SIDE, OFF_WOOD_SIDE, OFF_WOOD_TOP_BOTTOM, OFF_WOOD_TOP_BOTTOM);
         setIdTexture(CellId.ID_LEAVES, OFF_LEAVES, OFF_LEAVES, OFF_LEAVES, OFF_LEAVES, OFF_LEAVES, OFF_LEAVES);
+        setIdTexture(CellId.ID_STONE, OFF_STONE, OFF_STONE, OFF_STONE, OFF_STONE, OFF_STONE, OFF_STONE);
     }
 
     public void setIdTexture(int id, int offWest, int offEast, int offNorth, int offSouth, int offBottom, int offTop) {

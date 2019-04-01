@@ -20,6 +20,10 @@ public class Globals extends AbstractAppState {
 
     //the lenght of a chunk side
     public static int chunkSize = 16;
+    
+    //max world height to be generated
+    //basically it's the number of cubic chunks to generator under the simplex-noise generated ones
+    public static int worldHeight = 1;
 
     //a static instantiate of Main class
     public static SimpleApplication main;
@@ -120,6 +124,14 @@ public class Globals extends AbstractAppState {
 
     public static String getPermTable() {
         return permtableName;
+    }
+    
+    public static void setWorldHeight(int s) {
+        worldHeight = s;
+    }
+
+    public static int getWorldHeight() {
+        return worldHeight;
     }
 
     public static void setStartPoint(int x, int y, int z) {

@@ -79,7 +79,7 @@ public class Cell implements Serializable {
             sides[3] = (this.chunk.getCell(x, y, z + 1) == null || this.chunk.getCell(x, y, z + 1).id == CellId.ID_AIR);
             sides[4] = (this.chunk.getCell(x, y - 1, z) == null || this.chunk.getCell(x, y - 1, z).id == CellId.ID_AIR);
 
-            if (this.chunk.getCell(x, y + 1, z) == null || this.chunk.getCell(x, y + 1, z).id == CellId.ID_AIR) {
+            if (Globals.prov.getCell(worldX, worldY + 1, worldZ) == null || Globals.prov.getCell(worldX, worldY + 1, worldZ).id == CellId.ID_AIR) {
                 sides[5] = true;
                 if (this.id == CellId.ID_DIRT) {
                     setId(CellId.ID_GRASS);

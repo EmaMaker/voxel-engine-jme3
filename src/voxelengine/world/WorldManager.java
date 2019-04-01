@@ -69,7 +69,7 @@ public class WorldManager extends AbstractAppState {
                                 chunks[MathHelper.flatChunk3Dto1D(i, j, k)].decorate();
                                 chunks[MathHelper.flatChunk3Dto1D(i, j, k)].processCells();
                             } else {
-                                if (j == 0) {
+                                if (j <= Globals.getWorldHeight()) {
                                     debug("Creating chunk at " + i + ", " + j + ", " + k);
                                     chunks[MathHelper.flatChunk3Dto1D(i, j, k)] = new Chunk(i, j, k);
                                     loadFromFile(i, j, k);
