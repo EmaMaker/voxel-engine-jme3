@@ -26,7 +26,9 @@ import static voxelengine.utils.Globals.pX;
 import static voxelengine.utils.Globals.pY;
 import static voxelengine.utils.Globals.pZ;
 import static voxelengine.utils.Globals.renderDistance;
+import static voxelengine.world.WorldManager.MAXX;
 import static voxelengine.world.WorldManager.MAXY;
+import static voxelengine.world.WorldManager.MAXZ;
 
 public class Chunk extends AbstractControl {
 
@@ -195,15 +197,8 @@ public class Chunk extends AbstractControl {
 
     @Override
     protected void controlUpdate(float tpf) {
-        if (Math.sqrt(Math.pow(x - pX, 2) + Math.pow(y - pY, 2) + Math.pow(z - pZ, 2)) < renderDistance) {
-            this.load();
-            if (Math.sqrt(Math.pow(x - pX, 2) + Math.pow(y - pY, 2) + Math.pow(z - pZ, 2)) <= 1) {
-                this.refreshPhysics();
-            } else {
-                this.unloadPhysics();
-            }
 
-        } else {
+        if (Math.sqrt(Math.pow(x - pX, 2) + Math.pow(y - pY, 2) + Math.pow(z - pZ, 2)) > renderDistance || !isVisible()) {
             //if (rand.nextFloat() < 0.25f) {
             this.unload();
             this.unloadPhysics();
@@ -212,6 +207,13 @@ public class Chunk extends AbstractControl {
                 saveToFile();
             }
             //}
+        } else {
+            this.load();
+            if (Math.sqrt(Math.pow(x - pX, 2) + Math.pow(y - pY, 2) + Math.pow(z - pZ, 2)) <= 1) {
+                this.refreshPhysics();
+            } else {
+                this.unloadPhysics();
+            }
         }
     }
 
@@ -288,7 +290,27 @@ public class Chunk extends AbstractControl {
         toBeSet = b;
     }
 
+    public boolean isVisible() {
+        boolean v = false;
+
+        for (int i = -1; i <= 1; i++) {
+            for (int j = -1; j <= 1; j++) {
+                for (int k = -1; k <= 1; k++) {
+                    if (x + i >= 0 && x + i < MAXX && y + j >= 0 && y + j < MAXY && z + k >= 0 && z + k < MAXZ) {
+                        if (Globals.prov.chunks[MathHelper.flatChunk3Dto1D(x + i, y + j, z + k)] != null) {
+                            v = true;
+                        }
+                    } else {
+                        v = true;
+                    }
+                }
+            }
+        }
+        return v;
+
+    }
     //Kinda better greedy meshing algorithm than before. Now expanding in both axis (X-Y, Z-Y, X-Z), not gonna try to connect in negative side, it's not needed
+
     public void kindaBetterGreedy() {
         int startX, startY, startZ, offX, offY, offZ, index;
         short i0 = 0, i1 = 0, i2 = 0, i3 = 0;

@@ -23,7 +23,7 @@ public class Main extends SimpleApplication {
         Globals.setWorldDecorator(new WorldDecoratorTrees());
         Globals.setRenderDistance(16);
         Globals.setDebugEnabled(false);
-        Globals.setWorldHeight(1);
+        Globals.setWorldHeight(4);
         
         Globals.LOAD_FROM_FILE = false;
         Globals.SAVE_ON_EXIT = true;
