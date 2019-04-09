@@ -8,15 +8,21 @@ import com.jme3.math.Vector3f;
 import com.jme3.renderer.RenderManager;
 import com.jme3.renderer.ViewPort;
 import com.jme3.scene.Geometry;
+import com.jme3.scene.Mesh;
+import com.jme3.scene.Spatial;
+import com.jme3.scene.VertexBuffer;
 import com.jme3.scene.control.AbstractControl;
+import com.jme3.util.BufferUtils;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+import voxelengine.VoxelEngine;
 import voxelengine.block.Cell;
 import voxelengine.block.CellId;
 import static voxelengine.utils.Globals.chunkSize;
@@ -43,7 +49,7 @@ public class Chunk extends AbstractControl {
 
     public Cell[] cells = new Cell[chunkSize * chunkSize * chunkSize];
 
-    public ChunkMesh chunkMesh = new ChunkMesh();
+    public Mesh chunkMesh = new Mesh();
     public Geometry chunkGeom;
     Vector3f pos = new Vector3f();
     Random rand = new Random();
@@ -67,11 +73,8 @@ public class Chunk extends AbstractControl {
         markForUpdate(true);
     }
 
-    long t;
-
     public void processCells() {
         if (toBeSet) {
-            t = System.currentTimeMillis();
             //debug("Updating " + this.toString() + " at " + x + ", " + y + ", " + z);
 
             for (Cell cell : cells) {
@@ -80,14 +83,7 @@ public class Chunk extends AbstractControl {
                 }
             }
 
-            /*CHECK OUT THE chunkMesh.updateBound() for a better chunkMesh managing instead of regenerating it:
-                actually gives some problems with the buffers, it has to be tested*/
-            chunkMesh = new ChunkMesh();
-
             kindaBetterGreedy();
-            chunkGeom.setMesh(chunkMesh);
-            chunkMesh.set();
-            chunkMesh.clearAll();
             toBeSet = false;
             loaded = false;
 
@@ -97,7 +93,6 @@ public class Chunk extends AbstractControl {
                     cells[i] = null;
                 }
             }
-            //debug("Update took: " + (System.currentTimeMillis() - t));
         }
     }
 
@@ -107,10 +102,15 @@ public class Chunk extends AbstractControl {
             chunkGeom.setMaterial(Globals.mat);
         }
 
+        if (Thread.currentThread() == VoxelEngine.mainThread) {
+            setMesh();
+        }
+
         if (!isEmpty()) {
             if (!loaded) {
                 loaded = true;
                 Globals.terrainNode.attachChild(chunkGeom);
+                chunkGeom.setCullHint(Spatial.CullHint.Never);
             }
         } else {
             unload();
@@ -307,10 +307,12 @@ public class Chunk extends AbstractControl {
             }
         }
         return v;
-
     }
-    //Kinda better greedy meshing algorithm than before. Now expanding in both axis (X-Y, Z-Y, X-Z), not gonna try to connect in negative side, it's not needed
 
+    /**
+     * MESH CONSTRUCTING STUFF*
+     */
+    //Kinda better greedy meshing algorithm than before. Now expanding in both axis (X-Y, Z-Y, X-Z), not gonna try to connect in negative side, it's not needed
     public void kindaBetterGreedy() {
         int startX, startY, startZ, offX, offY, offZ, index;
         short i0 = 0, i1 = 0, i2 = 0, i3 = 0;
@@ -432,15 +434,15 @@ public class Chunk extends AbstractControl {
                                 v2 = new Vector3f(startX + backfaces[0], startY + offY, startZ + offZ);
                                 v3 = new Vector3f(startX + backfaces[0], startY, startZ + offZ);
 
-                                i0 = chunkMesh.addVertex(v0);
-                                i1 = chunkMesh.addVertex(v1);
-                                i2 = chunkMesh.addVertex(v2);
-                                i3 = chunkMesh.addVertex(v3);
+                                i0 = addVertex(v0);
+                                i1 = addVertex(v1);
+                                i2 = addVertex(v2);
+                                i3 = addVertex(v3);
 
-                                chunkMesh.addTextureVertex(i0, new Vector3f(0, 0, c.offsets[index]));
-                                chunkMesh.addTextureVertex(i1, new Vector3f(0, offY, c.offsets[index]));
-                                chunkMesh.addTextureVertex(i2, new Vector3f(offZ, offY, c.offsets[index]));
-                                chunkMesh.addTextureVertex(i3, new Vector3f(offZ, 0, c.offsets[index]));
+                                addTextureVertex(i0, new Vector3f(0, 0, c.offsets[index]));
+                                addTextureVertex(i1, new Vector3f(0, offY, c.offsets[index]));
+                                addTextureVertex(i2, new Vector3f(offZ, offY, c.offsets[index]));
+                                addTextureVertex(i3, new Vector3f(offZ, 0, c.offsets[index]));
 
                                 break;
                             case 1:
@@ -449,15 +451,15 @@ public class Chunk extends AbstractControl {
                                 v2 = new Vector3f(startX + offX, startY + offY, startZ + backfaces[1]);
                                 v3 = new Vector3f(startX + offX, startY, startZ + backfaces[1]);
 
-                                i0 = chunkMesh.addVertex(v0);
-                                i1 = chunkMesh.addVertex(v1);
-                                i2 = chunkMesh.addVertex(v2);
-                                i3 = chunkMesh.addVertex(v3);
+                                i0 = addVertex(v0);
+                                i1 = addVertex(v1);
+                                i2 = addVertex(v2);
+                                i3 = addVertex(v3);
 
-                                chunkMesh.addTextureVertex(i0, new Vector3f(0, 0, c.offsets[index]));
-                                chunkMesh.addTextureVertex(i1, new Vector3f(0, offY, c.offsets[index]));
-                                chunkMesh.addTextureVertex(i2, new Vector3f(offX, offY, c.offsets[index]));
-                                chunkMesh.addTextureVertex(i3, new Vector3f(offX, 0, c.offsets[index]));
+                                addTextureVertex(i0, new Vector3f(0, 0, c.offsets[index]));
+                                addTextureVertex(i1, new Vector3f(0, offY, c.offsets[index]));
+                                addTextureVertex(i2, new Vector3f(offX, offY, c.offsets[index]));
+                                addTextureVertex(i3, new Vector3f(offX, 0, c.offsets[index]));
 
                                 break;
                             case 2:
@@ -466,15 +468,15 @@ public class Chunk extends AbstractControl {
                                 v2 = new Vector3f(startX + offX, startY + backfaces[2], startZ + offZ);
                                 v3 = new Vector3f(startX, startY + backfaces[2], startZ + offZ);
 
-                                i0 = chunkMesh.addVertex(v0);
-                                i1 = chunkMesh.addVertex(v1);
-                                i2 = chunkMesh.addVertex(v2);
-                                i3 = chunkMesh.addVertex(v3);
+                                i0 = addVertex(v0);
+                                i1 = addVertex(v1);
+                                i2 = addVertex(v2);
+                                i3 = addVertex(v3);
 
-                                chunkMesh.addTextureVertex(i0, new Vector3f(0, 0, c.offsets[index]));
-                                chunkMesh.addTextureVertex(i1, new Vector3f(0, offX, c.offsets[index]));
-                                chunkMesh.addTextureVertex(i2, new Vector3f(offZ, offX, c.offsets[index]));
-                                chunkMesh.addTextureVertex(i3, new Vector3f(offZ, 0, c.offsets[index]));
+                                addTextureVertex(i0, new Vector3f(0, 0, c.offsets[index]));
+                                addTextureVertex(i1, new Vector3f(0, offX, c.offsets[index]));
+                                addTextureVertex(i2, new Vector3f(offZ, offX, c.offsets[index]));
+                                addTextureVertex(i3, new Vector3f(offZ, 0, c.offsets[index]));
                                 break;
                             default:
                                 System.out.println("puzzette");
@@ -482,15 +484,72 @@ public class Chunk extends AbstractControl {
                         }
                         //now constructs the mesh
 
-                        chunkMesh.indicesList.add(i0);
-                        chunkMesh.indicesList.add(i3);
-                        chunkMesh.indicesList.add(i2);
-                        chunkMesh.indicesList.add(i2);
-                        chunkMesh.indicesList.add(i1);
-                        chunkMesh.indicesList.add(i0);
+                        indicesList.add(i0);
+                        indicesList.add(i3);
+                        indicesList.add(i2);
+                        indicesList.add(i2);
+                        indicesList.add(i1);
+                        indicesList.add(i0);
                     }
                 }
             }
+        }
+    }
+
+    public ArrayList<Vector3f> verticesList = new ArrayList<>();
+    public ArrayList<Vector3f> textureList = new ArrayList<>();
+    public ArrayList<Short> indicesList = new ArrayList<>();
+
+    Short[] short1;
+    short[] indices;
+
+    //usually called at the end of the update() method of chunk. creates the mesh from the vertices, indices and texCoord set by Cell and adds it to a geometry with a material with correct texture loaded
+    public void setMesh() {
+        //checking if there are empty buffers is important: loading empty buffers causes a core dumped crash
+        if (!verticesList.isEmpty() && !textureList.isEmpty() && !indicesList.isEmpty()) {
+            short1 = indicesList.toArray(new Short[indicesList.size()]);
+            indices = new short[short1.length];
+            for (int i = 0; i < short1.length; i++) {
+                indices[i] = Short.valueOf(Integer.toString(short1[i]));
+            }
+
+            chunkMesh.setBuffer(VertexBuffer.Type.Position, 3, BufferUtils.createFloatBuffer(verticesList.toArray(new Vector3f[verticesList.size()])));
+            chunkMesh.setBuffer(VertexBuffer.Type.TexCoord, 3, BufferUtils.createFloatBuffer(textureList.toArray(new Vector3f[textureList.size()])));
+            chunkMesh.setBuffer(VertexBuffer.Type.Index, 3, BufferUtils.createShortBuffer(indices));
+
+            chunkMesh.updateBound();
+        }
+    }
+
+    public void clearAll() {
+        indicesList.clear();
+        verticesList.clear();
+        textureList.clear();
+    }
+
+    public Vector3f getVectorFor(int x, int y, int z) {
+        for (Vector3f v : verticesList) {
+            if (v.x == x && v.y == y && v.z == z) {
+                return v;
+            }
+        }
+        return null;
+    }
+
+    public short addVertex(Vector3f v) {
+        verticesList.add(v);
+        return (short) (verticesList.size() - 1);
+    }
+
+    public void addTextureVertex(short index, Vector3f texVec) {
+        try {
+            textureList.add(index, texVec);
+        } catch (IndexOutOfBoundsException e) {
+            while (textureList.size() < index + 1) {
+                textureList.add(Vector3f.NAN);
+            }
+            textureList.add(index, texVec);
+
         }
     }
 }

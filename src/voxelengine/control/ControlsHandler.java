@@ -214,7 +214,6 @@ public class ControlsHandler extends AbstractAppState implements ActionListener,
                     placeBlock();
                     placeStep = 0;
                 }
-                System.out.println(placeStep);
                 break;
 
             case "changeBlock+":
@@ -237,9 +236,6 @@ public class ControlsHandler extends AbstractAppState implements ActionListener,
 
         if (Globals.playerEnabled()) {
             /*START POSITION UTILS*/
-            pX = getX() / chunkSize;
-            pY = getY() / chunkSize;
-            pZ = getZ() / chunkSize;
 
             if (playerModel.getLocalTranslation().y < -10) {
                 playerControl.warp(respawnPoint);
@@ -404,17 +400,4 @@ public class ControlsHandler extends AbstractAppState implements ActionListener,
         al.add(top4);
         return al;
     }
-
-    public int getX() {
-        return (int) playerModel.getLocalTranslation().x;
-    }
-
-    public int getY() {
-        return (int) playerModel.getLocalTranslation().y;
-    }
-
-    public int getZ() {
-        return (int) playerModel.getLocalTranslation().z;
-    }
-
 }

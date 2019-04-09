@@ -9,8 +9,10 @@ import java.io.File;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Random;
+import java.util.concurrent.Callable;
 import voxelengine.block.CellId;
 import voxelengine.block.Cell;
+import voxelengine.control.ControlsHandler;
 import voxelengine.utils.math.MathHelper;
 import voxelengine.utils.Globals;
 import static voxelengine.utils.Globals.chunkSize;
@@ -22,11 +24,12 @@ import static voxelengine.utils.Globals.renderDistance;
 
 public class WorldManager extends AbstractAppState {
 
-    public final static int MAXX = 40, MAXY = 40, MAXZ = 40;
+    public final static int MAXX = 20, MAXY = 40, MAXZ = 40;
     public static Chunk[] chunks = new Chunk[MAXX * MAXY * MAXZ];
 
     SimpleApplication app;
     Random rand = new Random();
+    AppStateManager stateManager;
 
     public boolean updateChunks = true;
 
@@ -34,11 +37,12 @@ public class WorldManager extends AbstractAppState {
     public void initialize(AppStateManager stateManager, Application app) {
         super.initialize(stateManager, app);
         this.app = (SimpleApplication) app;
-
+        this.stateManager = stateManager;
         preload();
     }
 
     public void preload() {
+        Globals.executor.submit(chunkManager);
         if (Globals.isTesting()) {
             updateChunks = false;
 
@@ -54,32 +58,10 @@ public class WorldManager extends AbstractAppState {
         }
     }
 
-    //int j = 0;
     @Override
     public void update(float tpf) {
-        if (updateChunks) {
-            //first generates the chunks that have to be generated
-            for (int i = pX - renderDistance; i < pX + renderDistance; i++) {
-                for (int j = pY - renderDistance; j < pY + renderDistance; j++) {
-                    for (int k = pZ - renderDistance; k < pZ + renderDistance; k++) {
-
-                        if (i >= 0 && i < MAXX && j >= 0 && j < MAXY && k >= 0 && k < MAXZ) {
-                            if (chunks[MathHelper.flatChunk3Dto1D(i, j, k)] != null) {
-                                chunks[MathHelper.flatChunk3Dto1D(i, j, k)].generate();
-                                chunks[MathHelper.flatChunk3Dto1D(i, j, k)].decorate();
-                                chunks[MathHelper.flatChunk3Dto1D(i, j, k)].processCells();
-                            } else {
-                                if (j <= Globals.getWorldHeight()) {
-                                    debug("Creating chunk at " + i + ", " + j + ", " + k);
-                                    chunks[MathHelper.flatChunk3Dto1D(i, j, k)] = new Chunk(i, j, k);
-                                    loadFromFile(i, j, k);
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
+        updateChunks = true;
+        //updateChunks();
     }
 
     //replaces the Cell.setId(id), and replaces making all the cell air when chunk is created. Commento storico del 2016 (Si, lo so che è il 2019 ora) - historical comment from 2016 (Yes, I know it's 2019 now)
@@ -169,11 +151,52 @@ public class WorldManager extends AbstractAppState {
     @Override
     public void cleanup() {
         updateChunks = false;
+        Globals.executor.shutdownNow();
     }
 
     public void loadFromFile(int i, int j, int k) {
         File f = Paths.get(Globals.workingDir + i + "-" + j + "-" + k + ".chunk").toFile();
         chunks[MathHelper.flatChunk3Dto1D(i, j, k)].loadFromFile(f);
+    }
+
+    final Callable<Object> chunkManager = new Callable<Object>() {
+        @Override
+        public Object call() {
+            while (updateChunks) {
+                updateChunks();
+            }
+            return null;
+        }
+    };
+
+    void updateChunks() {
+        if (updateChunks) {
+            try {
+                //first generates the chunks that have to be generated
+                for (int i = pX - renderDistance; i < pX + renderDistance; i++) {
+                    for (int j = pY - renderDistance; j < pY + renderDistance; j++) {
+                        for (int k = pZ - renderDistance; k < pZ + renderDistance; k++) {
+
+                            if (i >= 0 && i < MAXX && j >= 0 && j < MAXY && k >= 0 && k < MAXZ) {
+                                if (chunks[MathHelper.flatChunk3Dto1D(i, j, k)] != null) {
+                                    chunks[MathHelper.flatChunk3Dto1D(i, j, k)].generate();
+                                    chunks[MathHelper.flatChunk3Dto1D(i, j, k)].decorate();
+                                    chunks[MathHelper.flatChunk3Dto1D(i, j, k)].processCells();
+                                } else {
+                                    if (j <= Globals.getWorldHeight()) {
+                                        System.out.println(pX + ", " + pY + ", " + pZ);
+                                        chunks[MathHelper.flatChunk3Dto1D(i, j, k)] = new Chunk(i, j, k);
+                                        loadFromFile(i, j, k);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     /*SOME USEFUL METHOD OVERRIDING*/

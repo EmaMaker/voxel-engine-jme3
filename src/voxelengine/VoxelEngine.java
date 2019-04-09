@@ -74,36 +74,11 @@ public class VoxelEngine extends AbstractAppState {
         
         stateManager.getState(BulletAppState.class).setEnabled(Globals.phyEnabled());
         
-        //if we're instead going to load from files, the processes is already handled by the update in the WorldManager
+        //if we're instead going to load from files, the process is already handled by the update in the WorldManager
         if (!Globals.LOAD_FROM_FILE) {
             deleteSaveFiles();
         }
     }
-    
-    /*private void loadSaveFiles() {
-        //SIMPLEX NOISE IN A STATIC CLASS, SO IT'S INIT METHOD IS AUTOMATICALLY CALLED AND IT DOES ITS OWN FILE INITIALIZATION
-        File folder = new File(Globals.workingDir);
-        File list[] = folder.listFiles();
-        
-        String s;
-        String data[] = new String[3];
-        int x, y, z;
-        for (File f : list) {
-            if (f.getName().endsWith(".chunk")) {
-                s = f.getName();
-                s = s.replace(".chunk", "");
-                data = s.split("-");
-                
-                x = Integer.valueOf(data[0]);
-                y = Integer.valueOf(data[1]);
-                z = Integer.valueOf(data[2]);
-                //System.out.println(Arrays.toString(data));
-                Globals.prov.chunks[MathHelper.flatChunk3Dto1D(x, y, z)] = new Chunk(x, y, z);
-                Globals.prov.chunks[MathHelper.flatChunk3Dto1D(x, y, z)].loadFromFile(f);
-                
-            }
-        }
-    }*/
     
     private void exitAndSave() {
         SimplexNoise.saveToFile();

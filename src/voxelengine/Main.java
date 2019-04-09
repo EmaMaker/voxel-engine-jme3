@@ -15,18 +15,18 @@ public class Main extends SimpleApplication {
 
     @Override
     public void simpleInitApp() {
-        Globals.setPlayerEnabled(true);
+        Globals.setPlayerEnabled(false);
         Globals.setPhysicsEnabled(true);
         Globals.setTesting(false);
         Globals.setWireFrameEnabled(false);
         Globals.setWorldGenerator(new WorldGeneratorTerrain());
         Globals.setWorldDecorator(new WorldDecoratorTrees());
-        Globals.setRenderDistance(16);
+        Globals.setRenderDistance(4);
         Globals.setDebugEnabled(false);
-        Globals.setWorldHeight(4);
+        Globals.setWorldHeight(2);
         
         Globals.LOAD_FROM_FILE = false;
-        Globals.SAVE_ON_EXIT = true;
+        Globals.SAVE_ON_EXIT = false;
 
         stateManager.attach(new VoxelEngine(settings));
     }

@@ -56,7 +56,7 @@ public class Cell implements Serializable {
         meshed[5] = false;
 
         if (id != CellId.ID_AIR) {
-            /*sides[0] = (Globals.prov.getCell(worldX - 1, worldY, worldZ) == null || Globals.prov.getCell(worldX - 1, worldY, worldZ).id == CellId.ID_AIR);
+            sides[0] = (Globals.prov.getCell(worldX - 1, worldY, worldZ) == null || Globals.prov.getCell(worldX - 1, worldY, worldZ).id == CellId.ID_AIR);
             sides[1] = (Globals.prov.getCell(worldX + 1, worldY, worldZ) == null || Globals.prov.getCell(worldX + 1, worldY, worldZ).id == CellId.ID_AIR);
             sides[2] = (Globals.prov.getCell(worldX, worldY, worldZ - 1) == null || Globals.prov.getCell(worldX, worldY, worldZ - 1).id == CellId.ID_AIR);
             sides[3] = (Globals.prov.getCell(worldX, worldY, worldZ + 1) == null || Globals.prov.getCell(worldX, worldY, worldZ + 1).id == CellId.ID_AIR);
@@ -71,9 +71,9 @@ public class Cell implements Serializable {
                 if (this.id == CellId.ID_GRASS) {
                     setId(CellId.ID_DIRT);
                 }
-            }*/
+            }
 
-            sides[0] = (this.chunk.getCell(x - 1, y, z) == null || this.chunk.getCell(x - 1, y, z).id == CellId.ID_AIR);
+            /*sides[0] = (this.chunk.getCell(x - 1, y, z) == null || this.chunk.getCell(x - 1, y, z).id == CellId.ID_AIR);
             sides[1] = (this.chunk.getCell(x + 1, y, z) == null || this.chunk.getCell(x + 1, y, z).id == CellId.ID_AIR);
             sides[2] = (this.chunk.getCell(x, y, z - 1) == null || this.chunk.getCell(x, y, z - 1).id == CellId.ID_AIR);
             sides[3] = (this.chunk.getCell(x, y, z + 1) == null || this.chunk.getCell(x, y, z + 1).id == CellId.ID_AIR);
@@ -88,7 +88,7 @@ public class Cell implements Serializable {
                 if (this.id == CellId.ID_GRASS) {
                     setId(CellId.ID_DIRT);
                 }
-            }
+            }*/
         }
     }
 
