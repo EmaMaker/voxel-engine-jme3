@@ -20,7 +20,7 @@ public class TextureManager extends AbstractAppState {
     public static final int OFF_WOOD_SIDE = 3;
     public static final int OFF_WOOD_TOP_BOTTOM = 4;
     public static final int OFF_STONE = 5;
-    public static final int OFF_LEAVES = 5;
+    public static final int OFF_LEAVES = 6;
 
     public static List<Image> images = new ArrayList<Image>();
     public static List<int[]> textures = new ArrayList<int[]>();
@@ -37,8 +37,8 @@ public class TextureManager extends AbstractAppState {
         addImage(OFF_GRASS_TOP, main.getAssetManager().loadTexture("Textures/grass_top.png").getImage());
         addImage(OFF_WOOD_SIDE, main.getAssetManager().loadTexture("Textures/wood_side.png").getImage());
         addImage(OFF_WOOD_TOP_BOTTOM, main.getAssetManager().loadTexture("Textures/wood_bottom_top.png").getImage());
-        addImage(OFF_LEAVES, main.getAssetManager().loadTexture("Textures/leaves.jpg").getImage());
         addImage(OFF_STONE, main.getAssetManager().loadTexture("Textures/stone.jpg").getImage());
+        addImage(OFF_LEAVES, main.getAssetManager().loadTexture("Textures/leaves.jpg").getImage());
 
         TextureArray array = new TextureArray(images);
         array.setWrap(Texture.WrapMode.Repeat);

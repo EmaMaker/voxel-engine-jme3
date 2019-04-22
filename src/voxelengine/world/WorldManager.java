@@ -8,6 +8,7 @@ import com.jme3.math.Vector3f;
 import java.io.File;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Random;
 import java.util.concurrent.Callable;
 import voxelengine.block.CellId;
@@ -33,6 +34,8 @@ public class WorldManager extends AbstractAppState {
 
     public boolean updateChunks = true;
 
+    public HashMap<Cell, Integer> toUpdate = new HashMap<>();
+
     @Override
     public void initialize(AppStateManager stateManager, Application app) {
         super.initialize(stateManager, app);
@@ -42,7 +45,8 @@ public class WorldManager extends AbstractAppState {
     }
 
     public void preload() {
-        Globals.executor.submit(chunkManager);
+//        Globals.executor.submit(chunkManager);
+
         if (Globals.isTesting()) {
             updateChunks = false;
 
@@ -61,7 +65,7 @@ public class WorldManager extends AbstractAppState {
     @Override
     public void update(float tpf) {
         updateChunks = true;
-        //updateChunks();
+        updateChunks();
     }
 
     //replaces the Cell.setId(id), and replaces making all the cell air when chunk is created. Commento storico del 2016 (Si, lo so che è il 2019 ora) - historical comment from 2016 (Yes, I know it's 2019 now)
@@ -171,6 +175,7 @@ public class WorldManager extends AbstractAppState {
 
     void updateChunks() {
         if (updateChunks) {
+
             try {
                 //first generates the chunks that have to be generated
                 for (int i = pX - renderDistance; i < pX + renderDistance; i++) {
@@ -182,9 +187,10 @@ public class WorldManager extends AbstractAppState {
                                     chunks[MathHelper.flatChunk3Dto1D(i, j, k)].generate();
                                     chunks[MathHelper.flatChunk3Dto1D(i, j, k)].decorate();
                                     chunks[MathHelper.flatChunk3Dto1D(i, j, k)].processCells();
+                                    setCell(0,0,0, CellId.ID_STONE);
                                 } else {
                                     if (j <= Globals.getWorldHeight()) {
-                                        System.out.println(pX + ", " + pY + ", " + pZ);
+//                                        System.out.println(pX + ", " + pY + ", " + pZ);
                                         chunks[MathHelper.flatChunk3Dto1D(i, j, k)] = new Chunk(i, j, k);
                                         loadFromFile(i, j, k);
                                     }
@@ -193,6 +199,8 @@ public class WorldManager extends AbstractAppState {
                         }
                     }
                 }
+        
+          
             } catch (Exception e) {
                 e.printStackTrace();
             }

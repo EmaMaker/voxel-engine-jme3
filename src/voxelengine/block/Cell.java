@@ -12,7 +12,7 @@ public class Cell implements Serializable {
     //keeping track of free sides
     public boolean[] sides = {false, false, false, false, false, false};  //west, east, north, south, top, bottom
     public boolean[] meshed = {false, false, false, false, false, false}; //west, east, north, south, top, bottom
-    public int[] offsets = new int[6]; //west, east, north, south, top, bottom
+//    public int[] offsets = new int[6]; //west, east, north, south, top, bottom
 
     public Chunk chunk;
     public int x, y, z; //the coords RELATIVE inside the chunk
@@ -73,31 +73,15 @@ public class Cell implements Serializable {
                 }
             }
 
-            /*sides[0] = (this.chunk.getCell(x - 1, y, z) == null || this.chunk.getCell(x - 1, y, z).id == CellId.ID_AIR);
-            sides[1] = (this.chunk.getCell(x + 1, y, z) == null || this.chunk.getCell(x + 1, y, z).id == CellId.ID_AIR);
-            sides[2] = (this.chunk.getCell(x, y, z - 1) == null || this.chunk.getCell(x, y, z - 1).id == CellId.ID_AIR);
-            sides[3] = (this.chunk.getCell(x, y, z + 1) == null || this.chunk.getCell(x, y, z + 1).id == CellId.ID_AIR);
-            sides[4] = (this.chunk.getCell(x, y - 1, z) == null || this.chunk.getCell(x, y - 1, z).id == CellId.ID_AIR);
-
-            if (Globals.prov.getCell(worldX, worldY + 1, worldZ) == null || Globals.prov.getCell(worldX, worldY + 1, worldZ).id == CellId.ID_AIR) {
-                sides[5] = true;
-                if (this.id == CellId.ID_DIRT) {
-                    setId(CellId.ID_GRASS);
-                }
-            } else {
-                if (this.id == CellId.ID_GRASS) {
-                    setId(CellId.ID_DIRT);
-                }
-            }*/
         }
     }
 
     public void setId(int id) {
         this.id = id;
 
-        if (id != CellId.ID_AIR) {
-            offsets = TextureManager.textures.get(id);
-        }
+//        if (id != CellId.ID_AIR) {
+//            offsets = TextureManager.textures.get(id);
+//        }
     }
 
     public byte getFaceFromVertices(ArrayList<Vector3f> al) {

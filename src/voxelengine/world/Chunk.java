@@ -22,9 +22,9 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
-import voxelengine.VoxelEngine;
 import voxelengine.block.Cell;
 import voxelengine.block.CellId;
+import voxelengine.block.TextureManager;
 import static voxelengine.utils.Globals.chunkSize;
 import voxelengine.utils.math.MathHelper;
 import static voxelengine.utils.Globals.debug;
@@ -83,7 +83,9 @@ public class Chunk extends AbstractControl {
                 }
             }
 
+            unload();
             kindaBetterGreedy();
+
             toBeSet = false;
             loaded = false;
 
@@ -100,10 +102,6 @@ public class Chunk extends AbstractControl {
         //on first load, Global material is null because it hasn't been initialized yet, so it's set here
         if (chunkGeom.getMaterial() == null) {
             chunkGeom.setMaterial(Globals.mat);
-        }
-
-        if (Thread.currentThread() == VoxelEngine.mainThread) {
-            setMesh();
         }
 
         if (!isEmpty()) {
@@ -314,6 +312,8 @@ public class Chunk extends AbstractControl {
      */
     //Kinda better greedy meshing algorithm than before. Now expanding in both axis (X-Y, Z-Y, X-Z), not gonna try to connect in negative side, it's not needed
     public void kindaBetterGreedy() {
+        clearAll();
+        
         int startX, startY, startZ, offX, offY, offZ, index;
         short i0 = 0, i1 = 0, i2 = 0, i3 = 0;
         Cell c1;
@@ -439,10 +439,10 @@ public class Chunk extends AbstractControl {
                                 i2 = addVertex(v2);
                                 i3 = addVertex(v3);
 
-                                addTextureVertex(i0, new Vector3f(0, 0, c.offsets[index]));
-                                addTextureVertex(i1, new Vector3f(0, offY, c.offsets[index]));
-                                addTextureVertex(i2, new Vector3f(offZ, offY, c.offsets[index]));
-                                addTextureVertex(i3, new Vector3f(offZ, 0, c.offsets[index]));
+                                addTextureVertex(i0, new Vector3f(0, 0, TextureManager.textures.get(c.id)[index]));
+                                addTextureVertex(i1, new Vector3f(0, offY, TextureManager.textures.get(c.id)[index]));
+                                addTextureVertex(i2, new Vector3f(offZ, offY, TextureManager.textures.get(c.id)[index]));
+                                addTextureVertex(i3, new Vector3f(offZ, 0, TextureManager.textures.get(c.id)[index]));
 
                                 break;
                             case 1:
@@ -456,10 +456,10 @@ public class Chunk extends AbstractControl {
                                 i2 = addVertex(v2);
                                 i3 = addVertex(v3);
 
-                                addTextureVertex(i0, new Vector3f(0, 0, c.offsets[index]));
-                                addTextureVertex(i1, new Vector3f(0, offY, c.offsets[index]));
-                                addTextureVertex(i2, new Vector3f(offX, offY, c.offsets[index]));
-                                addTextureVertex(i3, new Vector3f(offX, 0, c.offsets[index]));
+                                addTextureVertex(i0, new Vector3f(0, 0, TextureManager.textures.get(c.id)[index]));
+                                addTextureVertex(i1, new Vector3f(0, offY, TextureManager.textures.get(c.id)[index]));
+                                addTextureVertex(i2, new Vector3f(offX, offY, TextureManager.textures.get(c.id)[index]));
+                                addTextureVertex(i3, new Vector3f(offX, 0, TextureManager.textures.get(c.id)[index]));
 
                                 break;
                             case 2:
@@ -473,10 +473,10 @@ public class Chunk extends AbstractControl {
                                 i2 = addVertex(v2);
                                 i3 = addVertex(v3);
 
-                                addTextureVertex(i0, new Vector3f(0, 0, c.offsets[index]));
-                                addTextureVertex(i1, new Vector3f(0, offX, c.offsets[index]));
-                                addTextureVertex(i2, new Vector3f(offZ, offX, c.offsets[index]));
-                                addTextureVertex(i3, new Vector3f(offZ, 0, c.offsets[index]));
+                                addTextureVertex(i0, new Vector3f(0, 0, TextureManager.textures.get(c.id)[index]));
+                                addTextureVertex(i1, new Vector3f(0, offX, TextureManager.textures.get(c.id)[index]));
+                                addTextureVertex(i2, new Vector3f(offZ, offX, TextureManager.textures.get(c.id)[index]));
+                                addTextureVertex(i3, new Vector3f(offZ, 0, TextureManager.textures.get(c.id)[index]));
                                 break;
                             default:
                                 System.out.println("puzzette");
@@ -490,6 +490,8 @@ public class Chunk extends AbstractControl {
                         indicesList.add(i2);
                         indicesList.add(i1);
                         indicesList.add(i0);
+
+                        setMesh();
                     }
                 }
             }
@@ -518,6 +520,8 @@ public class Chunk extends AbstractControl {
             chunkMesh.setBuffer(VertexBuffer.Type.Index, 3, BufferUtils.createShortBuffer(indices));
 
             chunkMesh.updateBound();
+//            clearAll();
+
         }
     }
 
