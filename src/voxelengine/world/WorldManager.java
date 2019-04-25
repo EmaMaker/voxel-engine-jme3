@@ -13,7 +13,6 @@ import java.util.Random;
 import java.util.concurrent.Callable;
 import voxelengine.block.CellId;
 import voxelengine.block.Cell;
-import voxelengine.control.ControlsHandler;
 import voxelengine.utils.math.MathHelper;
 import voxelengine.utils.Globals;
 import static voxelengine.utils.Globals.chunkSize;
@@ -45,7 +44,7 @@ public class WorldManager extends AbstractAppState {
     }
 
     public void preload() {
-//        Globals.executor.submit(chunkManager);
+        Globals.executor.submit(chunkManager);
 
         if (Globals.isTesting()) {
             updateChunks = false;
@@ -65,7 +64,7 @@ public class WorldManager extends AbstractAppState {
     @Override
     public void update(float tpf) {
         updateChunks = true;
-        updateChunks();
+//        updateChunks();
     }
 
     //replaces the Cell.setId(id), and replaces making all the cell air when chunk is created. Commento storico del 2016 (Si, lo so che è il 2019 ora) - historical comment from 2016 (Yes, I know it's 2019 now)
@@ -101,12 +100,12 @@ public class WorldManager extends AbstractAppState {
         return chunks[MathHelper.flatChunk3Dto1D(chunkX, chunkY, chunkZ)];
     }
 
-    public Cell getCellFromVertices(ArrayList<Vector3f> al) {
-        return getCell(getCellPosFromVertices(al));
-    }
-
     public void setCellFromVertices(ArrayList<Vector3f> al, int id) {
         setCell(getCellPosFromVertices(al), id);
+    }
+
+    public Cell getCellFromVertices(ArrayList<Vector3f> al) {
+        return getCell(getCellPosFromVertices(al));
     }
 
     public Vector3f getCellPosFromVertices(ArrayList<Vector3f> al) {
@@ -174,36 +173,29 @@ public class WorldManager extends AbstractAppState {
     };
 
     void updateChunks() {
-        if (updateChunks) {
+        try {
+            //first generates the chunks that have to be generated
+            for (int i = pX - renderDistance; i < pX + renderDistance; i++) {
+                for (int j = pY - renderDistance; j < pY + renderDistance; j++) {
+                    for (int k = pZ - renderDistance; k < pZ + renderDistance; k++) {
 
-            try {
-                //first generates the chunks that have to be generated
-                for (int i = pX - renderDistance; i < pX + renderDistance; i++) {
-                    for (int j = pY - renderDistance; j < pY + renderDistance; j++) {
-                        for (int k = pZ - renderDistance; k < pZ + renderDistance; k++) {
-
-                            if (i >= 0 && i < MAXX && j >= 0 && j < MAXY && k >= 0 && k < MAXZ) {
-                                if (chunks[MathHelper.flatChunk3Dto1D(i, j, k)] != null) {
-                                    chunks[MathHelper.flatChunk3Dto1D(i, j, k)].generate();
-                                    chunks[MathHelper.flatChunk3Dto1D(i, j, k)].decorate();
-                                    chunks[MathHelper.flatChunk3Dto1D(i, j, k)].processCells();
-                                    setCell(0,0,0, CellId.ID_STONE);
-                                } else {
-                                    if (j <= Globals.getWorldHeight()) {
-//                                        System.out.println(pX + ", " + pY + ", " + pZ);
-                                        chunks[MathHelper.flatChunk3Dto1D(i, j, k)] = new Chunk(i, j, k);
-                                        loadFromFile(i, j, k);
-                                    }
+                        if (i >= 0 && i < MAXX && j >= 0 && j < MAXY && k >= 0 && k < MAXZ) {
+                            if (chunks[MathHelper.flatChunk3Dto1D(i, j, k)] != null) {
+                                chunks[MathHelper.flatChunk3Dto1D(i, j, k)].generate();
+                                chunks[MathHelper.flatChunk3Dto1D(i, j, k)].decorate();
+                                chunks[MathHelper.flatChunk3Dto1D(i, j, k)].processCells();
+                            } else {
+                                if (j <= Globals.getWorldHeight()) {
+                                    chunks[MathHelper.flatChunk3Dto1D(i, j, k)] = new Chunk(i, j, k);
+                                    loadFromFile(i, j, k);
                                 }
                             }
                         }
                     }
                 }
-        
-          
-            } catch (Exception e) {
-                e.printStackTrace();
             }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 

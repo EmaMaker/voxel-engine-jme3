@@ -34,46 +34,47 @@ import voxelengine.world.WorldManager;
 import static voxelengine.utils.Globals.pX;
 import static voxelengine.utils.Globals.pY;
 import static voxelengine.utils.Globals.pZ;
+import static voxelengine.utils.Globals.worldHeight;
 
 public class ControlsHandler extends AbstractAppState implements ActionListener, AnalogListener {
 
     //MISC CONTROLS
     boolean fastBlock = false;
-    
+
     DecimalFormat df = new DecimalFormat();
     DecimalFormatSymbols unusualSymbols = new DecimalFormatSymbols();
-    
+
     byte placeStep = 0;
     byte breakStep = 0;
-    
+
     public int currentBlockId = CellId.ID_DIRT;
     public float currentBlockNum = 1;
     CollisionResults results = new CollisionResults();
     Vector3f top1 = new Vector3f(), top2 = new Vector3f(), top3 = new Vector3f(), top4 = new Vector3f();
-    
+
     SimpleApplication app;
     VoxelEngine engine;
     WorldManager prov;
     AppStateManager stateManager;
 
     //PLAYER CONTROLS
-    public Vector3f respawnPoint = new Vector3f(8, 8, 8);
-    
+    public Vector3f respawnPoint = new Vector3f(8, worldHeight*chunkSize+chunkSize, 8);
+
     Box box = new Box(0.4f, 0.8f, 0.4f);
     public Geometry playerModel = new Geometry("Player", box);
     Material mat;
     public CharacterControl playerControl;
-    
+
     Vector3f walkDirection = new Vector3f();
     boolean left = false, right = false, up = false, down = false;
     Vector3f camDir = new Vector3f();
     Vector3f camLeft = new Vector3f();
     Vector3f camPos = new Vector3f();
-    
+
     float speed = .4f, strafeSpeed = .2f, headHeight = 1.75f;
-    
+
     int blockDistance = 12;
-    
+
     @Override
     public void initialize(AppStateManager stateManager, Application app) {
         //MISC
@@ -87,7 +88,7 @@ public class ControlsHandler extends AbstractAppState implements ActionListener,
         this.app.getRootNode().attachChild(playerModel);
         this.app.getCamera().setFrustumPerspective(45f, (float) this.app.getCamera().getWidth() / this.app.getCamera().getHeight(), 0.01f, 1000f);
         this.app.getCamera().setLocation(new Vector3f(0, 6, 0));
-        
+
         playerControl = new CharacterControl(CollisionShapeFactory.createMeshShape(playerModel), 1f);
         playerControl.setJumpSpeed(10f);
         playerModel.addControl(playerControl);
@@ -97,12 +98,12 @@ public class ControlsHandler extends AbstractAppState implements ActionListener,
 
         initControls();
     }
-    
+
     private void initControls() {
         //MISC CONTROLS
         app.getInputManager().addMapping("place", new MouseButtonTrigger(MouseInput.BUTTON_LEFT));
         app.getInputManager().addMapping("remove", new MouseButtonTrigger(MouseInput.BUTTON_RIGHT));
-        
+
         app.getInputManager().addMapping("changeBlock+", new MouseAxisTrigger(MouseInput.AXIS_WHEEL, false));
         app.getInputManager().addMapping("changeBlock-", new MouseAxisTrigger(MouseInput.AXIS_WHEEL, true));
 
@@ -111,13 +112,13 @@ public class ControlsHandler extends AbstractAppState implements ActionListener,
         app.getInputManager().addMapping("debug", new KeyTrigger(KeyInput.KEY_V));
         app.getInputManager().addMapping("fastblock", new KeyTrigger(KeyInput.KEY_F));
         app.getInputManager().addMapping("camera", new KeyTrigger(KeyInput.KEY_C));
-        
-        app.getInputManager().addListener(this, "place");
-        app.getInputManager().addListener(this, "remove");
-        
+
+//        app.getInputManager().addListener(this, "place");
+//        app.getInputManager().addListener(this, "remove");
+
         app.getInputManager().addListener(this, "changeBlock+");
         app.getInputManager().addListener(this, "changeBlock-");
-        
+
         app.getInputManager().addListener(this, "boundingBox");
         app.getInputManager().addListener(this, "debug");
         app.getInputManager().addListener(this, "fastblock");
@@ -137,7 +138,7 @@ public class ControlsHandler extends AbstractAppState implements ActionListener,
         this.app.getInputManager().addListener(this, "Jump");
         this.app.getInputManager().addListener(this, "Sprint");
     }
-    
+
     @Override
     public void onAction(String name, boolean keyPressed, float tpf) {
         switch (name) {
@@ -198,7 +199,7 @@ public class ControlsHandler extends AbstractAppState implements ActionListener,
                 break;
         }
     }
-    
+
     @Override
     public void onAnalog(String name, float value, float tpf) {
         //removes the pointed
@@ -217,7 +218,7 @@ public class ControlsHandler extends AbstractAppState implements ActionListener,
                     placeStep = 0;
                 }
                 break;
-            
+
             case "changeBlock+":
                 if (currentBlockNum < TextureManager.textures.size() - 1) {
                     currentBlockNum += 0.35;
@@ -232,16 +233,16 @@ public class ControlsHandler extends AbstractAppState implements ActionListener,
                 break;
         }
     }
-    
+
     @Override
     public void update(float tpf) {
-        
+
         if (Globals.playerEnabled()) {
             /*START POSITION UTILS*/
             pX = (int) playerModel.getLocalTranslation().getX() / chunkSize;
             pY = (int) playerModel.getLocalTranslation().getY() / chunkSize;
             pZ = (int) playerModel.getLocalTranslation().getZ() / chunkSize;
-            
+
             if (playerModel.getLocalTranslation().y < -10) {
                 playerControl.warp(respawnPoint);
             }
@@ -264,7 +265,7 @@ public class ControlsHandler extends AbstractAppState implements ActionListener,
                 walkDirection.addLocal(camDir.negate());
             }
             playerControl.setWalkDirection(walkDirection);
-            
+
             camPos.set(playerModel.getLocalTranslation().x, playerModel.getLocalTranslation().y + headHeight, playerModel.getLocalTranslation().z);
             app.getCamera().setLocation(camPos);
 
@@ -275,21 +276,19 @@ public class ControlsHandler extends AbstractAppState implements ActionListener,
             pZ = (int) app.getCamera().getLocation().getZ() / chunkSize;
         }
     }
-    
+
     public void breakBlock() {
         debug("\n|===========================================|");
         Ray ray = new Ray(Globals.main.getCamera().getLocation(), Globals.main.getCamera().getDirection());
         Globals.terrainNode.collideWith(ray, results);
-        
+
         if (results.getClosestCollision() != null) {
             Vector3f pt = fixCoords(results.getClosestCollision().getContactPoint());
-            
+
             if (pt.distance(playerModel.getLocalTranslation()) < blockDistance) {
-                //if (Math.sqrt(Math.pow(pt.x - pX * chunkSize, 2) + Math.pow(pt.y - pY * chunkSize, 2) + Math.pow(pt.z - pZ * chunkSize, 2)) <= Globals.getPickingDistance()) {
                 prov.setCellFromVertices(findNearestVertices(pt), CellId.ID_AIR);
                 Cell c = prov.getCellFromVertices(findNearestVertices(pt));
                 if (c != null) {
-//                    stateManager.getState(WorldManager.class).toUpdate.put(c, CellId.ID_AIR);
                     c.setId(CellId.ID_AIR);
                     c.chunk.markForUpdate(true);
                     c.chunk.processCells();
@@ -299,62 +298,61 @@ public class ControlsHandler extends AbstractAppState implements ActionListener,
         }
         results.clear();
         breakStep = 0;
-        //}
         debug("|===========================================|\n");
     }
-    
+
     public void placeBlock() {
         debug("\n|===========================================|");
         Ray ray = new Ray(Globals.main.getCamera().getLocation(), Globals.main.getCamera().getDirection());
         Globals.terrainNode.collideWith(ray, results);
-        
+
         if (results.getClosestCollision() != null) {
             Vector3f pt = fixCoords(results.getClosestCollision().getContactPoint());
             //if (Math.sqrt(Math.pow(pt.x - pX * chunkSize, 2) + Math.pow(pt.y - pY * chunkSize, 2) + Math.pow(pt.z - pZ * chunkSize, 2)) <= Globals.getPickingDistance()) {
-            if (pt.distance(playerModel.getLocalTranslation()) < blockDistance) {
-                
-                Cell c = prov.getCellFromVertices(findNearestVertices(pt));
-                if (c != null) {
-                    int newX = c.worldX, newY = c.worldY, newZ = c.worldZ;
-                    switch (c.getFaceFromVertices(findNearestVertices(pt))) {
-                        case 0:
-                            newX = c.worldX - 1;
-                            break;
-                        case 1:
-                            newX = c.worldX + 1;
-                            break;
-                        case 2:
-                            newZ = c.worldZ - 1;
-                            break;
-                        case 3:
-                            newZ = c.worldZ + 1;
-                            break;
-                        case 4:
-                            newY = c.worldY + 1;
-                            break;
-                        case 5:
-                            newY = c.worldY - 1;
-                            break;
-                        default:
-                            break;
-                    }
-//                    stateManager.getState(WorldManager.class).toUpdate.put(c, CellId.ID_AIR);
-                    prov.setCell(newX, newY, newZ, currentBlockId);
-                    
-                    if (prov.getCell(newX, newY, newZ) != null) {
-                        prov.getCell(newX, newY, newZ).chunk.markForUpdate(true);
-                        prov.getCell(newX, newY, newZ).chunk.processCells();
-                        prov.getCell(newX, newY, newZ).chunk.refreshPhysics();
-                    }
-                }
-                results.clear();
-                breakStep = 0;
-                //}
-            }
+//            if (pt.distance(playerModel.getLocalTranslation()) < blockDistance) {
+//
+//                Cell c = prov.getCellFromVertices(findNearestVertices(pt));
+//                if (c != null) {
+//                    int newX = c.worldX, newY = c.worldY, newZ = c.worldZ;
+//                    switch (c.getFaceFromVertices(findNearestVertices(pt))) {
+//                        case 0:
+//                            newX = c.worldX - 1;
+//                            break;
+//                        case 1:
+//                            newX = c.worldX + 1;
+//                            break;
+//                        case 2:
+//                            newZ = c.worldZ - 1;
+//                            break;
+//                        case 3:
+//                            newZ = c.worldZ + 1;
+//                            break;
+//                        case 4:
+//                            newY = c.worldY + 1;
+//                            break;
+//                        case 5:
+//                            newY = c.worldY - 1;
+//                            break;
+//                        default:
+//                            break;
+//                    }
+//                    
+//                    prov.setCell(newX, newY, newZ, currentBlockId);
+//
+//                    if (prov.getCell(newX, newY, newZ) != null) {
+//                        prov.getCell(newX, newY, newZ).chunk.markForUpdate(true);
+//                        prov.getCell(newX, newY, newZ).chunk.processCells();
+//                        prov.getCell(newX, newY, newZ).chunk.refreshPhysics();
+//                    }
+//                }
+//                results.clear();
+//                breakStep = 0;
+//                //}
+//            }
         }
         debug("|===========================================|\n");
     }
-    
+
     public Vector3f fixCoords(Vector3f v) {
         unusualSymbols.setDecimalSeparator('.');
         df.setDecimalFormatSymbols(unusualSymbols);
@@ -400,7 +398,7 @@ public class ControlsHandler extends AbstractAppState implements ActionListener,
             top4.set(top1.x, top1.y - 1, top1.z - 1);
             //debug("Hit ±X");
         }
-        
+
         al.add(top1);
         al.add(top2);
         al.add(top3);

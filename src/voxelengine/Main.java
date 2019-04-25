@@ -15,15 +15,15 @@ public class Main extends SimpleApplication {
 
     @Override
     public void simpleInitApp() {
-        Globals.setPlayerEnabled(false);
+        Globals.setPlayerEnabled(true);
         Globals.setPhysicsEnabled(true);
         Globals.setTesting(false);
         Globals.setWireFrameEnabled(false);
         Globals.setWorldGenerator(new WorldGeneratorTerrain());
         Globals.setWorldDecorator(new WorldDecoratorTrees());
-        Globals.setRenderDistance(4);
+        Globals.setRenderDistance(12);
         Globals.setDebugEnabled(false);
-        Globals.setWorldHeight(0);
+        Globals.setWorldHeight(3);
         
         Globals.LOAD_FROM_FILE = false;
         Globals.SAVE_ON_EXIT = false;

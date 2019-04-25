@@ -76,14 +76,6 @@ public class Cell implements Serializable {
         }
     }
 
-    public void setId(int id) {
-        this.id = id;
-
-//        if (id != CellId.ID_AIR) {
-//            offsets = TextureManager.textures.get(id);
-//        }
-    }
-
     public byte getFaceFromVertices(ArrayList<Vector3f> al) {
         if (al.get(0).x == al.get(1).x && al.get(0).x == al.get(2).x && al.get(0).x == al.get(3).x) {
             if (al.get(0).x == worldX) {
@@ -102,5 +94,21 @@ public class Cell implements Serializable {
             return 3;
         }
         return Byte.MAX_VALUE;
+    }
+    
+    public void setId(int id) {
+        this.id = id;
+    }
+    
+    public Vector3f getChunkRelativePos(){
+        return new Vector3f(x, y, z);
+    }
+    
+    public Vector3f getChunkPos(){
+        return new Vector3f(chunkX, chunkY, chunkZ);
+    }
+    
+    public Vector3f getWorldPos(){
+        return new Vector3f(worldX, worldY, worldZ);
     }
 }

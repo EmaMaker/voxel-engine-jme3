@@ -75,7 +75,7 @@ public class Chunk extends AbstractControl {
 
     public void processCells() {
         if (toBeSet) {
-            //debug("Updating " + this.toString() + " at " + x + ", " + y + ", " + z);
+            debug("Updating " + this.toString() + " at " + x + ", " + y + ", " + z);
 
             for (Cell cell : cells) {
                 if (cell != null) {
@@ -83,18 +83,18 @@ public class Chunk extends AbstractControl {
                 }
             }
 
-            unload();
+//            unload();
             kindaBetterGreedy();
-
+            
             toBeSet = false;
             loaded = false;
 
             //makes Cells with ID AIR null, to save up  bit of memory
-            for (int i = 0; i < cells.length; i++) {
-                if (cells[i] != null && cells[i].id == CellId.ID_AIR) {
-                    cells[i] = null;
-                }
-            }
+//            for (int i = 0; i < cells.length; i++) {
+//                if (cells[i] != null && cells[i].id == CellId.ID_AIR) {
+//                    cells[i] = null;
+//                }
+//            }
         }
     }
 
@@ -196,7 +196,7 @@ public class Chunk extends AbstractControl {
     @Override
     protected void controlUpdate(float tpf) {
 
-        if (Math.sqrt(Math.pow(x - pX, 2) + Math.pow(y - pY, 2) + Math.pow(z - pZ, 2)) > renderDistance || !isVisible()) {
+        if (Math.sqrt(Math.pow(x - pX, 2) + Math.pow(y - pY, 2) + Math.pow(z - pZ, 2)) > renderDistance /*|| !isVisible()*/) {
             //if (rand.nextFloat() < 0.25f) {
             this.unload();
             this.unloadPhysics();
@@ -514,7 +514,7 @@ public class Chunk extends AbstractControl {
             for (int i = 0; i < short1.length; i++) {
                 indices[i] = Short.valueOf(Integer.toString(short1[i]));
             }
-
+            
             chunkMesh.setBuffer(VertexBuffer.Type.Position, 3, BufferUtils.createFloatBuffer(verticesList.toArray(new Vector3f[verticesList.size()])));
             chunkMesh.setBuffer(VertexBuffer.Type.TexCoord, 3, BufferUtils.createFloatBuffer(textureList.toArray(new Vector3f[textureList.size()])));
             chunkMesh.setBuffer(VertexBuffer.Type.Index, 3, BufferUtils.createShortBuffer(indices));
