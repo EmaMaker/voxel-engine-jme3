@@ -17,7 +17,6 @@ import com.jme3.input.controls.KeyTrigger;
 import com.jme3.input.controls.MouseAxisTrigger;
 import com.jme3.input.controls.MouseButtonTrigger;
 import com.jme3.material.Material;
-import com.jme3.math.Ray;
 import com.jme3.math.Vector3f;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.shape.Box;
@@ -25,11 +24,9 @@ import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.ArrayList;
 import voxelengine.VoxelEngine;
-import voxelengine.block.Cell;
 import voxelengine.block.CellId;
 import voxelengine.block.TextureManager;
 import static voxelengine.utils.Globals.chunkSize;
-import static voxelengine.utils.Globals.debug;
 import voxelengine.world.WorldManager;
 import static voxelengine.utils.Globals.pX;
 import static voxelengine.utils.Globals.pY;
@@ -207,14 +204,14 @@ public class ControlsHandler extends AbstractAppState implements ActionListener,
             case "remove":
                 breakStep++;
                 if (fastBlock || breakStep > 10) {
-                    breakBlock();
+//                    breakBlock();
                     breakStep = 0;
                 }
                 break;
             case "place":
                 placeStep++;
                 if (fastBlock || placeStep > 10) {
-                    placeBlock();
+//                    placeBlock();
                     placeStep = 0;
                 }
                 break;
@@ -277,38 +274,38 @@ public class ControlsHandler extends AbstractAppState implements ActionListener,
         }
     }
 
-    public void breakBlock() {
-        debug("\n|===========================================|");
-        Ray ray = new Ray(Globals.main.getCamera().getLocation(), Globals.main.getCamera().getDirection());
-        Globals.terrainNode.collideWith(ray, results);
-
-        if (results.getClosestCollision() != null) {
-            Vector3f pt = fixCoords(results.getClosestCollision().getContactPoint());
-
-            if (pt.distance(playerModel.getLocalTranslation()) < blockDistance) {
-                prov.setCellFromVertices(findNearestVertices(pt), CellId.ID_AIR);
-                Cell c = prov.getCellFromVertices(findNearestVertices(pt));
-                if (c != null) {
-                    c.setId(CellId.ID_AIR);
-                    c.chunk.markForUpdate(true);
-                    c.chunk.processCells();
-                    c.chunk.refreshPhysics();
-                }
-            }
-        }
-        results.clear();
-        breakStep = 0;
-        debug("|===========================================|\n");
-    }
-
-    public void placeBlock() {
-        debug("\n|===========================================|");
-        Ray ray = new Ray(Globals.main.getCamera().getLocation(), Globals.main.getCamera().getDirection());
-        Globals.terrainNode.collideWith(ray, results);
-
-        if (results.getClosestCollision() != null) {
-            Vector3f pt = fixCoords(results.getClosestCollision().getContactPoint());
-            //if (Math.sqrt(Math.pow(pt.x - pX * chunkSize, 2) + Math.pow(pt.y - pY * chunkSize, 2) + Math.pow(pt.z - pZ * chunkSize, 2)) <= Globals.getPickingDistance()) {
+//    public void breakBlock() {
+//        debug("\n|===========================================|");
+//        Ray ray = new Ray(Globals.main.getCamera().getLocation(), Globals.main.getCamera().getDirection());
+//        Globals.terrainNode.collideWith(ray, results);
+//
+//        if (results.getClosestCollision() != null) {
+//            Vector3f pt = fixCoords(results.getClosestCollision().getContactPoint());
+//
+//            if (pt.distance(playerModel.getLocalTranslation()) < blockDistance) {
+//                prov.setCellFromVertices(findNearestVertices(pt), CellId.ID_AIR);
+//                Cell c = prov.getCellFromVertices(findNearestVertices(pt));
+//                if (c != null) {
+//                    c.setId(CellId.ID_AIR);
+//                    c.chunk.markForUpdate(true);
+//                    c.chunk.processCells();
+//                    c.chunk.refreshPhysics();
+//                }
+//            }
+//        }
+//        results.clear();
+//        breakStep = 0;
+//        debug("|===========================================|\n");
+//    }
+//
+//    public void placeBlock() {
+//        debug("\n|===========================================|");
+//        Ray ray = new Ray(Globals.main.getCamera().getLocation(), Globals.main.getCamera().getDirection());
+//        Globals.terrainNode.collideWith(ray, results);
+//
+//        if (results.getClosestCollision() != null) {
+//            Vector3f pt = fixCoords(results.getClosestCollision().getContactPoint());
+//            //if (Math.sqrt(Math.pow(pt.x - pX * chunkSize, 2) + Math.pow(pt.y - pY * chunkSize, 2) + Math.pow(pt.z - pZ * chunkSize, 2)) <= Globals.getPickingDistance()) {
 //            if (pt.distance(playerModel.getLocalTranslation()) < blockDistance) {
 //
 //                Cell c = prov.getCellFromVertices(findNearestVertices(pt));
@@ -349,9 +346,9 @@ public class ControlsHandler extends AbstractAppState implements ActionListener,
 //                breakStep = 0;
 //                //}
 //            }
-        }
-        debug("|===========================================|\n");
-    }
+//        }
+//        debug("|===========================================|\n");
+//    }
 
     public Vector3f fixCoords(Vector3f v) {
         unusualSymbols.setDecimalSeparator('.');

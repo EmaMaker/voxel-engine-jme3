@@ -8,11 +8,9 @@ import com.jme3.math.Vector3f;
 import java.io.File;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Random;
 import java.util.concurrent.Callable;
 import voxelengine.block.CellId;
-import voxelengine.block.Cell;
 import voxelengine.utils.math.MathHelper;
 import voxelengine.utils.Globals;
 import static voxelengine.utils.Globals.chunkSize;
@@ -32,8 +30,6 @@ public class WorldManager extends AbstractAppState {
     AppStateManager stateManager;
 
     public boolean updateChunks = true;
-
-    public HashMap<Cell, Integer> toUpdate = new HashMap<>();
 
     @Override
     public void initialize(AppStateManager stateManager, Application app) {
@@ -68,7 +64,7 @@ public class WorldManager extends AbstractAppState {
     }
 
     //replaces the Cell.setId(id), and replaces making all the cell air when chunk is created. Commento storico del 2016 (Si, lo so che è il 2019 ora) - historical comment from 2016 (Yes, I know it's 2019 now)
-    public void setCell(int i, int j, int k, int id) {
+    public void setCell(int i, int j, int k, byte id) {
         int plusX = i % chunkSize, plusY = j % chunkSize, plusZ = k % chunkSize;
         int chunkX = (i - plusX) / chunkSize, chunkY = (j - plusY) / chunkSize, chunkZ = (k - plusZ) / chunkSize;
 
@@ -80,7 +76,7 @@ public class WorldManager extends AbstractAppState {
         }
     }
 
-    public Cell getCell(int i, int j, int k) {
+    public byte getCell(int i, int j, int k) {
         int plusX = i % chunkSize, plusY = j % chunkSize, plusZ = k % chunkSize;
         int chunkX = (i - plusX) / chunkSize, chunkY = (j - plusY) / chunkSize, chunkZ = (k - plusZ) / chunkSize;
 
@@ -89,7 +85,7 @@ public class WorldManager extends AbstractAppState {
                 return chunks[MathHelper.flatChunk3Dto1D(chunkX, chunkY, chunkZ)].getCell(plusX, plusY, plusZ);
             }
         }
-        return null;
+        return Byte.MIN_VALUE;
     }
 
     //returns the chunk is the specified coords
@@ -100,11 +96,11 @@ public class WorldManager extends AbstractAppState {
         return chunks[MathHelper.flatChunk3Dto1D(chunkX, chunkY, chunkZ)];
     }
 
-    public void setCellFromVertices(ArrayList<Vector3f> al, int id) {
+    public void setCellFromVertices(ArrayList<Vector3f> al, byte id) {
         setCell(getCellPosFromVertices(al), id);
     }
 
-    public Cell getCellFromVertices(ArrayList<Vector3f> al) {
+    public byte getCellFromVertices(ArrayList<Vector3f> al) {
         return getCell(getCellPosFromVertices(al));
     }
 
@@ -112,7 +108,7 @@ public class WorldManager extends AbstractAppState {
         Vector3f v = MathHelper.lowestVectorInList(al.get(0), al.get(1), al.get(2), al.get(3));
 
         if (al.get(0).x == al.get(1).x && al.get(0).x == al.get(2).x && al.get(0).x == al.get(3).x) {
-            if (getCell(v) != null && getCell(v).id != CellId.ID_AIR) {
+            if (getCell(v) != CellId.ID_AIR) {
                 debug(v.toString());
                 return v;
             } else {
@@ -121,7 +117,7 @@ public class WorldManager extends AbstractAppState {
                 return v;
             }
         } else if (al.get(0).y == al.get(1).y && al.get(0).y == al.get(2).y && al.get(0).y == al.get(3).y) {
-            if (getCell(v) != null && getCell(v).id != CellId.ID_AIR) {
+            if (getCell(v) != CellId.ID_AIR) {
                 debug(v.toString());
                 return v;
             } else {
@@ -130,7 +126,7 @@ public class WorldManager extends AbstractAppState {
                 return v;
             }
         } else if (al.get(0).z == al.get(1).z && al.get(0).z == al.get(2).z && al.get(0).z == al.get(3).z) {
-            if (getCell(v) != null && getCell(v).id != CellId.ID_AIR) {
+            if (getCell(v) != CellId.ID_AIR) {
                 debug(v.toString());
                 return v;
             } else {
@@ -142,13 +138,13 @@ public class WorldManager extends AbstractAppState {
         return null;
     }
 
-    public Cell getHighestCellAt(int i, int j) {
+    public byte getHighestCellAt(int i, int j) {
         for (int a = MAXY * chunkSize; a >= 0; a--) {
-            if (getCell(i, a, j) != null) {
+            if (getCell(i, a, j) != CellId.ID_AIR) {
                 return getCell(i, a, j);
             }
         }
-        return null;
+        return Byte.MIN_VALUE;
     }
 
     @Override
@@ -200,25 +196,21 @@ public class WorldManager extends AbstractAppState {
     }
 
     /*SOME USEFUL METHOD OVERRIDING*/
-    public void setCell(Cell c, int id) {
-        this.setCell(c.worldX, c.worldY, c.worldZ, id);
-    }
-
-    public void setCell(Vector3f v, int id) {
+    public void setCell(Vector3f v, byte id) {
         if (v != null) {
             this.setCell((int) v.x, (int) v.y, (int) v.z, id);
         }
     }
 
-    public void setCell(float i, float j, float k, int id) {
+    public void setCell(float i, float j, float k, byte id) {
         this.setCell((int) i, (int) j, (int) k, id);
     }
 
-    public Cell getCell(Vector3f v) {
+    public byte getCell(Vector3f v) {
         return v != null ? getCell((int) v.x, (int) v.y, (int) v.z) : null;
     }
 
-    public Cell getCell(float i, float j, float k) {
+    public byte getCell(float i, float j, float k) {
         return getCell((int) i, (int) j, (int) k);
     }
 
