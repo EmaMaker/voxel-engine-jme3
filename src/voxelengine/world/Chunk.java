@@ -14,7 +14,13 @@ import com.jme3.scene.VertexBuffer;
 import com.jme3.scene.control.AbstractControl;
 import com.jme3.util.BufferUtils;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 import voxelengine.block.CellId;
 import voxelengine.block.TextureManager;
@@ -57,8 +63,6 @@ public class Chunk extends AbstractControl {
         this.y = y;
         this.z = z;
 
-        prepareCells();
-
         pos = new Vector3f(x * chunkSize, y * chunkSize, z * chunkSize);
         debug("Creating chunk starting at world coords" + pos.toString());
 
@@ -68,6 +72,7 @@ public class Chunk extends AbstractControl {
 
         Globals.terrainNode.addControl((AbstractControl) this);
 
+        prepareCells();
         markForUpdate(true);
     }
 
@@ -190,14 +195,12 @@ public class Chunk extends AbstractControl {
     protected void controlUpdate(float tpf) {
 
         if (Math.sqrt(Math.pow(x - pX, 2) + Math.pow(y - pY, 2) + Math.pow(z - pZ, 2)) > renderDistance /*|| !isVisible()*/) {
-            //if (rand.nextFloat() < 0.25f) {
             this.unload();
             this.unloadPhysics();
 
-//            if (Math.sqrt(Math.pow(x - pX, 2) + Math.pow(y - pY, 2) + Math.pow(z - pZ, 2)) > renderDistance * 1.5f) {
-//                saveToFile();
-//            }
-            //}
+            if (Math.sqrt(Math.pow(x - pX, 2) + Math.pow(y - pY, 2) + Math.pow(z - pZ, 2)) > renderDistance * 1.5f) {
+                saveToFile();
+            }
         } else {
             this.load();
             if (Math.sqrt(Math.pow(x - pX, 2) + Math.pow(y - pY, 2) + Math.pow(z - pZ, 2)) <= 1) {
@@ -223,55 +226,55 @@ public class Chunk extends AbstractControl {
 
     //Saves the chunk to text file, with format X Y Z ID, separated by commas
     public void saveToFile() {
-//        File f = Paths.get(Globals.workingDir + x + "-" + y + "-" + z + ".chunk").toFile();
-//
-//        if (!f.exists() && !isEmpty()) {
-//            try {
-//                PrintWriter writer = new PrintWriter(f);
-//                for (int i = 0; i < cells.length; i++) {
-//                    if (cells[i] != null) {
-//                        writer.println(cells[i].x + "," + cells[i].y + "," + cells[i].z
-//                                + "," + cells[i].id);
-//                    }
-//                }
-//
-//                Globals.terrainNode.removeControl(this);
-//                WorldManager.chunks[MathHelper.flatChunk3Dto1D(x, y, z)] = null;
-//                writer.close();
-//            } catch (FileNotFoundException e) {
-//            }
-//        }
+        File f = Paths.get(Globals.workingDir + x + "-" + y + "-" + z + ".chunk").toFile();
+        int[] coords;
+
+        if (!f.exists() && !isEmpty()) {
+            try {
+                PrintWriter writer = new PrintWriter(f);
+                for (int i = 0; i < cells.length; i++) {
+                    coords = MathHelper.cell1Dto3D(i);
+                    writer.println(coords[0] + "," + coords[1] + "," + coords[2]
+                            + "," + cells[i]);
+                }
+
+                Globals.terrainNode.removeControl(this);
+                WorldManager.chunks[MathHelper.flatChunk3Dto1D(x, y, z)] = null;
+                writer.close();
+            } catch (FileNotFoundException e) {
+            }
+        }
     }
 
     //Retrieves back from the text file (X Y Z ID separated by commas)
     public void loadFromFile(File f) {
-//        List<String> lines;
-//
-//        if (f.exists()) {
-//            if (!(f.length() == 0)) {
-//                try {
-//                    lines = Files.readAllLines(f.toPath());
-//
-//                    for (String s : lines) {
-//                        setCell(Integer.valueOf(s.split(",")[0]), Integer.valueOf(s.split(",")[1]), Integer.valueOf(s.split(",")[2]), Integer.valueOf(s.split(",")[3]));
-//                    }
-//
-//                    generated = true;
-//                    decorated = true;
-//                    markForUpdate(true);
-//                    f.delete();
-//                } catch (IOException | NumberFormatException e) {
-//                }
-//            } else {
-//                generated = false;
-//                decorated = false;
-//                generate();
-//            }
-//        } else {
-//            generated = false;
-//            decorated = false;
-//            generate();
-//        }
+        List<String> lines;
+
+        if (f.exists()) {
+            if (!(f.length() == 0)) {
+                try {
+                    lines = Files.readAllLines(f.toPath());
+
+                    for (String s : lines) {
+                        setCell(Integer.valueOf(s.split(",")[0]), Integer.valueOf(s.split(",")[1]), Integer.valueOf(s.split(",")[2]), Byte.valueOf(s.split(",")[3]));
+                    }
+
+                    generated = true;
+                    decorated = true;
+                    markForUpdate(true);
+                    f.delete();
+                } catch (IOException | NumberFormatException e) {
+                }
+            } else {
+                generated = false;
+                decorated = false;
+                generate();
+            }
+        } else {
+            generated = false;
+            decorated = false;
+            generate();
+        }
     }
 
     public void markForUpdate(boolean b) {
@@ -315,6 +318,8 @@ public class Chunk extends AbstractControl {
         for (int a = 0; a < cells.length; a++) {
             for (int s = 0; s < 3; s++) {
                 for (int i = 0; i < 2; i++) {
+//            int s = 0;
+//            int i = 0;
                     int backfaces[] = {0, 0, 0};
                     backfaces[s] = i;
                     index = s * 2 + i;
@@ -328,7 +333,9 @@ public class Chunk extends AbstractControl {
                     offX = 0;
                     offY = 0;
                     offZ = 0;
-                    if (c != CellId.ID_AIR && c != Byte.MIN_VALUE && !cellHasFreeSideChunkToWorld(cPos, index) && !meshed[cPos][index]) {
+
+                    if (c != CellId.ID_AIR && c != Byte.MIN_VALUE && cellHasFreeSideChunkToWorld(cPos, index) && !meshed[cPos][index]) {
+
                         if (s == 0 || s == 2) {
                             offZ++;
                         } else {
@@ -337,7 +344,8 @@ public class Chunk extends AbstractControl {
 
                         c1Pos = MathHelper.flatCell3Dto1D(startX + offX, startY + offY, startZ + offZ);
                         c1 = getCell(c1Pos);
-                        while (c1 == c && !cellHasFreeSideChunkToWorld(c1Pos, index) && !meshed[c1Pos][index]) {
+                        while (c1 == c && cellHasFreeSideChunkToWorld(c1Pos, index) && !meshed[c1Pos][index]) {
+
                             meshed[c1Pos][index] = true;
                             if (s == 0 || s == 2) {
                                 offZ++;
@@ -358,7 +366,7 @@ public class Chunk extends AbstractControl {
                                         c1Pos = MathHelper.flatCell3Dto1D(startX + offX, startY + offY, k);
                                         c1 = getCell(c1Pos);
 
-                                        if (c1 != c || meshed[c1Pos][index] || cellHasFreeSideChunkToWorld(c1Pos, index)) {
+                                        if (c1 != c || meshed[c1Pos][index] || !cellHasFreeSideChunkToWorld(c1Pos, index)) {
                                             done = true;
                                             break;
                                         }
@@ -379,7 +387,7 @@ public class Chunk extends AbstractControl {
                                         c1Pos = MathHelper.flatCell3Dto1D(k, startY + offY, startZ);
                                         c1 = getCell(c1Pos);
 
-                                        if (c1 != c || cellHasFreeSideChunkToWorld(c1Pos, index) || meshed[c1Pos][index]) {
+                                        if (c1 != c || !cellHasFreeSideChunkToWorld(c1Pos, index) || meshed[c1Pos][index]) {
                                             done = true;
                                             break;
                                         }
@@ -400,7 +408,7 @@ public class Chunk extends AbstractControl {
                                     c1Pos = MathHelper.flatCell3Dto1D(startX + offX, startY + offY, k);
                                     c1 = getCell(c1Pos);
 
-                                    if (c1 != c || cellHasFreeSideChunkToWorld(c1Pos, index) || meshed[c1Pos][index]) {
+                                    if (c1 != c || !cellHasFreeSideChunkToWorld(c1Pos, index) || meshed[c1Pos][index]) {
                                         done = true;
                                         break;
                                     }
@@ -550,20 +558,22 @@ public class Chunk extends AbstractControl {
     }
 
     public boolean cellHasFreeSideWorld(int cellX, int cellY, int cellZ, int side) {
+//        System.out.println("Checking at world coords " + cellX + ", " + cellY + ", " + cellZ + " with side " + side);
         switch (side) {
             case 0:
-                return (Globals.prov.getCell(cellX - 1, cellY, cellZ) == CellId.ID_AIR);
+                return (Globals.prov.getCell(cellX - 1, cellY, cellZ) == CellId.ID_AIR || Globals.prov.getCell(cellX - 1, cellY, cellZ) == Byte.MIN_VALUE);
             case 1:
-                return (Globals.prov.getCell(cellX + 1, cellY, cellZ) == CellId.ID_AIR);
+                return (Globals.prov.getCell(cellX + 1, cellY, cellZ) == CellId.ID_AIR || Globals.prov.getCell(cellX + 1, cellY, cellZ) == Byte.MIN_VALUE);
             case 2:
-                return (Globals.prov.getCell(cellX, cellY, cellZ - 1) == CellId.ID_AIR);
+                return (Globals.prov.getCell(cellX, cellY, cellZ - 1) == CellId.ID_AIR || Globals.prov.getCell(cellX, cellY, cellZ - 1) == Byte.MIN_VALUE);
             case 3:
-                return (Globals.prov.getCell(cellX, cellY, cellZ + 1) == CellId.ID_AIR);
+                return (Globals.prov.getCell(cellX, cellY, cellZ + 1) == CellId.ID_AIR || Globals.prov.getCell(cellX, cellY, cellZ + 1) == Byte.MIN_VALUE);
             case 4:
-                return (Globals.prov.getCell(cellX, cellY - 1, cellZ) == CellId.ID_AIR);
+                return (Globals.prov.getCell(cellX, cellY - 1, cellZ) == CellId.ID_AIR || Globals.prov.getCell(cellX, cellY - 1, cellZ) == Byte.MIN_VALUE);
             case 5:
-                return (Globals.prov.getCell(cellX, cellY + 1, cellZ) == CellId.ID_AIR);
+                return (Globals.prov.getCell(cellX, cellY + 1, cellZ) == CellId.ID_AIR || Globals.prov.getCell(cellX, cellY + 1, cellZ) == Byte.MIN_VALUE);
             default:
+                System.out.println("Ouch!");
                 return false;
         }
     }

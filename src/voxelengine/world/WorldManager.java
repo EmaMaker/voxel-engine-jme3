@@ -16,6 +16,7 @@ import voxelengine.utils.Globals;
 import static voxelengine.utils.Globals.chunkSize;
 import static voxelengine.utils.Globals.debug;
 import static voxelengine.utils.Globals.pX;
+import static voxelengine.utils.Globals.pX;
 import static voxelengine.utils.Globals.pY;
 import static voxelengine.utils.Globals.pZ;
 import static voxelengine.utils.Globals.renderDistance;
@@ -49,6 +50,9 @@ public class WorldManager extends AbstractAppState {
                 for (int j = 0; j < 1; j++) {
                     chunks[MathHelper.flatChunk3Dto1D(i, 0, j)] = new Chunk(i, 0, j);
                     chunks[MathHelper.flatChunk3Dto1D(i, 0, j)].generate();
+//                    setCell(0, 0, 0, CellId.ID_GRASS);
+//                    setCell(1, 0, 0, CellId.ID_GRASS);
+//                    setCell(0, 0, 1, CellId.ID_GRASS);
                     chunks[MathHelper.flatChunk3Dto1D(i, 0, j)].processCells();
                     chunks[MathHelper.flatChunk3Dto1D(i, 0, j)].load();
                     chunks[MathHelper.flatChunk3Dto1D(i, 0, j)].loadPhysics();
