@@ -3,10 +3,12 @@
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
-            <file>file:/home/emamaker/jMonkeyProjects/voxel-engine-jme3/src/voxelengine/Main.java</file>
-            <file>file:/home/emamaker/jMonkeyProjects/voxel-engine-jme3/src/voxelengine/world/WorldManager.java</file>
-            <file>file:/home/emamaker/jMonkeyProjects/voxel-engine-jme3/src/voxelengine/utils/math/MathHelper.java</file>
-            <file>file:/home/emamaker/jMonkeyProjects/voxel-engine-jme3/src/voxelengine/world/Chunk.java</file>
+            <file>file:/home/emamaker/jMonkeyEngine%20Projects/voxel-engine-jme3/src/voxelengine/world/decorators/WorldDecoratorTrees.java</file>
+            <file>file:/home/emamaker/jMonkeyEngine%20Projects/voxel-engine-jme3/src/voxelengine/control/ControlsHandler.java</file>
+            <file>file:/home/emamaker/jMonkeyEngine%20Projects/voxel-engine-jme3/src/voxelengine/world/WorldManager.java</file>
+            <file>file:/home/emamaker/jMonkeyEngine%20Projects/voxel-engine-jme3/src/voxelengine/Main.java</file>
+            <file>file:/home/emamaker/jMonkeyEngine%20Projects/voxel-engine-jme3/src/voxelengine/world/Chunk.java</file>
+            <file>file:/home/emamaker/jMonkeyEngine%20Projects/voxel-engine-jme3/src/voxelengine/block/TextureManager.java</file>
         </group>
     </open-files>
 </project-private>

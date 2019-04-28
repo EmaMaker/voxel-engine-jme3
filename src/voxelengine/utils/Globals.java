@@ -20,7 +20,7 @@ public class Globals extends AbstractAppState {
 
     //the lenght of a chunk side
     public static int chunkSize = 16;
-    
+
     //max world height to be generated
     //basically it's the number of cubic chunks to generator under the simplex-noise generated ones
     public static int worldHeight = 1;
@@ -41,6 +41,7 @@ public class Globals extends AbstractAppState {
 
     static WorldGenerator generator = new WorldGeneratorBase();
     static WorldDecorator decorator = new WorldDecoratorTrees();
+    static boolean enableDecorators = true;
 
     public static boolean LOAD_FROM_FILE = false;
     public static boolean SAVE_ON_EXIT = true;
@@ -125,7 +126,7 @@ public class Globals extends AbstractAppState {
     public static String getPermTable() {
         return permtableName;
     }
-    
+
     public static void setWorldHeight(int s) {
         worldHeight = s;
     }
@@ -147,7 +148,6 @@ public class Globals extends AbstractAppState {
     public static int getRenderDistance() {
         return renderDistance;
     }
-
 
     public static void setPickingDistance(int picking) {
         pickingDistance = picking;
@@ -179,6 +179,14 @@ public class Globals extends AbstractAppState {
 
     public static WorldDecorator getWorldDecorator() {
         return decorator;
+    }
+    
+    public static void enableDecorators(boolean b){
+        enableDecorators = b;
+    }
+    
+    public static boolean decoratorsEnabled(){
+        return enableDecorators;
     }
 
 }

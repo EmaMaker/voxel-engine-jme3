@@ -147,7 +147,7 @@ public class Chunk extends AbstractControl {
     }
 
     public int getHighestYAt(int i, int j) {
-        for (int a = MAXY * chunkSize; a >= 0; a--) {
+        for (int a = chunkSize; a >= 0; a--) {
             if (getCell(i, a, j) != Byte.MIN_VALUE) {
                 return a;
             }
@@ -185,7 +185,7 @@ public class Chunk extends AbstractControl {
     }
 
     public void decorate() {
-        if (!decorated) {
+        if (!decorated && Globals.decoratorsEnabled()) {
             Globals.getWorldDecorator().decorate(this);
             decorated = true;
         }
@@ -403,23 +403,25 @@ public class Chunk extends AbstractControl {
                                 }
                                 break;
                             case 2:
-                                offX++;
-                                for (int k = startZ; k < startZ + offZ; k++) {
-                                    c1Pos = MathHelper.flatCell3Dto1D(startX + offX, startY + offY, k);
-                                    c1 = getCell(c1Pos);
-
-                                    if (c1 != c || !cellHasFreeSideChunkToWorld(c1Pos, index) || meshed[c1Pos][index]) {
-                                        done = true;
-                                        break;
-                                    }
-
-                                }
-                                if (!done) {
+                                while (!done) {
+                                    offX++;
                                     for (int k = startZ; k < startZ + offZ; k++) {
                                         c1Pos = MathHelper.flatCell3Dto1D(startX + offX, startY + offY, k);
                                         c1 = getCell(c1Pos);
-                                        meshed[c1Pos][index] = true;
 
+                                        if (c1 != c || !cellHasFreeSideChunkToWorld(c1Pos, index) || meshed[c1Pos][index]) {
+                                            done = true;
+                                            break;
+                                        }
+
+                                    }
+                                    if (!done) {
+                                        for (int k = startZ; k < startZ + offZ; k++) {
+                                            c1Pos = MathHelper.flatCell3Dto1D(startX + offX, startY + offY, k);
+                                            c1 = getCell(c1Pos);
+                                            meshed[c1Pos][index] = true;
+
+                                        }
                                     }
                                 }
                                 break;
