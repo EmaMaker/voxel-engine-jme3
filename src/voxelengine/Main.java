@@ -19,12 +19,12 @@ public class Main extends SimpleApplication {
         Globals.setPhysicsEnabled(true);
         Globals.setTesting(false);
         Globals.setWireFrameEnabled(false);
-        Globals.setWorldGenerator(new WorldGeneratorCube());
+        Globals.setWorldGenerator(new WorldGeneratorTerrain());
         Globals.setWorldDecorator(new WorldDecoratorTrees());
         Globals.enableDecorators(false);
-        Globals.setRenderDistance(12);
+        Globals.setRenderDistance(8);
         Globals.setDebugEnabled(false);
-        Globals.setWorldHeight(0);
+        Globals.setWorldHeight(4);
         
         Globals.LOAD_FROM_FILE = false;
         Globals.SAVE_ON_EXIT = false;

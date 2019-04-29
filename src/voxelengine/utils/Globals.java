@@ -69,9 +69,9 @@ public class Globals extends AbstractAppState {
     }
 
     //Actually only does prints in console things, but it's useful to not comment the debug lines each time, but only pressing a key
-    public static void debug(String s) {
+    public static void debug(Object... s) {
         if (enableDebug) {
-            System.out.println("Debugging: " + s);
+            System.out.println("Debugging: " + Arrays.toString(s));
         }
     }
 

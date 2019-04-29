@@ -55,15 +55,22 @@ public class MathHelper {
     }
 
     public static int flatCell3Dto1D(int x, int y, int z) {
-        return (z * chunkSize * chunkSize) + (y * chunkSize) + x;
+        if (x >= 0 && y >= 0 && z >= 0 && x < chunkSize && y < chunkSize && z < chunkSize) {
+            return (z * chunkSize * chunkSize) + (y * chunkSize) + x;
+        } else {
+            return Integer.MAX_VALUE;
+        }
     }
 
     public static int[] cell1Dto3D(int idx) {
-        final int z = idx / (chunkSize * chunkSize);
-        idx -= (z * chunkSize * chunkSize);
-        final int y = idx / chunkSize;
-        final int x = idx % chunkSize;
-        return new int[]{x, y, z};
+        if (idx < chunkSize * chunkSize * chunkSize) {
+            final int z = idx / (chunkSize * chunkSize);
+            idx -= (z * chunkSize * chunkSize);
+            final int y = idx / chunkSize;
+            final int x = idx % chunkSize;
+            return new int[]{x, y, z};
+        } else {
+            return new int[]{};
+        }
     }
-
 }

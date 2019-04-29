@@ -49,6 +49,8 @@ public class Chunk extends AbstractControl {
     //public Cell[] cells = new Cell[chunkSize * chunkSize * chunkSize];
     public byte[] cells = new byte[chunkSize * chunkSize * chunkSize];
 
+    boolean[][] meshed = new boolean[cells.length][6];
+
     public Mesh chunkMesh = new Mesh();
     public Geometry chunkGeom;
     Vector3f pos = new Vector3f();
@@ -163,7 +165,7 @@ public class Chunk extends AbstractControl {
     }
 
     public byte getCell(int index) {
-        if (index >= 0 && index < cells.length) {
+        if (index >= 0 && index < cells.length || index != Integer.MAX_VALUE) {
             return cells[index];
         }
         return Byte.MIN_VALUE;
@@ -307,52 +309,59 @@ public class Chunk extends AbstractControl {
     public void kindaBetterGreedy() {
         clearAll();
 
-        boolean[][] meshed = new boolean[cells.length][6];
+        for (int i = 0; i < meshed.length; i++) {
+            for (int j = 0; j < 6; j++) {
+                meshed[i][j] = false;
+            }
+        }
 
         int startX, startY, startZ, offX, offY, offZ, index, cPos, c1Pos;
         short i0 = 0, i1 = 0, i2 = 0, i3 = 0;
         byte c, c1;
         Vector3f v0, v1, v2, v3;
-        boolean done;
+        boolean done = false;
 
         for (int a = 0; a < cells.length; a++) {
             for (int s = 0; s < 3; s++) {
                 for (int i = 0; i < 2; i++) {
-//            int s = 0;
-//            int i = 0;
+
                     int backfaces[] = {0, 0, 0};
                     backfaces[s] = i;
                     index = s * 2 + i;
 
-                    cPos = a;
-                    c = getCell(cPos);
-                    startX = MathHelper.cell1Dto3D(cPos)[0];
-                    startY = MathHelper.cell1Dto3D(cPos)[1];
-                    startZ = MathHelper.cell1Dto3D(cPos)[2];
+                    c = getCell(a);
 
-                    offX = 0;
-                    offY = 0;
-                    offZ = 0;
+                    if (c != CellId.ID_AIR && c != Byte.MIN_VALUE && cellHasFreeSideChunk(a, index) && !meshed[a][index]) {
+                        cPos = a;
+                        startX = MathHelper.cell1Dto3D(cPos)[0];
+                        startY = MathHelper.cell1Dto3D(cPos)[1];
+                        startZ = MathHelper.cell1Dto3D(cPos)[2];
 
-                    if (c != CellId.ID_AIR && c != Byte.MIN_VALUE && cellHasFreeSideChunkToWorld(cPos, index) && !meshed[cPos][index]) {
+                        offX = 0;
+                        offY = 0;
+                        offZ = 0;
 
-                        if (s == 0 || s == 2) {
-                            offZ++;
-                        } else {
-                            offX++;
-                        }
-
-                        c1Pos = MathHelper.flatCell3Dto1D(startX + offX, startY + offY, startZ + offZ);
-                        c1 = getCell(c1Pos);
-                        while (c1 == c && cellHasFreeSideChunkToWorld(c1Pos, index) && !meshed[c1Pos][index]) {
-
-                            meshed[c1Pos][index] = true;
+                        if (startX + offX < chunkSize && startY + offY < chunkSize && startZ + offZ < chunkSize) {
                             if (s == 0 || s == 2) {
                                 offZ++;
                             } else {
                                 offX++;
                             }
+                        }
 
+                        c1Pos = MathHelper.flatCell3Dto1D(startX + offX, startY + offY, startZ + offZ);
+                        c1 = getCell(c1Pos);
+                        while (c1 != CellId.ID_AIR && c1 != Byte.MIN_VALUE && c1 == c && cellHasFreeSideChunk(c1Pos, index) && !meshed[c1Pos][index]) {
+
+                            meshed[c1Pos][index] = true;
+                            if (startX + offX < chunkSize && startY + offY < chunkSize && startZ + offZ < chunkSize) {
+
+                                if ((s == 0 || s == 2)) {
+                                    offZ++;
+                                } else {
+                                    offX++;
+                                }
+                            }
                             c1Pos = MathHelper.flatCell3Dto1D(startX + offX, startY + offY, startZ + offZ);
                             c1 = getCell(c1Pos);
                         }
@@ -366,7 +375,7 @@ public class Chunk extends AbstractControl {
                                         c1Pos = MathHelper.flatCell3Dto1D(startX + offX, startY + offY, k);
                                         c1 = getCell(c1Pos);
 
-                                        if (c1 != c || meshed[c1Pos][index] || !cellHasFreeSideChunkToWorld(c1Pos, index)) {
+                                        if (c1 != c || meshed[c1Pos][index] || !cellHasFreeSideChunk(c1Pos, index)) {
                                             done = true;
                                             break;
                                         }
@@ -384,20 +393,19 @@ public class Chunk extends AbstractControl {
                                 while (!done) {
                                     offY++;
                                     for (int k = startX; k < startX + offX; k++) {
-                                        c1Pos = MathHelper.flatCell3Dto1D(k, startY + offY, startZ);
+                                        c1Pos = MathHelper.flatCell3Dto1D(k, startY + offY, startZ + offZ);
                                         c1 = getCell(c1Pos);
 
-                                        if (c1 != c || !cellHasFreeSideChunkToWorld(c1Pos, index) || meshed[c1Pos][index]) {
+                                        if (c1 != c || !cellHasFreeSideChunk(c1Pos, index) || meshed[c1Pos][index]) {
                                             done = true;
                                             break;
                                         }
                                     }
                                     if (!done) {
                                         for (int k = startX; k < startX + offX; k++) {
-                                            c1Pos = MathHelper.flatCell3Dto1D(k, startY + offY, startZ);
+                                            c1Pos = MathHelper.flatCell3Dto1D(k, startY + offY, startZ + offZ);
                                             c1 = getCell(c1Pos);
                                             meshed[c1Pos][index] = true;
-
                                         }
                                     }
                                 }
@@ -409,18 +417,16 @@ public class Chunk extends AbstractControl {
                                         c1Pos = MathHelper.flatCell3Dto1D(startX + offX, startY + offY, k);
                                         c1 = getCell(c1Pos);
 
-                                        if (c1 != c || !cellHasFreeSideChunkToWorld(c1Pos, index) || meshed[c1Pos][index]) {
+                                        if (c1 != c || !cellHasFreeSideChunk(c1Pos, index) || meshed[c1Pos][index]) {
                                             done = true;
                                             break;
                                         }
-
                                     }
                                     if (!done) {
                                         for (int k = startZ; k < startZ + offZ; k++) {
                                             c1Pos = MathHelper.flatCell3Dto1D(startX + offX, startY + offY, k);
                                             c1 = getCell(c1Pos);
                                             meshed[c1Pos][index] = true;
-
                                         }
                                     }
                                 }
@@ -494,7 +500,6 @@ public class Chunk extends AbstractControl {
                         indicesList.add(i0);
 
                         setMesh();
-
                     }
                 }
             }
@@ -510,21 +515,24 @@ public class Chunk extends AbstractControl {
 
     //usually called at the end of the update() method of chunk. creates the mesh from the vertices, indices and texCoord set by Cell and adds it to a geometry with a material with correct texture loaded
     public void setMesh() {
-        //checking if there are empty buffers is important: loading empty buffers causes a core dumped crash
-        if (!verticesList.isEmpty() && !textureList.isEmpty() && !indicesList.isEmpty()) {
-            short1 = indicesList.toArray(new Short[indicesList.size()]);
-            indices = new short[short1.length];
-            for (int i = 0; i < short1.length; i++) {
-                indices[i] = Short.valueOf(Integer.toString(short1[i]));
+        try {
+            //checking if there are empty buffers is important: loading empty buffers causes a core dumped crash
+            if (!verticesList.isEmpty() && !textureList.isEmpty() && !indicesList.isEmpty()) {
+                short1 = indicesList.toArray(new Short[indicesList.size()]);
+                indices = new short[short1.length];
+                for (int i = 0; i < short1.length; i++) {
+                    indices[i] = Short.valueOf(Integer.toString(short1[i]));
+                }
+
+                chunkMesh.setBuffer(VertexBuffer.Type.Position, 3, BufferUtils.createFloatBuffer(verticesList.toArray(new Vector3f[verticesList.size()])));
+                chunkMesh.setBuffer(VertexBuffer.Type.TexCoord, 3, BufferUtils.createFloatBuffer(textureList.toArray(new Vector3f[textureList.size()])));
+                chunkMesh.setBuffer(VertexBuffer.Type.Index, 3, BufferUtils.createShortBuffer(indices));
+
+                chunkMesh.updateBound();
+//            clearAll();        
             }
-
-            chunkMesh.setBuffer(VertexBuffer.Type.Position, 3, BufferUtils.createFloatBuffer(verticesList.toArray(new Vector3f[verticesList.size()])));
-            chunkMesh.setBuffer(VertexBuffer.Type.TexCoord, 3, BufferUtils.createFloatBuffer(textureList.toArray(new Vector3f[textureList.size()])));
-            chunkMesh.setBuffer(VertexBuffer.Type.Index, 3, BufferUtils.createShortBuffer(indices));
-
-            chunkMesh.updateBound();
-//            clearAll();
-
+        } catch (Exception e) {
+            debug(e);
         }
     }
 
@@ -581,28 +589,33 @@ public class Chunk extends AbstractControl {
     }
 
     public boolean cellHasFreeSideChunkToWorld(int cPos, int side) {
-        return cellHasFreeSideWorld(((int) pos.x) + MathHelper.cell1Dto3D(cPos)[0], ((int) pos.y) + MathHelper.cell1Dto3D(cPos)[1], ((int) pos.z) + MathHelper.cell1Dto3D(cPos)[2], side);
+        return cellHasFreeSideWorld(x * chunkSize + MathHelper.cell1Dto3D(cPos)[0], y * chunkSize + MathHelper.cell1Dto3D(cPos)[1], z * chunkSize + MathHelper.cell1Dto3D(cPos)[2], side);
     }
 
     public boolean cellHasFreeSideChunkToWorld(int cellChunkX, int cellChunkY, int cellChunkZ, int side) {
-        return cellHasFreeSideWorld(((int) pos.x) + cellChunkX, ((int) pos.y) + cellChunkY, ((int) pos.z) + cellChunkY, side);
+        return cellHasFreeSideWorld(x * chunkSize + cellChunkX, y * chunkSize + cellChunkY, z * chunkSize + cellChunkZ, side);
+    }
+
+    public boolean cellHasFreeSideChunk(int cPos, int side) {
+        return cellHasFreeSideChunk(MathHelper.cell1Dto3D(cPos)[0], MathHelper.cell1Dto3D(cPos)[1], MathHelper.cell1Dto3D(cPos)[2], side);
     }
 
     public boolean cellHasFreeSideChunk(int cellX, int cellY, int cellZ, int side) {
         switch (side) {
             case 0:
-                return (getCell(cellX - 1, cellY, cellZ) == CellId.ID_AIR);
+                return (getCell(cellX - 1, cellY, cellZ) == CellId.ID_AIR || getCell(cellX - 1, cellY, cellZ) == Byte.MIN_VALUE);
             case 1:
-                return (getCell(cellX + 1, cellY, cellZ) == CellId.ID_AIR);
+                return (getCell(cellX + 1, cellY, cellZ) == CellId.ID_AIR || getCell(cellX + 1, cellY, cellZ) == Byte.MIN_VALUE);
             case 2:
-                return (getCell(cellX, cellY, cellZ - 1) == CellId.ID_AIR);
+                return (getCell(cellX, cellY, cellZ - 1) == CellId.ID_AIR || getCell(cellX, cellY, cellZ - 1) == Byte.MIN_VALUE);
             case 3:
-                return (getCell(cellX, cellY, cellZ + 1) == CellId.ID_AIR);
+                return (getCell(cellX, cellY, cellZ + 1) == CellId.ID_AIR || getCell(cellX, cellY, cellZ + 1) == Byte.MIN_VALUE);
             case 4:
-                return (getCell(cellX, cellY - 1, cellZ) == CellId.ID_AIR);
+                return (getCell(cellX, cellY - 1, cellZ) == CellId.ID_AIR || getCell(cellX, cellY - 1, cellZ) == Byte.MIN_VALUE);
             case 5:
-                return (getCell(cellX, cellY + 1, cellZ) == CellId.ID_AIR);
+                return (getCell(cellX, cellY + 1, cellZ) == CellId.ID_AIR || getCell(cellX, cellY + 1, cellZ) == Byte.MIN_VALUE);
             default:
+                System.out.println("Ouch!");
                 return false;
         }
     }

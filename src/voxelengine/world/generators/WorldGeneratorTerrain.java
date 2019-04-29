@@ -27,11 +27,12 @@ public class WorldGeneratorTerrain extends WorldGenerator {
             for (int i = 0; i < chunkSize; i++) {
                 for (int k = 0; k < chunkSize; k++) {
                     p = Math.abs(SimplexNoise.noise((c.x * chunkSize + i) * 0.01, (c.z * chunkSize + k) * 0.01)) * 10;
-                    for (int a = 0; a <= p; a++) {
-                        c.setCell(i, a, k, CellId.ID_GRASS);
+                    for (int a = 0; a < p; a++) {
+                        c.setCell(i, a, k, CellId.ID_DIRT);
                         c.generated = true;
                         c.markForUpdate(true);
                     }
+                    c.setCell(i, (int) p, k, CellId.ID_GRASS);
                 }
             }
         }
