@@ -16,7 +16,7 @@ public class WorldDecoratorTrees extends WorldDecorator {
             int a;
             for (int i = 0; i < chunkSize; i++) {
                 for (int k = 0; k < chunkSize; k++) {
-                    a = c.y * chunkSize +(c.getHighestYAt(i, k) + 1);
+                    a = c.getHighestYAt(i, k) + 1;
                     if (rand.nextFloat() <= 0.0015f && a != Integer.MAX_VALUE && c.getCell(i, a - 1, k) == CellId.ID_GRASS) {
                         generateTree(c, i, a, k);
                         c.markForUpdate(true);
