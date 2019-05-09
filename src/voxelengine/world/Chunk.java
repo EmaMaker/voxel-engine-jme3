@@ -40,6 +40,7 @@ public class Chunk extends AbstractControl {
     boolean toBeSet = true;
     boolean loaded = false;
     boolean phyLoaded = false;
+    boolean meshing = false;
     public boolean generated = false;
     public boolean decorated = false;
 
@@ -101,7 +102,7 @@ public class Chunk extends AbstractControl {
         }
 
         if (!isEmpty()) {
-            if (!loaded) {
+            if (!loaded && !meshing) {
                 loaded = true;
                 Globals.terrainNode.attachChild(chunkGeom);
                 chunkGeom.setCullHint(Spatial.CullHint.Never);
@@ -303,11 +304,12 @@ public class Chunk extends AbstractControl {
     }
 
     /**
-     * MESH CONSTRUCTING STUFF*
+     * MESH CONSTRUCTING STUFF
      */
     //Kinda better greedy meshing algorithm than before. Now expanding in both axis (X-Y, Z-Y, X-Z), not gonna try to connect in negative side, it's not needed
     public void kindaBetterGreedy() {
         clearAll();
+        meshing = true;
 
         for (int i = 0; i < meshed.length; i++) {
             for (int j = 0; j < 6; j++) {
@@ -529,6 +531,7 @@ public class Chunk extends AbstractControl {
                 chunkMesh.setBuffer(VertexBuffer.Type.Index, 3, BufferUtils.createShortBuffer(indices));
 
                 chunkMesh.updateBound();
+                meshing = false;
 //            clearAll();        
             }
         } catch (Exception e) {
@@ -613,6 +616,8 @@ public class Chunk extends AbstractControl {
             case 4:
                 return (getCell(cellX, cellY - 1, cellZ) == CellId.ID_AIR || getCell(cellX, cellY - 1, cellZ) == Byte.MIN_VALUE);
             case 5:
+                Globals.getWorldGenerator().dirtToGrass(this, cellX, cellY, cellZ);
+                Globals.getWorldGenerator().grassToDirt(this, cellX, cellY, cellZ);
                 return (getCell(cellX, cellY + 1, cellZ) == CellId.ID_AIR || getCell(cellX, cellY + 1, cellZ) == Byte.MIN_VALUE);
             default:
                 System.out.println("Ouch!");

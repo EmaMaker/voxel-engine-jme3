@@ -17,6 +17,7 @@ import com.jme3.input.controls.KeyTrigger;
 import com.jme3.input.controls.MouseAxisTrigger;
 import com.jme3.input.controls.MouseButtonTrigger;
 import com.jme3.material.Material;
+import com.jme3.math.Ray;
 import com.jme3.math.Vector3f;
 import com.jme3.scene.Geometry;
 import com.jme3.scene.shape.Box;
@@ -27,6 +28,7 @@ import voxelengine.VoxelEngine;
 import voxelengine.block.CellId;
 import voxelengine.block.TextureManager;
 import static voxelengine.utils.Globals.chunkSize;
+import static voxelengine.utils.Globals.debug;
 import voxelengine.world.WorldManager;
 import static voxelengine.utils.Globals.pX;
 import static voxelengine.utils.Globals.pY;
@@ -43,6 +45,8 @@ public class ControlsHandler extends AbstractAppState implements ActionListener,
 
     byte placeStep = 0;
     byte breakStep = 0;
+    public boolean placeBlock = false;
+    public boolean breakBlock = false;
 
     public int currentBlockId = CellId.ID_DIRT;
     public float currentBlockNum = 1;
@@ -110,8 +114,8 @@ public class ControlsHandler extends AbstractAppState implements ActionListener,
         app.getInputManager().addMapping("fastblock", new KeyTrigger(KeyInput.KEY_F));
         app.getInputManager().addMapping("camera", new KeyTrigger(KeyInput.KEY_C));
 
-//        app.getInputManager().addListener(this, "place");
-//        app.getInputManager().addListener(this, "remove");
+        app.getInputManager().addListener(this, "place");
+        app.getInputManager().addListener(this, "remove");
 
         app.getInputManager().addListener(this, "changeBlock+");
         app.getInputManager().addListener(this, "changeBlock-");
@@ -202,18 +206,20 @@ public class ControlsHandler extends AbstractAppState implements ActionListener,
         //removes the pointed
         switch (name) {
             case "remove":
-                breakStep++;
-                if (fastBlock || breakStep > 10) {
+//                breakStep++;
+//                if (fastBlock || breakStep > 10) {
 //                    breakBlock();
-                    breakStep = 0;
-                }
+                    breakBlock = true;
+//                    breakStep = 0;
+//                }
                 break;
             case "place":
-                placeStep++;
-                if (fastBlock || placeStep > 10) {
+//                placeStep++;
+//                if (fastBlock || placeStep > 10) {
 //                    placeBlock();
-                    placeStep = 0;
-                }
+                    placeBlock = true;
+//                    placeStep = 0;
+//                }
                 break;
 
             case "changeBlock+":
@@ -274,40 +280,34 @@ public class ControlsHandler extends AbstractAppState implements ActionListener,
         }
     }
 
-//    public void breakBlock() {
-//        debug("\n|===========================================|");
-//        Ray ray = new Ray(Globals.main.getCamera().getLocation(), Globals.main.getCamera().getDirection());
-//        Globals.terrainNode.collideWith(ray, results);
-//
-//        if (results.getClosestCollision() != null) {
-//            Vector3f pt = fixCoords(results.getClosestCollision().getContactPoint());
-//
+    public void breakBlock() {
+        debug("\n|===========================================|");
+        Ray ray = new Ray(Globals.main.getCamera().getLocation(), Globals.main.getCamera().getDirection());
+        Globals.terrainNode.collideWith(ray, results);
+
+        if (results.getClosestCollision() != null) {
+            Vector3f pt = fixCoords(results.getClosestCollision().getContactPoint());
+
 //            if (pt.distance(playerModel.getLocalTranslation()) < blockDistance) {
-//                prov.setCellFromVertices(findNearestVertices(pt), CellId.ID_AIR);
-//                Cell c = prov.getCellFromVertices(findNearestVertices(pt));
-//                if (c != null) {
-//                    c.setId(CellId.ID_AIR);
-//                    c.chunk.markForUpdate(true);
-//                    c.chunk.processCells();
-//                    c.chunk.refreshPhysics();
-//                }
+                prov.setCellFromVertices(findNearestVertices(pt), CellId.ID_AIR);
 //            }
-//        }
-//        results.clear();
-//        breakStep = 0;
-//        debug("|===========================================|\n");
-//    }
-//
-//    public void placeBlock() {
-//        debug("\n|===========================================|");
-//        Ray ray = new Ray(Globals.main.getCamera().getLocation(), Globals.main.getCamera().getDirection());
-//        Globals.terrainNode.collideWith(ray, results);
-//
-//        if (results.getClosestCollision() != null) {
-//            Vector3f pt = fixCoords(results.getClosestCollision().getContactPoint());
-//            //if (Math.sqrt(Math.pow(pt.x - pX * chunkSize, 2) + Math.pow(pt.y - pY * chunkSize, 2) + Math.pow(pt.z - pZ * chunkSize, 2)) <= Globals.getPickingDistance()) {
-//            if (pt.distance(playerModel.getLocalTranslation()) < blockDistance) {
-//
+            breakBlock = false;
+        }
+        results.clear();
+        breakStep = 0;
+        debug("|===========================================|\n");
+    }
+
+    public void placeBlock() {
+        debug("\n|===========================================|");
+        Ray ray = new Ray(Globals.main.getCamera().getLocation(), Globals.main.getCamera().getDirection());
+        Globals.terrainNode.collideWith(ray, results);
+
+        if (results.getClosestCollision() != null) {
+            Vector3f pt = fixCoords(results.getClosestCollision().getContactPoint());
+            //if (Math.sqrt(Math.pow(pt.x - pX * chunkSize, 2) + Math.pow(pt.y - pY * chunkSize, 2) + Math.pow(pt.z - pZ * chunkSize, 2)) <= Globals.getPickingDistance()) {
+            if (pt.distance(playerModel.getLocalTranslation()) < blockDistance) {
+
 //                Cell c = prov.getCellFromVertices(findNearestVertices(pt));
 //                if (c != null) {
 //                    int newX = c.worldX, newY = c.worldY, newZ = c.worldZ;
@@ -341,14 +341,15 @@ public class ControlsHandler extends AbstractAppState implements ActionListener,
 //                        prov.getCell(newX, newY, newZ).chunk.processCells();
 //                        prov.getCell(newX, newY, newZ).chunk.refreshPhysics();
 //                    }
-//                }
-//                results.clear();
-//                breakStep = 0;
-//                //}
+                }
+                results.clear();
+                placeStep = 0;
+                placeBlock = false;
+                //}
 //            }
-//        }
-//        debug("|===========================================|\n");
-//    }
+        }
+        debug("|===========================================|\n");
+    }
 
     public Vector3f fixCoords(Vector3f v) {
         unusualSymbols.setDecimalSeparator('.');

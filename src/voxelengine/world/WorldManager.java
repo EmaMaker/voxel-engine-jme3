@@ -11,11 +11,11 @@ import java.util.ArrayList;
 import java.util.Random;
 import java.util.concurrent.Callable;
 import voxelengine.block.CellId;
+import voxelengine.control.ControlsHandler;
 import voxelengine.utils.math.MathHelper;
 import voxelengine.utils.Globals;
 import static voxelengine.utils.Globals.chunkSize;
 import static voxelengine.utils.Globals.debug;
-import static voxelengine.utils.Globals.pX;
 import static voxelengine.utils.Globals.pX;
 import static voxelengine.utils.Globals.pY;
 import static voxelengine.utils.Globals.pZ;
@@ -29,6 +29,7 @@ public class WorldManager extends AbstractAppState {
     SimpleApplication app;
     Random rand = new Random();
     AppStateManager stateManager;
+    ControlsHandler controlHandler;
 
     public boolean updateChunks = true;
 
@@ -37,6 +38,7 @@ public class WorldManager extends AbstractAppState {
         super.initialize(stateManager, app);
         this.app = (SimpleApplication) app;
         this.stateManager = stateManager;
+        controlHandler = stateManager.getState(ControlsHandler.class);
         preload();
     }
 
@@ -170,8 +172,16 @@ public class WorldManager extends AbstractAppState {
     };
 
     void updateChunks() {
+
         try {
-            //first generates the chunks that have to be generated
+            if (controlHandler.placeBlock) {
+                controlHandler.placeBlock();
+
+            }
+            if (controlHandler.breakBlock) {
+                controlHandler.breakBlock();
+            }
+            
             for (int i = pX - renderDistance; i < pX + renderDistance; i++) {
                 for (int j = pY - renderDistance; j < pY + renderDistance; j++) {
                     for (int k = pZ - renderDistance; k < pZ + renderDistance; k++) {
