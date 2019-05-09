@@ -21,7 +21,7 @@ public class Main extends SimpleApplication {
         Globals.setWireFrameEnabled(false);
         Globals.setWorldGenerator(new WorldGeneratorTerrain());
         Globals.setWorldDecorator(new WorldDecoratorTrees());
-        Globals.enableDecorators(false);
+        Globals.enableDecorators(true);
         Globals.setRenderDistance(8);
         Globals.setDebugEnabled(false);
         Globals.setWorldHeight(4);

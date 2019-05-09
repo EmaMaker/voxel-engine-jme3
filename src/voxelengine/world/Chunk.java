@@ -50,8 +50,6 @@ public class Chunk extends AbstractControl {
     //public Cell[] cells = new Cell[chunkSize * chunkSize * chunkSize];
     public byte[] cells = new byte[chunkSize * chunkSize * chunkSize];
 
-    boolean[][] meshed = new boolean[cells.length][6];
-
     public Mesh chunkMesh = new Mesh();
     public Geometry chunkGeom;
     Vector3f pos = new Vector3f();
@@ -151,7 +149,7 @@ public class Chunk extends AbstractControl {
 
     public int getHighestYAt(int i, int j) {
         for (int a = chunkSize; a >= 0; a--) {
-            if (getCell(i, a, j) != Byte.MIN_VALUE) {
+            if (getCell(i, a, j) != Byte.MIN_VALUE && getCell(i, a, j) != CellId.ID_AIR) {
                 return a;
             }
         }
@@ -201,8 +199,10 @@ public class Chunk extends AbstractControl {
             this.unload();
             this.unloadPhysics();
 
-            if (Math.sqrt(Math.pow(x - pX, 2) + Math.pow(y - pY, 2) + Math.pow(z - pZ, 2)) > renderDistance * 1.5f) {
+            if (Math.sqrt(Math.pow(x - pX, 2) + Math.pow(y - pY, 2) + Math.pow(z - pZ, 2)) > renderDistance * 2.5f) {
                 saveToFile();
+                Globals.terrainNode.removeControl(this);
+                WorldManager.chunks[MathHelper.flatChunk3Dto1D(x, y, z)] = null;
             }
         } else {
             this.load();
@@ -241,8 +241,6 @@ public class Chunk extends AbstractControl {
                             + "," + cells[i]);
                 }
 
-                Globals.terrainNode.removeControl(this);
-                WorldManager.chunks[MathHelper.flatChunk3Dto1D(x, y, z)] = null;
                 writer.close();
             } catch (FileNotFoundException e) {
             }
@@ -303,6 +301,9 @@ public class Chunk extends AbstractControl {
         return v;
     }
 
+    
+
+    static boolean[][] meshed = new boolean[chunkSize*chunkSize*chunkSize][6];
     /**
      * MESH CONSTRUCTING STUFF
      */
