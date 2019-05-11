@@ -61,7 +61,7 @@ public class ControlsHandler extends AbstractAppState implements ActionListener,
     AppStateManager stateManager;
 
     //PLAYER CONTROLS
-    public Vector3f respawnPoint = new Vector3f(8, worldHeight*chunkSize+chunkSize, 8);
+    public Vector3f respawnPoint = new Vector3f(8, worldHeight * chunkSize + chunkSize, 8);
 
     Box box = new Box(0.4f, 0.8f, 0.4f);
     public Geometry playerModel = new Geometry("Player", box);
@@ -124,7 +124,7 @@ public class ControlsHandler extends AbstractAppState implements ActionListener,
 
         app.getInputManager().addListener(this, "boundingBox");
         app.getInputManager().addListener(this, "debug");
-        app.getInputManager().addListener(this, "fastblock");
+        //app.getInputManager().addListener(this, "fastblock");
         app.getInputManager().addListener(this, "camera");
 
         //PLAYER CONTROLS
@@ -218,7 +218,7 @@ public class ControlsHandler extends AbstractAppState implements ActionListener,
 //                placeStep++;
 //                if (fastBlock || placeStep > 10) {
 //                    placeBlock();
-                    placeBlock = true;
+                placeBlock = true;
 //                    placeStep = 0;
 //                }
                 break;
@@ -289,7 +289,7 @@ public class ControlsHandler extends AbstractAppState implements ActionListener,
         if (results.getClosestCollision() != null) {
             Vector3f pt = fixCoords(results.getClosestCollision().getContactPoint());
 //            if (pt.distance(playerModel.getLocalTranslation()) < blockDistance) {
-                prov.setCellFromVertices(findNearestVertices(pt), CellId.ID_AIR);
+            prov.setCellFromVertices(findNearestVertices(pt), CellId.ID_AIR);
 //            }
             breakBlock = false;
         }
@@ -297,16 +297,6 @@ public class ControlsHandler extends AbstractAppState implements ActionListener,
         breakStep = 0;
         debug("|===========================================|\n");
     }
-
-    public void placeBlock() {
-        debug("\n|===========================================|");
-        Ray ray = new Ray(Globals.main.getCamera().getLocation(), Globals.main.getCamera().getDirection());
-        Globals.terrainNode.collideWith(ray, results);
-
-        if (results.getClosestCollision() != null) {
-            Vector3f pt = fixCoords(results.getClosestCollision().getContactPoint());
-            //if (Math.sqrt(Math.pow(pt.x - pX * chunkSize, 2) + Math.pow(pt.y - pY * chunkSize, 2) + Math.pow(pt.z - pZ * chunkSize, 2)) <= Globals.getPickingDistance()) {
-            if (pt.distance(playerModel.getLocalTranslation()) < blockDistance) {
 
 //    public void placeBlock() {
 //        debug("\n|===========================================|");
@@ -351,16 +341,14 @@ public class ControlsHandler extends AbstractAppState implements ActionListener,
 //                        prov.getCell(newX, newY, newZ).chunk.processCells();
 //                        prov.getCell(newX, newY, newZ).chunk.refreshPhysics();
 //                    }
-                }
-                results.clear();
-                placeStep = 0;
-                placeBlock = false;
-                //}
+    // }
+    //results.clear();
+    //placeStep = 0;
+    //placeBlock = false;
+    //}
 //            }
-        }
-        debug("|===========================================|\n");
-    }
-
+    //debug("|===========================================|\n");
+    //}
     public Vector3f fixCoords(Vector3f v) {
         unusualSymbols.setDecimalSeparator('.');
         df.setDecimalFormatSymbols(unusualSymbols);
