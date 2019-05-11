@@ -20,6 +20,7 @@ import static voxelengine.utils.Globals.pX;
 import static voxelengine.utils.Globals.pY;
 import static voxelengine.utils.Globals.pZ;
 import static voxelengine.utils.Globals.renderDistance;
+import voxelengine.world.generators.WorldGeneratorBase;
 
 public class WorldManager extends AbstractAppState {
 
@@ -44,11 +45,12 @@ public class WorldManager extends AbstractAppState {
     }
 
     public void preload() {
-        Globals.executor.submit(chunkManager);
-
         if (Globals.isTesting()) {
-            updateChunks = false;
+            updateChunks = true;
+            generateChunks = false;
 
+            Globals.setWorldGenerator(new WorldGeneratorBase(3));
+            
             for (int i = 0; i < 1; i++) {
                 for (int j = 0; j < 1; j++) {
                     chunks[MathHelper.flatChunk3Dto1D(i, 0, j)] = new Chunk(i, 0, j);
@@ -59,12 +61,11 @@ public class WorldManager extends AbstractAppState {
                 }
             }
         }
+        Globals.executor.submit(chunkManager);
     }
 
     @Override
     public void update(float tpf) {
-        updateChunks = true;
-//        updateChunks();
     }
 
     //replaces the Cell.setId(id), and replaces making all the cell air when chunk is created. Commento storico del 2016 (Si, lo so che è il 2019 ora) - historical comment from 2016 (Yes, I know it's 2019 now)
@@ -173,17 +174,17 @@ public class WorldManager extends AbstractAppState {
     };
 
     void updateChunks() {
-
         try {
-
-            for (int i = pX - renderDistance; i < pX + renderDistance; i++) {
-                for (int j = pY - renderDistance; j < pY + renderDistance; j++) {
-                    for (int k = pZ - renderDistance; k < pZ + renderDistance; k++) {
+            for (int i = pX - renderDistance; i < pX + renderDistance*1.5; i++) {
+                for (int j = pY - renderDistance; j < pY + renderDistance*1.5; j++) {
+                    for (int k = pZ - renderDistance; k < pZ + renderDistance*1.5; k++) {
 
                         if (i >= 0 && i < MAXX && j >= 0 && j < MAXY && k >= 0 && k < MAXZ) {
                             if (chunks[MathHelper.flatChunk3Dto1D(i, j, k)] != null) {
-                                chunks[MathHelper.flatChunk3Dto1D(i, j, k)].generate();
-                                chunks[MathHelper.flatChunk3Dto1D(i, j, k)].decorate();
+                                if (generateChunks) {
+                                    chunks[MathHelper.flatChunk3Dto1D(i, j, k)].generate();
+                                    chunks[MathHelper.flatChunk3Dto1D(i, j, k)].decorate();
+                                }
                                 chunks[MathHelper.flatChunk3Dto1D(i, j, k)].processCells();
                             } else {
                                 if (j <= Globals.getWorldHeight()) {

@@ -39,6 +39,7 @@ public class Chunk extends AbstractControl {
 
     boolean toBeSet = true;
     boolean loaded = false;
+    boolean toUnload = false;
     boolean phyLoaded = false;
     boolean meshing = false;
     public boolean generated = false;
@@ -86,10 +87,10 @@ public class Chunk extends AbstractControl {
     public void processCells() {
         if (toBeSet) {
             debug("Updating " + this.toString() + " at " + x + ", " + y + ", " + z);
-            
-            for(int i = 0; i < chunkSize; i++){
-                for(int j = 0; j < chunkSize; j++){
-                    for(int k = 0; k < chunkSize; k++){
+
+            for (int i = 0; i < chunkSize; i++) {
+                for (int j = 0; j < chunkSize; j++) {
+                    for (int k = 0; k < chunkSize; k++) {
                         dirtToGrass(i, j, k);
                         grassToDirt(i, j, k);
                     }
@@ -98,7 +99,7 @@ public class Chunk extends AbstractControl {
             kindaBetterGreedy();
 
             toBeSet = false;
-            loaded = false;
+//            toUnload = true;
         }
     }
 
@@ -111,6 +112,7 @@ public class Chunk extends AbstractControl {
         if (!isEmpty()) {
             if (!loaded && !meshing) {
                 loaded = true;
+                meshing = false;
                 Globals.terrainNode.attachChild(chunkGeom);
                 chunkGeom.setCullHint(Spatial.CullHint.Never);
             }
@@ -144,6 +146,7 @@ public class Chunk extends AbstractControl {
             chunkGeom.getControl(RigidBodyControl.class).setEnabled(false);
             chunkGeom.removeControl(chunkGeom.getControl(RigidBodyControl.class));
             Globals.main.getStateManager().getState(BulletAppState.class).getPhysicsSpace().remove(chunkGeom);
+            Globals.main.getStateManager().getState(BulletAppState.class).getPhysicsSpace().remove(chunkGeom.getControl(RigidBodyControl.class));
         }
     }
 
@@ -203,8 +206,13 @@ public class Chunk extends AbstractControl {
 
     @Override
     protected void controlUpdate(float tpf) {
+//        if (toUnload) {
+//            this.unload();
+//            this.unloadPhysics();
+//            toUnload = false;
+//        }
 
-        if (Math.sqrt(Math.pow(x - pX, 2) + Math.pow(y - pY, 2) + Math.pow(z - pZ, 2)) > renderDistance /*|| !isVisible()*/) {
+        if ((Math.sqrt(Math.pow(x - pX, 2) + Math.pow(y - pY, 2) + Math.pow(z - pZ, 2)) > renderDistance)) {
             this.unload();
             this.unloadPhysics();
 
@@ -236,7 +244,7 @@ public class Chunk extends AbstractControl {
         return true;
     }
 
-    //Saves the chunk to text file, with format X Y Z ID, separated by commas
+    //Saves the chunk to text file, with format X Y Z ID, separated by spaces
     public void saveToFile() {
         File f = Paths.get(Globals.workingDir + x + "-" + y + "-" + z + ".chunk").toFile();
         int[] coords;
@@ -510,6 +518,7 @@ public class Chunk extends AbstractControl {
                         indicesList.add(i1);
                         indicesList.add(i0);
 
+                        meshing = false;
                         setMesh();
                     }
                 }
@@ -540,7 +549,6 @@ public class Chunk extends AbstractControl {
                 chunkMesh.setBuffer(VertexBuffer.Type.Index, 3, BufferUtils.createShortBuffer(indices));
 
                 chunkMesh.updateBound();
-                meshing = false;
 //            clearAll();        
             }
         } catch (Exception e) {

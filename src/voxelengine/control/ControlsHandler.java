@@ -25,6 +25,7 @@ import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.ArrayList;
 import javafx.scene.control.Cell;
+import voxelengine.Main;
 import voxelengine.VoxelEngine;
 import voxelengine.block.CellId;
 import voxelengine.block.TextureManager;
@@ -210,9 +211,9 @@ public class ControlsHandler extends AbstractAppState implements ActionListener,
             case "remove":
                 breakStep++;
 //                if (fastBlock || breakStep > 10) {
-                    //breakBlock();
-                    breakBlock = true;
-                    breakStep = 0;
+                //breakBlock();
+                breakBlock = true;
+                breakStep = 0;
 //                }
                 break;
             case "place":
@@ -282,18 +283,24 @@ public class ControlsHandler extends AbstractAppState implements ActionListener,
         }
     }
 
+    Vector3f oldPt = Vector3f.NAN, pt;
+
     public void breakBlock() {
         debug("\n|===========================================|");
         Ray ray = new Ray(Globals.main.getCamera().getLocation(), Globals.main.getCamera().getDirection());
         Globals.terrainNode.collideWith(ray, results);
 
+
         if (results.getClosestCollision() != null) {
             Vector3f pt = fixCoords(results.getClosestCollision().getContactPoint());
-            if (pt.distance(playerModel.getLocalTranslation()) < blockDistance) {
+            if (pt.distance(app.getCamera().getLocation()) < blockDistance) {
                 prov.setCellFromVertices(findNearestVertices(pt), CellId.ID_AIR);
+                results.clear();
             }
         }
-        results.clear();
+        for(int i = 0; i < 3; i++){
+            debug(results.getCollision(i).getContactPoint());
+        }
         breakBlock = false;
         breakStep = 0;
         debug("|===========================================|\n");
@@ -364,7 +371,7 @@ public class ControlsHandler extends AbstractAppState implements ActionListener,
         if (fz - (int) v.z == .99) {
             fz += 0.1f;
         }
-        return new Vector3f(fx, fy, fz);
+        return new Vector3f((int) fx, (int) fy, (int) fz);
     }
 
     //finds the 4 nearest vertices (a face of a cell) in the given chunk relative to the given vector

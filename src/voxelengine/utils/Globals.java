@@ -68,6 +68,10 @@ public class Globals extends AbstractAppState {
         mat.getAdditionalRenderState().setFaceCullMode(RenderState.FaceCullMode.Off);
     }
 
+    @Override
+    public void update(float tpf) {
+    }
+    
     //Actually only does prints in console things, but it's useful to not comment the debug lines each time, but only pressing a key
     public static void debug(Object... s) {
         if (enableDebug) {
