@@ -32,6 +32,7 @@ public class WorldManager extends AbstractAppState {
     ControlsHandler controlHandler;
 
     public boolean updateChunks = true;
+    public boolean generateChunks = true;
 
     @Override
     public void initialize(AppStateManager stateManager, Application app) {
@@ -43,7 +44,7 @@ public class WorldManager extends AbstractAppState {
     }
 
     public void preload() {
-//        Globals.executor.submit(chunkManager);
+        Globals.executor.submit(chunkManager);
 
         if (Globals.isTesting()) {
             updateChunks = false;
@@ -63,7 +64,7 @@ public class WorldManager extends AbstractAppState {
     @Override
     public void update(float tpf) {
         updateChunks = true;
-        updateChunks();
+//        updateChunks();
     }
 
     //replaces the Cell.setId(id), and replaces making all the cell air when chunk is created. Commento storico del 2016 (Si, lo so che è il 2019 ora) - historical comment from 2016 (Yes, I know it's 2019 now)

@@ -17,7 +17,7 @@ public class Main extends SimpleApplication {
     public void simpleInitApp() {
         Globals.setPlayerEnabled(true);
         Globals.setPhysicsEnabled(true);
-        Globals.setTesting(false);
+        Globals.setTesting(true);
         Globals.setWireFrameEnabled(false);
         Globals.setWorldGenerator(new WorldGeneratorTerrain());
         Globals.setWorldDecorator(new WorldDecoratorTrees());

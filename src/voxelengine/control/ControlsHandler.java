@@ -209,10 +209,11 @@ public class ControlsHandler extends AbstractAppState implements ActionListener,
         switch (name) {
             case "remove":
                 breakStep++;
-                if (fastBlock || breakStep > 10) {
-                    breakBlock();
+//                if (fastBlock || breakStep > 10) {
+                    //breakBlock();
+                    breakBlock = true;
                     breakStep = 0;
-                }
+//                }
                 break;
             case "place":
 //                placeStep++;
@@ -288,12 +289,12 @@ public class ControlsHandler extends AbstractAppState implements ActionListener,
 
         if (results.getClosestCollision() != null) {
             Vector3f pt = fixCoords(results.getClosestCollision().getContactPoint());
-//            if (pt.distance(playerModel.getLocalTranslation()) < blockDistance) {
-            prov.setCellFromVertices(findNearestVertices(pt), CellId.ID_AIR);
-//            }
-            breakBlock = false;
+            if (pt.distance(playerModel.getLocalTranslation()) < blockDistance) {
+                prov.setCellFromVertices(findNearestVertices(pt), CellId.ID_AIR);
+            }
         }
         results.clear();
+        breakBlock = false;
         breakStep = 0;
         debug("|===========================================|\n");
     }
