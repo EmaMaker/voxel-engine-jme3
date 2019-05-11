@@ -26,7 +26,7 @@ public class WorldGeneratorTerrain extends WorldGenerator {
         } else if (c.y == Globals.getWorldHeight()) {
             for (int i = 0; i < chunkSize; i++) {
                 for (int k = 0; k < chunkSize; k++) {
-                    p = Math.abs(SimplexNoise.noise((c.x * chunkSize + i) * 0.01, (c.z * chunkSize + k) * 0.01)) * 10;
+                    p = 1 + Math.abs(SimplexNoise.noise((c.x * chunkSize + i) * 0.01, (c.z * chunkSize + k) * 0.01)) * 10;
                     for (int a = 0; a < p; a++) {
                         c.setCell(i, a, k, CellId.ID_GRASS);
                         c.generated = true;

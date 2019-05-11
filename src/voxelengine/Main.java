@@ -24,7 +24,7 @@ public class Main extends SimpleApplication {
         Globals.enableDecorators(true);
         Globals.setRenderDistance(8);
         Globals.setDebugEnabled(false);
-        Globals.setWorldHeight(4);
+        Globals.setWorldHeight(0);
         
         Globals.LOAD_FROM_FILE = false;
         Globals.SAVE_ON_EXIT = false;

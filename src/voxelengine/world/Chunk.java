@@ -86,6 +86,15 @@ public class Chunk extends AbstractControl {
     public void processCells() {
         if (toBeSet) {
             debug("Updating " + this.toString() + " at " + x + ", " + y + ", " + z);
+            
+            for(int i = 0; i < chunkSize; i++){
+                for(int j = 0; j < chunkSize; j++){
+                    for(int k = 0; k < chunkSize; k++){
+                        dirtToGrass(i, j, k);
+                        grassToDirt(i, j, k);
+                    }
+                }
+            }
             kindaBetterGreedy();
 
             toBeSet = false;
@@ -301,9 +310,8 @@ public class Chunk extends AbstractControl {
         return v;
     }
 
-    
+    static boolean[][] meshed = new boolean[chunkSize * chunkSize * chunkSize][6];
 
-    static boolean[][] meshed = new boolean[chunkSize*chunkSize*chunkSize][6];
     /**
      * MESH CONSTRUCTING STUFF
      */
@@ -617,12 +625,22 @@ public class Chunk extends AbstractControl {
             case 4:
                 return (getCell(cellX, cellY - 1, cellZ) == CellId.ID_AIR || getCell(cellX, cellY - 1, cellZ) == Byte.MIN_VALUE);
             case 5:
-                Globals.getWorldGenerator().dirtToGrass(this, cellX, cellY, cellZ);
-                Globals.getWorldGenerator().grassToDirt(this, cellX, cellY, cellZ);
                 return (getCell(cellX, cellY + 1, cellZ) == CellId.ID_AIR || getCell(cellX, cellY + 1, cellZ) == Byte.MIN_VALUE);
             default:
                 System.out.println("Ouch!");
                 return false;
+        }
+    }
+
+    public void dirtToGrass(int cellX, int cellY, int cellZ) {
+        if (getCell(cellX, cellY, cellZ) == CellId.ID_DIRT && getCell(cellX, cellY + 1, cellZ) == CellId.ID_AIR) {
+            setCell(cellX, cellY, cellZ, CellId.ID_GRASS);
+        }
+    }
+
+    public void grassToDirt(int cellX, int cellY, int cellZ) {
+        if (getCell(cellX, cellY, cellZ) == CellId.ID_GRASS && getCell(cellX, cellY + 1, cellZ) != CellId.ID_AIR) {
+            setCell(cellX, cellY, cellZ, CellId.ID_DIRT);
         }
     }
 }

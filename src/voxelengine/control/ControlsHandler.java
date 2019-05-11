@@ -288,25 +288,16 @@ public class ControlsHandler extends AbstractAppState implements ActionListener,
 
         if (results.getClosestCollision() != null) {
             Vector3f pt = fixCoords(results.getClosestCollision().getContactPoint());
-
-<<<<<<< HEAD
 //            if (pt.distance(playerModel.getLocalTranslation()) < blockDistance) {
                 prov.setCellFromVertices(findNearestVertices(pt), CellId.ID_AIR);
 //            }
             breakBlock = false;
-=======
-            if (pt.distance(playerModel.getLocalTranslation()) < blockDistance) {
-                prov.setCellFromVertices(findNearestVertices(pt), CellId.ID_AIR);
-                debug(pt.toString());
-            }
->>>>>>> bc9a5a82ae86ec7dfb9777ae3831d671cdc99bd3
         }
         results.clear();
         breakStep = 0;
         debug("|===========================================|\n");
     }
 
-<<<<<<< HEAD
     public void placeBlock() {
         debug("\n|===========================================|");
         Ray ray = new Ray(Globals.main.getCamera().getLocation(), Globals.main.getCamera().getDirection());
@@ -317,7 +308,6 @@ public class ControlsHandler extends AbstractAppState implements ActionListener,
             //if (Math.sqrt(Math.pow(pt.x - pX * chunkSize, 2) + Math.pow(pt.y - pY * chunkSize, 2) + Math.pow(pt.z - pZ * chunkSize, 2)) <= Globals.getPickingDistance()) {
             if (pt.distance(playerModel.getLocalTranslation()) < blockDistance) {
 
-=======
 //    public void placeBlock() {
 //        debug("\n|===========================================|");
 //        Ray ray = new Ray(Globals.main.getCamera().getLocation(), Globals.main.getCamera().getDirection());
@@ -328,7 +318,6 @@ public class ControlsHandler extends AbstractAppState implements ActionListener,
 //            //if (Math.sqrt(Math.pow(pt.x - pX * chunkSize, 2) + Math.pow(pt.y - pY * chunkSize, 2) + Math.pow(pt.z - pZ * chunkSize, 2)) <= Globals.getPickingDistance()) {
 //            if (pt.distance(playerModel.getLocalTranslation()) < blockDistance) {
 //
->>>>>>> bc9a5a82ae86ec7dfb9777ae3831d671cdc99bd3
 //                Cell c = prov.getCellFromVertices(findNearestVertices(pt));
 //                if (c != null) {
 //                    int newX = c.worldX, newY = c.worldY, newZ = c.worldZ;
