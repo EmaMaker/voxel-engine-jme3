@@ -86,7 +86,6 @@ public class Chunk extends AbstractControl {
 
     public void processCells() {
         if (toBeSet) {
-            debug("Updating " + this.toString() + " at " + x + ", " + y + ", " + z);
 
             for (int i = 0; i < chunkSize; i++) {
                 for (int j = 0; j < chunkSize; j++) {
@@ -99,25 +98,22 @@ public class Chunk extends AbstractControl {
             kindaBetterGreedy();
 
             toBeSet = false;
-//            toUnload = true;
+//            toUnload = true;      
+            debug("Updated " + this.toString() + " at " + x + ", " + y + ", " + z);
         }
     }
-
+    
     public void load() {
         //on first load, Global material is null because it hasn't been initialized yet, so it's set here
         if (chunkGeom.getMaterial() == null) {
             chunkGeom.setMaterial(Globals.mat);
         }
 
-        if (!isEmpty()) {
-            if (!loaded && !meshing) {
-                loaded = true;
-                meshing = false;
-                Globals.terrainNode.attachChild(chunkGeom);
-                chunkGeom.setCullHint(Spatial.CullHint.Never);
-            }
-        } else {
-            unload();
+        if (!loaded) {
+            loaded = true;
+            meshing = false;
+            Globals.terrainNode.attachChild(chunkGeom);
+            chunkGeom.setCullHint(Spatial.CullHint.Never);
         }
     }
 
@@ -141,12 +137,11 @@ public class Chunk extends AbstractControl {
 
     public void unloadPhysics() {
         if (phyLoaded && Globals.phyEnabled()) {
-            phyLoaded = false;
 
             chunkGeom.getControl(RigidBodyControl.class).setEnabled(false);
             chunkGeom.removeControl(chunkGeom.getControl(RigidBodyControl.class));
-            Globals.main.getStateManager().getState(BulletAppState.class).getPhysicsSpace().remove(chunkGeom);
-            Globals.main.getStateManager().getState(BulletAppState.class).getPhysicsSpace().remove(chunkGeom.getControl(RigidBodyControl.class));
+            //Globals.main.getStateManager().getState(BulletAppState.class).getPhysicsSpace().remove(chunkGeom);
+            phyLoaded = false;
         }
     }
 
@@ -216,7 +211,7 @@ public class Chunk extends AbstractControl {
             this.unload();
             this.unloadPhysics();
 
-            if (Math.sqrt(Math.pow(x - pX, 2) + Math.pow(y - pY, 2) + Math.pow(z - pZ, 2)) > renderDistance * 2.5f) {
+            if (Math.sqrt(Math.pow(x - pX, 2) + Math.pow(y - pY, 2) + Math.pow(z - pZ, 2)) > renderDistance*2.5f) {
                 saveToFile();
                 Globals.terrainNode.removeControl(this);
                 WorldManager.chunks[MathHelper.flatChunk3Dto1D(x, y, z)] = null;
@@ -651,4 +646,9 @@ public class Chunk extends AbstractControl {
             setCell(cellX, cellY, cellZ, CellId.ID_DIRT);
         }
     }
+    
+    public String info(){
+        return (this.toString() + " at " + x + ", " + y + ", " + z);
+    }
+
 }

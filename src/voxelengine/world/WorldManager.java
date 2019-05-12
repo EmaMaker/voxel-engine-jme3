@@ -100,6 +100,10 @@ public class WorldManager extends AbstractAppState {
 
         return chunks[MathHelper.flatChunk3Dto1D(chunkX, chunkY, chunkZ)];
     }
+    
+    public void setChunk(int i, int j, int k, Chunk c){
+        chunks[MathHelper.flatChunk3Dto1D(i, j, k)] = c;
+    }
 
     public void setCellFromVertices(ArrayList<Vector3f> al, byte id) {
         setCell(getCellPosFromVertices(al), id);

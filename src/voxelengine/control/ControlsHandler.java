@@ -24,8 +24,6 @@ import com.jme3.scene.shape.Box;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.ArrayList;
-import javafx.scene.control.Cell;
-import voxelengine.Main;
 import voxelengine.VoxelEngine;
 import voxelengine.block.CellId;
 import voxelengine.block.TextureManager;
@@ -36,7 +34,7 @@ import static voxelengine.utils.Globals.pX;
 import static voxelengine.utils.Globals.pY;
 import static voxelengine.utils.Globals.pZ;
 import static voxelengine.utils.Globals.worldHeight;
-import voxelengine.utils.math.MathHelper;
+import voxelengine.world.Chunk;
 
 public class ControlsHandler extends AbstractAppState implements ActionListener, AnalogListener {
 
@@ -210,11 +208,11 @@ public class ControlsHandler extends AbstractAppState implements ActionListener,
         switch (name) {
             case "remove":
                 breakStep++;
-//                if (fastBlock || breakStep > 10) {
-                //breakBlock();
-                breakBlock = true;
-                breakStep = 0;
-//                }
+                if (fastBlock || breakStep > 10) {
+//                breakBlock();
+                    breakBlock = true;
+                    breakStep = 0;
+                }
                 break;
             case "place":
 //                placeStep++;
@@ -286,24 +284,21 @@ public class ControlsHandler extends AbstractAppState implements ActionListener,
     Vector3f oldPt = Vector3f.NAN, pt;
 
     public void breakBlock() {
-        debug("\n|===========================================|");
+        debug("|===========================================|");
         Ray ray = new Ray(Globals.main.getCamera().getLocation(), Globals.main.getCamera().getDirection());
+        results.clear();
         Globals.terrainNode.collideWith(ray, results);
 
-
         if (results.getClosestCollision() != null) {
-            Vector3f pt = fixCoords(results.getClosestCollision().getContactPoint());
+            pt = fixCoords(results.getClosestCollision().getContactPoint());
             if (pt.distance(app.getCamera().getLocation()) < blockDistance) {
                 prov.setCellFromVertices(findNearestVertices(pt), CellId.ID_AIR);
-                results.clear();
             }
         }
-        for(int i = 0; i < 3; i++){
-            debug(results.getCollision(i).getContactPoint());
-        }
+        results.clear();
         breakBlock = false;
         breakStep = 0;
-        debug("|===========================================|\n");
+        debug("|===========================================|");
     }
 
 //    public void placeBlock() {
@@ -371,7 +366,7 @@ public class ControlsHandler extends AbstractAppState implements ActionListener,
         if (fz - (int) v.z == .99) {
             fz += 0.1f;
         }
-        return new Vector3f((int) fx, (int) fy, (int) fz);
+        return new Vector3f(fx, fy, fz);
     }
 
     //finds the 4 nearest vertices (a face of a cell) in the given chunk relative to the given vector
