@@ -61,12 +61,25 @@ public class WorldManager extends AbstractAppState {
                 }
             }
         }
-//        Globals.executor.submit(chunkManager);
+        Globals.executor.submit(chunkManager);
     }
 
     @Override
     public void update(float tpf) {
-        updateChunks();
+        
+            for (int i = pX - renderDistance; i < pX + renderDistance * 1.5; i++) {
+                for (int j = pY - renderDistance; j < pY + renderDistance * 1.5; j++) {
+                    for (int k = pZ - renderDistance; k < pZ + renderDistance * 1.5; k++) {
+
+                        if (i >= 0 && i < MAXX && j >= 0 && j < MAXY && k >= 0 && k < MAXZ) {
+                            if (chunks[MathHelper.flatChunk3Dto1D(i, j, k)] != null) {
+                                chunks[MathHelper.flatChunk3Dto1D(i, j, k)].updateMesh();
+                            }
+                        }
+                    }
+                }
+            }
+//        updateChunks();
     }
 
     //replaces the Cell.setId(id), and replaces making all the cell air when chunk is created. Commento storico del 2016 (Si, lo so che è il 2019 ora) - historical comment from 2016 (Yes, I know it's 2019 now)
