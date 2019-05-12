@@ -101,8 +101,8 @@ public class Chunk extends AbstractControl {
 
             kindaBetterGreedy();
             //if (Thread.currentThread() == VoxelEngine.mainThread) {
-            unload();
-            unloadPhysics();
+//            unload();
+//            unloadPhysics();
             keepUpdating = false;
 
             chunkMesh = new Mesh();
@@ -660,5 +660,6 @@ public class Chunk extends AbstractControl {
     public String info() {
         return (this.toString() + " at " + x + ", " + y + ", " + z);
     }
+
 
 }

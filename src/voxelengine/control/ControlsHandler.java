@@ -123,7 +123,7 @@ public class ControlsHandler extends AbstractAppState implements ActionListener,
 
         app.getInputManager().addListener(this, "boundingBox");
         app.getInputManager().addListener(this, "debug");
-        //app.getInputManager().addListener(this, "fastblock");
+        app.getInputManager().addListener(this, "fastblock");
         app.getInputManager().addListener(this, "camera");
 
         //PLAYER CONTROLS
@@ -214,12 +214,11 @@ public class ControlsHandler extends AbstractAppState implements ActionListener,
                 }
                 break;
             case "place":
-//                placeStep++;
-//                if (fastBlock || placeStep > 10) {
-//                    placeBlock();
-                placeBlock = true;
-//                    placeStep = 0;
-//                }
+                placeStep++;
+                if (fastBlock || placeStep > 10) {
+                    placeBlock();
+                    placeStep = 0;
+                }
                 break;
 
             case "changeBlock+":
@@ -280,7 +279,9 @@ public class ControlsHandler extends AbstractAppState implements ActionListener,
         }
     }
 
-    Vector3f oldPt = Vector3f.NAN, pt;
+    Vector3f pt, v;
+    ArrayList<Vector3f> vs;
+    int newX, newY, newZ;
 
     public void breakBlock() {
         debug("|===========================================|");
@@ -294,62 +295,67 @@ public class ControlsHandler extends AbstractAppState implements ActionListener,
             }
         }
         results.clear();
-        breakBlock = false;
-        breakStep = 0;
         debug("|===========================================|");
     }
 
-//    public void placeBlock() {
-//        debug("\n|===========================================|");
-//        Ray ray = new Ray(Globals.main.getCamera().getLocation(), Globals.main.getCamera().getDirection());
-//        Globals.terrainNode.collideWith(ray, results);
-//
-//        if (results.getClosestCollision() != null) {
-//            Vector3f pt = fixCoords(results.getClosestCollision().getContactPoint());
-//            //if (Math.sqrt(Math.pow(pt.x - pX * chunkSize, 2) + Math.pow(pt.y - pY * chunkSize, 2) + Math.pow(pt.z - pZ * chunkSize, 2)) <= Globals.getPickingDistance()) {
-//            if (pt.distance(playerModel.getLocalTranslation()) < blockDistance) {
-//
-//                Cell c = prov.getCellFromVertices(findNearestVertices(pt));
-//                if (c != null) {
-//                    int newX = c.worldX, newY = c.worldY, newZ = c.worldZ;
-//                    switch (c.getFaceFromVertices(findNearestVertices(pt))) {
-//                        case 0:
-//                            newX = c.worldX - 1;
-//                            break;
-//                        case 1:
-//                            newX = c.worldX + 1;
-//                            break;
-//                        case 2:
-//                            newZ = c.worldZ - 1;
-//                            break;
-//                        case 3:
-//                            newZ = c.worldZ + 1;
-//                            break;
-//                        case 4:
-//                            newY = c.worldY + 1;
-//                            break;
-//                        case 5:
-//                            newY = c.worldY - 1;
-//                            break;
-//                        default:
-//                            break;
-//                    }
-//                    
-//                    prov.setCell(newX, newY, newZ, currentBlockId);
-//
-//                    if (prov.getCell(newX, newY, newZ) != null) {
-//                        prov.getCell(newX, newY, newZ).chunk.markForUpdate(true);
-//                        prov.getCell(newX, newY, newZ).chunk.processCells();
-//                        prov.getCell(newX, newY, newZ).chunk.refreshPhysics();
-//                    }
-    // }
-    //results.clear();
-    //placeStep = 0;
-    //placeBlock = false;
-    //}
-//            }
-    //debug("|===========================================|\n");
-    //}
+    public void placeBlock() {
+        debug("\n|===========================================|");
+        Ray ray = new Ray(Globals.main.getCamera().getLocation(), Globals.main.getCamera().getDirection());
+        Globals.terrainNode.collideWith(ray, results);
+
+        if (results.getClosestCollision() != null) {
+            pt = fixCoords(results.getClosestCollision().getContactPoint());
+            //if (Math.sqrt(Math.pow(pt.x - pX * chunkSize, 2) + Math.pow(pt.y - pY * chunkSize, 2) + Math.pow(pt.z - pZ * chunkSize, 2)) <= Globals.getPickingDistance()) {
+            if (pt.distance(playerModel.getLocalTranslation()) < blockDistance) {
+
+                vs = findNearestVertices(pt);
+                v = prov.getCellPosFromVertices(vs);
+                newX = (int) pt.x;
+                newY = (int) pt.y;
+                newZ = (int) pt.z;
+
+                switch (getFaceFromVertices(vs, (int) pt.x, (int) pt.y, (int) pt.z)) {
+                    case 0:
+                        newX--;
+                        break;
+                    case 2:
+                        newZ--;
+                        break;
+                    case 5:
+                        newY++;
+                        break;
+                    default:
+                        break;
+                }
+
+                prov.setCell(newX, newY, newZ, (byte) currentBlockId);
+                results.clear();
+            }
+        }
+        debug("|===========================================|\n");
+    }
+
+    public byte getFaceFromVertices(ArrayList<Vector3f> al, int worldX, int worldY, int worldZ) {
+        System.out.println(al + ", " + worldX + ", " + worldY + ", " + worldZ);
+        if (al.get(0).x == al.get(1).x && al.get(0).x == al.get(2).x && al.get(0).x == al.get(3).x) {
+            if (al.get(0).x == worldX) {
+                return 0;
+            }
+            return 1;
+        } else if (al.get(0).y == al.get(1).y && al.get(0).y == al.get(2).y && al.get(0).y == al.get(3).y) {
+            if (al.get(0).y == worldY) {
+                return 5;
+            }
+            return 4;
+        } else if (al.get(0).z == al.get(1).z && al.get(0).z == al.get(2).z && al.get(0).z == al.get(3).z) {
+            if (al.get(0).z == worldZ) {
+                return 2;
+            }
+            return 3;
+        }
+        return Byte.MAX_VALUE;
+    }
+
     public Vector3f fixCoords(Vector3f v) {
         unusualSymbols.setDecimalSeparator('.');
         df.setDecimalFormatSymbols(unusualSymbols);
