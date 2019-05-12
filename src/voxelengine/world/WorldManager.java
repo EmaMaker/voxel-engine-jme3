@@ -50,7 +50,7 @@ public class WorldManager extends AbstractAppState {
             generateChunks = false;
 
             Globals.setWorldGenerator(new WorldGeneratorBase(3));
-            
+
             for (int i = 0; i < 1; i++) {
                 for (int j = 0; j < 1; j++) {
                     chunks[MathHelper.flatChunk3Dto1D(i, 0, j)] = new Chunk(i, 0, j);
@@ -61,11 +61,12 @@ public class WorldManager extends AbstractAppState {
                 }
             }
         }
-        Globals.executor.submit(chunkManager);
+//        Globals.executor.submit(chunkManager);
     }
 
     @Override
     public void update(float tpf) {
+        updateChunks();
     }
 
     //replaces the Cell.setId(id), and replaces making all the cell air when chunk is created. Commento storico del 2016 (Si, lo so che è il 2019 ora) - historical comment from 2016 (Yes, I know it's 2019 now)
@@ -100,12 +101,11 @@ public class WorldManager extends AbstractAppState {
 
         return chunks[MathHelper.flatChunk3Dto1D(chunkX, chunkY, chunkZ)];
     }
-    
-    public void setChunk(int i, int j, int k, Chunk c){
+
+    public void setChunk(int i, int j, int k, Chunk c) {
         chunks[MathHelper.flatChunk3Dto1D(i, j, k)] = c;
     }
 
-    
     public void setCellFromVertices(ArrayList<Vector3f> al, byte id) {
         setCell(getCellPosFromVertices(al), id);
     }
@@ -185,12 +185,12 @@ public class WorldManager extends AbstractAppState {
                 controlHandler.placeBlock = false;
 
             }
-            if (controlHandler.breakBlock) {   
+            if (controlHandler.breakBlock) {
                 controlHandler.breakBlock();
             }
-            for (int i = pX - renderDistance; i < pX + renderDistance*1.5; i++) {
-                for (int j = pY - renderDistance; j < pY + renderDistance*1.5; j++) {
-                    for (int k = pZ - renderDistance; k < pZ + renderDistance*1.5; k++) {
+            for (int i = pX - renderDistance; i < pX + renderDistance * 1.5; i++) {
+                for (int j = pY - renderDistance; j < pY + renderDistance * 1.5; j++) {
+                    for (int k = pZ - renderDistance; k < pZ + renderDistance * 1.5; k++) {
 
                         if (i >= 0 && i < MAXX && j >= 0 && j < MAXY && k >= 0 && k < MAXZ) {
                             if (chunks[MathHelper.flatChunk3Dto1D(i, j, k)] != null) {

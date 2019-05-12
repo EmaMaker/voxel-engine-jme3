@@ -289,12 +289,9 @@ public class ControlsHandler extends AbstractAppState implements ActionListener,
 
         if (results.getClosestCollision() != null) {
             pt = fixCoords(results.getClosestCollision().getContactPoint());
-//            if (pt.distance(app.getCamera().getLocation()) < blockDistance) {
+            if (pt.distance(app.getCamera().getLocation()) < blockDistance) {
                 prov.setCellFromVertices(findNearestVertices(pt), CellId.ID_AIR);
-                prov.getChunk(pt).markForUpdate(true);
-                prov.getChunk(pt).processCells();
-                prov.getChunk(pt).refreshPhysics();
-//            }
+            }
         }
         results.clear();
         breakBlock = false;

@@ -22,6 +22,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+import voxelengine.VoxelEngine;
 import voxelengine.block.CellId;
 import voxelengine.block.TextureManager;
 import static voxelengine.utils.Globals.chunkSize;
@@ -38,6 +39,8 @@ import static voxelengine.world.WorldManager.MAXZ;
 public class Chunk extends AbstractControl {
 
     boolean toBeSet = true;
+    boolean toUpdateMesh = false;
+    boolean keepUpdating = true;
     boolean loaded = false;
     boolean toUnload = false;
     boolean phyLoaded = false;
@@ -97,16 +100,19 @@ public class Chunk extends AbstractControl {
             }
 
             kindaBetterGreedy();
-            if (Thread.currentThread() == Globals.engine.mainThread) {
-                meshing = true;
-                chunkMesh = new Mesh();
-                setMesh();
-                chunkGeom.setMesh(chunkMesh);
-                meshing = false;
-            }
+            //if (Thread.currentThread() == VoxelEngine.mainThread) {
+            unload();
+            unloadPhysics();
+            keepUpdating = false;
 
-            toBeSet = false;
-//            toUnload = true;      
+            chunkMesh = new Mesh();
+            setMesh();
+            chunkGeom.setMesh(chunkMesh);
+
+            keepUpdating = true;
+            //}
+
+            markForUpdate(false);
             debug("Updated " + this.toString() + " at " + x + ", " + y + ", " + z);
         }
     }
@@ -209,27 +215,23 @@ public class Chunk extends AbstractControl {
 
     @Override
     protected void controlUpdate(float tpf) {
-//        if (toUnload) {
-//            this.unload();
-//            this.unloadPhysics();
-//            toUnload = false;
-//        }
-
-        if ((Math.sqrt(Math.pow(x - pX, 2) + Math.pow(y - pY, 2) + Math.pow(z - pZ, 2)) > renderDistance)) {
-            this.unload();
-            this.unloadPhysics();
-
-            if (Math.sqrt(Math.pow(x - pX, 2) + Math.pow(y - pY, 2) + Math.pow(z - pZ, 2)) > renderDistance * 2.5f) {
-                saveToFile();
-                Globals.terrainNode.removeControl(this);
-                WorldManager.chunks[MathHelper.flatChunk3Dto1D(x, y, z)] = null;
-            }
-        } else {
-            this.load();
-            if (Math.sqrt(Math.pow(x - pX, 2) + Math.pow(y - pY, 2) + Math.pow(z - pZ, 2)) <= 1) {
-                this.refreshPhysics();
-            } else {
+        if (keepUpdating) {
+            if ((Math.sqrt(Math.pow(x - pX, 2) + Math.pow(y - pY, 2) + Math.pow(z - pZ, 2)) > renderDistance)) {
+                this.unload();
                 this.unloadPhysics();
+
+                if (Math.sqrt(Math.pow(x - pX, 2) + Math.pow(y - pY, 2) + Math.pow(z - pZ, 2)) > renderDistance * 2.5f) {
+                    saveToFile();
+                    Globals.terrainNode.removeControl(this);
+                    WorldManager.chunks[MathHelper.flatChunk3Dto1D(x, y, z)] = null;
+                }
+            } else {
+                this.load();
+                if (Math.sqrt(Math.pow(x - pX, 2) + Math.pow(y - pY, 2) + Math.pow(z - pZ, 2)) <= 1) {
+                    this.refreshPhysics();
+                } else {
+                    this.unloadPhysics();
+                }
             }
         }
     }
@@ -520,7 +522,8 @@ public class Chunk extends AbstractControl {
                         indicesList.add(i2);
                         indicesList.add(i1);
                         indicesList.add(i0);
-                        
+
+                        meshing = false;
                         setMesh();
                     }
                 }
