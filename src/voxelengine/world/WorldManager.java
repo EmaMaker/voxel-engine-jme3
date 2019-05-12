@@ -177,8 +177,13 @@ public class WorldManager extends AbstractAppState {
     }
 
     public void loadFromFile(int i, int j, int k) {
+        try{
         File f = Paths.get(Globals.workingDir + i + "-" + j + "-" + k + ".chunk").toFile();
-        chunks[MathHelper.flatChunk3Dto1D(i, j, k)].loadFromFile(f);
+            chunks[MathHelper.flatChunk3Dto1D(i, j, k)].loadFromFile(f);
+        }catch(Exception e){
+            chunks[MathHelper.flatChunk3Dto1D(i, j, k)].generated = false;
+            chunks[MathHelper.flatChunk3Dto1D(i, j, k)].decorated = false;
+        }
     }
 
     final Callable<Object> chunkManager = new Callable<Object>() {
