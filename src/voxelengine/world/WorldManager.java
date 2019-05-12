@@ -105,6 +105,7 @@ public class WorldManager extends AbstractAppState {
         chunks[MathHelper.flatChunk3Dto1D(i, j, k)] = c;
     }
 
+    
     public void setCellFromVertices(ArrayList<Vector3f> al, byte id) {
         setCell(getCellPosFromVertices(al), id);
     }
@@ -179,6 +180,14 @@ public class WorldManager extends AbstractAppState {
 
     void updateChunks() {
         try {
+            if (controlHandler.placeBlock) {
+                //controlHandler.placeBlock();
+                controlHandler.placeBlock = false;
+
+            }
+            if (controlHandler.breakBlock) {   
+                controlHandler.breakBlock();
+            }
             for (int i = pX - renderDistance; i < pX + renderDistance*1.5; i++) {
                 for (int j = pY - renderDistance; j < pY + renderDistance*1.5; j++) {
                     for (int k = pZ - renderDistance; k < pZ + renderDistance*1.5; k++) {
@@ -201,14 +210,6 @@ public class WorldManager extends AbstractAppState {
                 }
             }
 
-            if (controlHandler.placeBlock) {
-                //controlHandler.placeBlock();
-                controlHandler.placeBlock = false;
-
-            }
-            if (controlHandler.breakBlock) {
-                controlHandler.breakBlock();
-            }
         } catch (Exception e) {
             e.printStackTrace();
         }

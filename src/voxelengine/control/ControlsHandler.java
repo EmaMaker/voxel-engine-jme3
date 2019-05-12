@@ -209,8 +209,7 @@ public class ControlsHandler extends AbstractAppState implements ActionListener,
             case "remove":
                 breakStep++;
                 if (fastBlock || breakStep > 10) {
-//                breakBlock();
-                    breakBlock = true;
+                    breakBlock();
                     breakStep = 0;
                 }
                 break;
@@ -286,14 +285,16 @@ public class ControlsHandler extends AbstractAppState implements ActionListener,
     public void breakBlock() {
         debug("|===========================================|");
         Ray ray = new Ray(Globals.main.getCamera().getLocation(), Globals.main.getCamera().getDirection());
-        results.clear();
         Globals.terrainNode.collideWith(ray, results);
 
         if (results.getClosestCollision() != null) {
             pt = fixCoords(results.getClosestCollision().getContactPoint());
-            if (pt.distance(app.getCamera().getLocation()) < blockDistance) {
+//            if (pt.distance(app.getCamera().getLocation()) < blockDistance) {
                 prov.setCellFromVertices(findNearestVertices(pt), CellId.ID_AIR);
-            }
+                prov.getChunk(pt).markForUpdate(true);
+                prov.getChunk(pt).processCells();
+                prov.getChunk(pt).refreshPhysics();
+//            }
         }
         results.clear();
         breakBlock = false;

@@ -95,14 +95,22 @@ public class Chunk extends AbstractControl {
                     }
                 }
             }
+
             kindaBetterGreedy();
+            if (Thread.currentThread() == Globals.engine.mainThread) {
+                meshing = true;
+                chunkMesh = new Mesh();
+                setMesh();
+                chunkGeom.setMesh(chunkMesh);
+                meshing = false;
+            }
 
             toBeSet = false;
 //            toUnload = true;      
             debug("Updated " + this.toString() + " at " + x + ", " + y + ", " + z);
         }
     }
-    
+
     public void load() {
         //on first load, Global material is null because it hasn't been initialized yet, so it's set here
         if (chunkGeom.getMaterial() == null) {
@@ -181,8 +189,8 @@ public class Chunk extends AbstractControl {
     public void setCell(int i, int j, int k, byte id) {
         if (i >= 0 && j >= 0 && k >= 0 && i < chunkSize && j < chunkSize && k < chunkSize) {
             cells[MathHelper.flatCell3Dto1D(i, j, k)] = id;
-            markForUpdate(true);
         }
+        markForUpdate(true);
     }
 
     public void generate() {
@@ -211,7 +219,7 @@ public class Chunk extends AbstractControl {
             this.unload();
             this.unloadPhysics();
 
-            if (Math.sqrt(Math.pow(x - pX, 2) + Math.pow(y - pY, 2) + Math.pow(z - pZ, 2)) > renderDistance*2.5f) {
+            if (Math.sqrt(Math.pow(x - pX, 2) + Math.pow(y - pY, 2) + Math.pow(z - pZ, 2)) > renderDistance * 2.5f) {
                 saveToFile();
                 Globals.terrainNode.removeControl(this);
                 WorldManager.chunks[MathHelper.flatChunk3Dto1D(x, y, z)] = null;
@@ -512,8 +520,7 @@ public class Chunk extends AbstractControl {
                         indicesList.add(i2);
                         indicesList.add(i1);
                         indicesList.add(i0);
-
-                        meshing = false;
+                        
                         setMesh();
                     }
                 }
@@ -646,8 +653,8 @@ public class Chunk extends AbstractControl {
             setCell(cellX, cellY, cellZ, CellId.ID_DIRT);
         }
     }
-    
-    public String info(){
+
+    public String info() {
         return (this.toString() + " at " + x + ", " + y + ", " + z);
     }
 
