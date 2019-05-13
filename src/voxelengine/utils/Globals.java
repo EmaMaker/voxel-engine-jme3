@@ -51,6 +51,8 @@ public class Globals extends AbstractAppState {
 
     public static ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(2);
 
+    
+    public static int MAXX = 100, MAXY = 40, MAXZ = 100;
     public static int pX = 8, pY = 8, pZ = 8;
     public static int renderDistance = 8;
     static int pickingDistance = 6;
@@ -193,4 +195,10 @@ public class Globals extends AbstractAppState {
         return enableDecorators;
     }
 
+    public static void setWorldSize(int x, int y, int z){
+        MAXX = x;
+        MAXY = y;
+        MAXZ = z;
+    }
+    
 }

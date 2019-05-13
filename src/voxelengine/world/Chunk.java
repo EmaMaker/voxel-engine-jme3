@@ -22,9 +22,11 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
-import voxelengine.VoxelEngine;
 import voxelengine.block.CellId;
 import voxelengine.block.TextureManager;
+import static voxelengine.utils.Globals.MAXX;
+import static voxelengine.utils.Globals.MAXY;
+import static voxelengine.utils.Globals.MAXZ;
 import static voxelengine.utils.Globals.chunkSize;
 import voxelengine.utils.math.MathHelper;
 import static voxelengine.utils.Globals.debug;
@@ -32,9 +34,6 @@ import static voxelengine.utils.Globals.pX;
 import static voxelengine.utils.Globals.pY;
 import static voxelengine.utils.Globals.pZ;
 import static voxelengine.utils.Globals.renderDistance;
-import static voxelengine.world.WorldManager.MAXX;
-import static voxelengine.world.WorldManager.MAXY;
-import static voxelengine.world.WorldManager.MAXZ;
 
 public class Chunk extends AbstractControl {
     

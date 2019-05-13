@@ -14,17 +14,11 @@ import voxelengine.block.CellId;
 import voxelengine.control.ControlsHandler;
 import voxelengine.utils.math.MathHelper;
 import voxelengine.utils.Globals;
-import static voxelengine.utils.Globals.chunkSize;
-import static voxelengine.utils.Globals.debug;
-import static voxelengine.utils.Globals.pX;
-import static voxelengine.utils.Globals.pY;
-import static voxelengine.utils.Globals.pZ;
-import static voxelengine.utils.Globals.renderDistance;
+import static voxelengine.utils.Globals.*;
 import voxelengine.world.generators.WorldGeneratorBase;
 
 public class WorldManager extends AbstractAppState {
 
-    public final static int MAXX = 20, MAXY = 40, MAXZ = 40;
     public static Chunk[] chunks = new Chunk[MAXX * MAXY * MAXZ];
 
     SimpleApplication app;
@@ -79,7 +73,6 @@ public class WorldManager extends AbstractAppState {
                 }
             }
         }
-//        updateChunks();
     }
 
     //replaces the Cell.setId(id), and replaces making all the cell air when chunk is created. Commento storico del 2016 (Si, lo so che è il 2019 ora) - historical comment from 2016 (Yes, I know it's 2019 now)
@@ -87,7 +80,7 @@ public class WorldManager extends AbstractAppState {
         int plusX = i % chunkSize, plusY = j % chunkSize, plusZ = k % chunkSize;
         int chunkX = (i - plusX) / chunkSize, chunkY = (j - plusY) / chunkSize, chunkZ = (k - plusZ) / chunkSize;
 
-        if (chunkX >= 0 && chunkY >= 0 && chunkZ >= 0 && chunkX < MAXX && chunkY < MAXY && chunkZ < MAXZ) {
+        if (chunkX >= 0 && chunkY >= 0 && chunkZ >= 0 && chunkX < MAXX && chunkY < MAXY && chunkZ < MAXZ && MathHelper.flatChunk3Dto1D(chunkX, chunkY, chunkZ) < MAXX * MAXY * MAXZ) {
             if (chunks[MathHelper.flatChunk3Dto1D(chunkX, chunkY, chunkZ)] == null) {
                 chunks[MathHelper.flatChunk3Dto1D(chunkX, chunkY, chunkZ)] = new Chunk(chunkX, chunkY, chunkZ);
             }
@@ -199,12 +192,13 @@ public class WorldManager extends AbstractAppState {
     void updateChunks() {
         try {
             if (controlHandler.placeBlock) {
-                //controlHandler.placeBlock();
+                controlHandler.placeBlock();
                 controlHandler.placeBlock = false;
 
             }
             if (controlHandler.breakBlock) {
                 controlHandler.breakBlock();
+                controlHandler.breakBlock = false;
             }
             for (int i = pX - renderDistance; i < pX + renderDistance * 1.5; i++) {
                 for (int j = pY - renderDistance; j < pY + renderDistance * 1.5; j++) {

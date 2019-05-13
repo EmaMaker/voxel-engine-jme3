@@ -209,14 +209,16 @@ public class ControlsHandler extends AbstractAppState implements ActionListener,
             case "remove":
                 breakStep++;
                 if (fastBlock || breakStep > 10) {
-                    breakBlock();
+                    //breakBlock();
+                    breakBlock = true;
                     breakStep = 0;
                 }
                 break;
             case "place":
                 placeStep++;
                 if (fastBlock || placeStep > 10) {
-                    placeBlock();
+                    //placeBlock();
+                    placeBlock = true;
                     placeStep = 0;
                 }
                 break;

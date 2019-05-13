@@ -2,10 +2,9 @@ package voxelengine.utils.math;
 
 import com.jme3.math.Vector3f;
 import java.math.BigDecimal;
-import java.util.ArrayList;
+import static voxelengine.utils.Globals.MAXX;
+import static voxelengine.utils.Globals.MAXZ;
 import static voxelengine.utils.Globals.chunkSize;
-import static voxelengine.world.WorldManager.MAXX;
-import static voxelengine.world.WorldManager.MAXZ;
 
 public class MathHelper {
 

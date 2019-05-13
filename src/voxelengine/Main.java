@@ -24,9 +24,10 @@ public class Main extends SimpleApplication {
         Globals.enableDecorators(true);
         Globals.setRenderDistance(12);
         Globals.setDebugEnabled(false);
-        Globals.setWorldHeight(0);
+        Globals.setWorldHeight(4);
+        Globals.setWorldSize(100, 20, 100);
         
-        Globals.LOAD_FROM_FILE = true;
+        Globals.LOAD_FROM_FILE = false;
         Globals.SAVE_ON_EXIT = true;
 
         stateManager.attach(new VoxelEngine(settings));
