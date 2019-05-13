@@ -66,19 +66,19 @@ public class WorldManager extends AbstractAppState {
 
     @Override
     public void update(float tpf) {
-        
-            for (int i = pX - renderDistance; i < pX + renderDistance * 1.5; i++) {
-                for (int j = pY - renderDistance; j < pY + renderDistance * 1.5; j++) {
-                    for (int k = pZ - renderDistance; k < pZ + renderDistance * 1.5; k++) {
 
-                        if (i >= 0 && i < MAXX && j >= 0 && j < MAXY && k >= 0 && k < MAXZ) {
-                            if (chunks[MathHelper.flatChunk3Dto1D(i, j, k)] != null) {
-                                chunks[MathHelper.flatChunk3Dto1D(i, j, k)].updateMesh();
-                            }
+        for (int i = pX - renderDistance; i < pX + renderDistance * 1.5; i++) {
+            for (int j = pY - renderDistance; j < pY + renderDistance * 1.5; j++) {
+                for (int k = pZ - renderDistance; k < pZ + renderDistance * 1.5; k++) {
+
+                    if (i >= 0 && i < MAXX && j >= 0 && j < MAXY && k >= 0 && k < MAXZ) {
+                        if (chunks[MathHelper.flatChunk3Dto1D(i, j, k)] != null) {
+                            chunks[MathHelper.flatChunk3Dto1D(i, j, k)].updateMesh();
                         }
                     }
                 }
             }
+        }
 //        updateChunks();
     }
 
@@ -177,13 +177,13 @@ public class WorldManager extends AbstractAppState {
     }
 
     public void loadFromFile(int i, int j, int k) {
-        try{
         File f = Paths.get(Globals.workingDir + i + "-" + j + "-" + k + ".chunk").toFile();
-            chunks[MathHelper.flatChunk3Dto1D(i, j, k)].loadFromFile(f);
-        }catch(Exception e){
-            chunks[MathHelper.flatChunk3Dto1D(i, j, k)].generated = false;
-            chunks[MathHelper.flatChunk3Dto1D(i, j, k)].decorated = false;
-        }
+        chunks[MathHelper.flatChunk3Dto1D(i, j, k)].loadFromFile(f);
+    }
+
+    public boolean canLoadFromFile(int i, int j, int k) {
+        File f = Paths.get(Globals.workingDir + i + "-" + j + "-" + k + ".chunk").toFile();
+        return f.exists();
     }
 
     final Callable<Object> chunkManager = new Callable<Object>() {
@@ -218,9 +218,13 @@ public class WorldManager extends AbstractAppState {
                                 }
                                 chunks[MathHelper.flatChunk3Dto1D(i, j, k)].processCells();
                             } else {
-                                if (j <= Globals.getWorldHeight()) {
+                                if (canLoadFromFile(i, j, k)) {
                                     chunks[MathHelper.flatChunk3Dto1D(i, j, k)] = new Chunk(i, j, k);
                                     loadFromFile(i, j, k);
+                                } else {
+                                    if (j <= Globals.getWorldHeight()) {
+                                        chunks[MathHelper.flatChunk3Dto1D(i, j, k)] = new Chunk(i, j, k);
+                                    }
                                 }
                             }
                         }

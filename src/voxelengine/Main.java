@@ -22,11 +22,11 @@ public class Main extends SimpleApplication {
         Globals.setWorldGenerator(new WorldGeneratorTerrain());
         Globals.setWorldDecorator(new WorldDecoratorTrees());
         Globals.enableDecorators(true);
-        Globals.setRenderDistance(32);
+        Globals.setRenderDistance(12);
         Globals.setDebugEnabled(false);
-        Globals.setWorldHeight(4);
+        Globals.setWorldHeight(0);
         
-        Globals.LOAD_FROM_FILE = false;
+        Globals.LOAD_FROM_FILE = true;
         Globals.SAVE_ON_EXIT = true;
 
         stateManager.attach(new VoxelEngine(settings));
