@@ -36,6 +36,7 @@ public class VoxelEngine extends AbstractAppState {
     AppStateManager stateManager;
     BitmapFont guiFont;
     SimpleApplication main;
+    WorldManager prov;
 
     AppSettings settings;
 
@@ -72,9 +73,9 @@ public class VoxelEngine extends AbstractAppState {
 
         initCrossHairs();
         main.getViewPort().setBackgroundColor(ColorRGBA.Cyan);
-
+        
         stateManager.getState(BulletAppState.class).setEnabled(Globals.phyEnabled());
-
+        prov = stateManager.getState(WorldManager.class);
         //if we're instead going to load from files, the process is already handled by the update in the WorldManager
         if (!Globals.LOAD_FROM_FILE) {
             deleteSaveFiles();
@@ -87,8 +88,8 @@ public class VoxelEngine extends AbstractAppState {
             for (int j = 0; j < MAXY; j++) {
                 for (int k = 0; k < MAXZ; k++) {
 
-                    if (stateManager.getState(WorldManager.class).getChunk(i,j,k) != null) {
-                        stateManager.getState(WorldManager.class).getChunk(i,j,k).saveToFile();
+                    if (prov.getChunk(i,j,k) != null) {
+                        prov.getChunk(i,j,k).saveToFile();
                     }
                 }
             }

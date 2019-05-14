@@ -42,9 +42,10 @@ public class WorldManager extends AbstractAppState {
 
     public void preload() {
         updateChunks = true;
+        generateChunks = true;
 
         if (Globals.isTesting()) {
-            //updateChunks = true;
+            updateChunks = true;
             generateChunks = false;
 
             Globals.setWorldGenerator(new WorldGeneratorBase(3));
@@ -52,7 +53,6 @@ public class WorldManager extends AbstractAppState {
             for (int i = 0; i < 5; i++) {
                 for (int j = 0; j < 5; j++) {
                     newChunk(i, 0, j);
-                    System.out.println(i + " " + j + " is " + getChunk(i, 0, j));
                 }
             }
         }
@@ -102,11 +102,15 @@ public class WorldManager extends AbstractAppState {
     }
 
     //returns the chunk is the specified coords
-    public Chunk getChunk(int i, int j, int k) {
+    public Chunk getChunkInWorld(int i, int j, int k) {
         int plusX = i % chunkSize, plusY = j % chunkSize, plusZ = k % chunkSize;
         int chunkX = (i - plusX) / chunkSize, chunkY = (j - plusY) / chunkSize, chunkZ = (k - plusZ) / chunkSize;
 
         return chunks[chunkX][chunkY][chunkZ];
+    }
+
+    public Chunk getChunk(int i, int j, int k) {
+        return chunks[i][j][k];
     }
 
     public void setChunk(int i, int j, int k, Chunk c) {
