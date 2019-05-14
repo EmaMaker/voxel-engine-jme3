@@ -2,8 +2,6 @@ package voxelengine;
 
 import com.jme3.app.SimpleApplication;
 import voxelengine.utils.Globals;
-import voxelengine.world.decorators.*;
-import voxelengine.world.generators.*;
 
 public class Main extends SimpleApplication {
 
@@ -28,7 +26,7 @@ public class Main extends SimpleApplication {
         Globals.setWorldSize(100, 20, 100);
         
         
-        Globals.LOAD_FROM_FILE = true;
+        Globals.LOAD_FROM_FILE = false;
         Globals.SAVE_ON_EXIT = true;
         
 

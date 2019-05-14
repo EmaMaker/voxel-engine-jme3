@@ -18,22 +18,13 @@ import com.jme3.renderer.Camera;
 import com.jme3.scene.Node;
 import com.jme3.system.AppSettings;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.nio.file.Paths;
 import voxelengine.block.TextureManager;
 import voxelengine.control.ControlsHandler;
 import voxelengine.utils.GuiManager;
 import voxelengine.utils.Globals;
-import static voxelengine.utils.Globals.LOAD_FROM_FILE;
 import static voxelengine.utils.Globals.MAXX;
 import static voxelengine.utils.Globals.MAXY;
 import static voxelengine.utils.Globals.MAXZ;
-import static voxelengine.utils.Globals.loadFromFile;
 import voxelengine.utils.math.SimplexNoise;
 import voxelengine.world.WorldManager;
 
@@ -56,7 +47,6 @@ public class VoxelEngine extends AbstractAppState {
     @Override
     public void initialize(AppStateManager stateManager, Application app) {
         super.initialize(stateManager, app);
-        
 
         //saves an instance of the main thread because it's needed in the chunk update method
         mainThread = Thread.currentThread();
@@ -158,6 +148,5 @@ public class VoxelEngine extends AbstractAppState {
     public Camera getCamera() {
         return main.getCamera();
     }
-
 
 }

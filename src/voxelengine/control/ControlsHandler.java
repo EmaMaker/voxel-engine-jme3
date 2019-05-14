@@ -28,7 +28,9 @@ import voxelengine.VoxelEngine;
 import voxelengine.block.CellId;
 import voxelengine.block.TextureManager;
 import static voxelengine.utils.Globals.chunkSize;
+import static voxelengine.utils.Globals.control;
 import static voxelengine.utils.Globals.debug;
+import static voxelengine.utils.Globals.main;
 import static voxelengine.utils.Globals.pGX;
 import static voxelengine.utils.Globals.pGY;
 import static voxelengine.utils.Globals.pGZ;
@@ -61,7 +63,7 @@ public class ControlsHandler extends AbstractAppState implements ActionListener,
     AppStateManager stateManager;
 
     //PLAYER CONTROLS
-    public Vector3f respawnPoint = new Vector3f(pGX, pGY, pGZ);
+    public Vector3f respawnPoint;
 
     Box box = new Box(0.4f, 0.8f, 0.4f);
     public Geometry playerModel = new Geometry("Player", box);
@@ -85,7 +87,10 @@ public class ControlsHandler extends AbstractAppState implements ActionListener,
         engine = stateManager.getState(VoxelEngine.class);
         this.stateManager = stateManager;
         this.app = (SimpleApplication) app;
-        
+
+        respawnPoint = new Vector3f(pGX, pGY, pGZ);
+        //System.out.println(respawnPoint);
+
         //PLAYER CONTROL
         playerModel.setMaterial(new Material(app.getAssetManager(), "Materials/UnshadedArray.j3md"));
         this.app.getRootNode().attachChild(playerModel);
@@ -97,7 +102,6 @@ public class ControlsHandler extends AbstractAppState implements ActionListener,
         playerModel.addControl(playerControl);
         this.app.getStateManager().getState(BulletAppState.class).getPhysicsSpace().add(playerControl);
         playerControl.warp(respawnPoint);
-        //System.out.println(respawnPoint);
 
         initControls();
     }

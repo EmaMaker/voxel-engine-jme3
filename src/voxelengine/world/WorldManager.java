@@ -15,7 +15,6 @@ import voxelengine.control.ControlsHandler;
 import voxelengine.utils.math.MathHelper;
 import voxelengine.utils.Globals;
 import static voxelengine.utils.Globals.*;
-import voxelengine.world.generators.WorldGeneratorBase;
 
 public class WorldManager extends AbstractAppState {
 

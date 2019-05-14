@@ -30,7 +30,7 @@ import voxelengine.world.generators.WorldGeneratorTerrain;
 public class Globals extends AbstractAppState {
 
     //the lenght of a chunk side
-    public static int chunkSize = 32;
+    public static int chunkSize = 16;
 
     //max world height to be generated
     //basically it's the number of cubic chunks to generator under the simplex-noise generated ones
@@ -86,20 +86,22 @@ public class Globals extends AbstractAppState {
     @Override
     public void initialize(AppStateManager stateManager, Application app) {
         super.initialize(stateManager, app);
+
+        if (Globals.LOAD_FROM_FILE) {
+            Globals.loadFromFile();
+        }
+
         Globals.main = (SimpleApplication) app;
         prov = stateManager.getState(WorldManager.class);
         engine = stateManager.getState(VoxelEngine.class);
         control = stateManager.getState(ControlsHandler.class);
-        
+
         mat = new Material(main.getAssetManager(), "Materials/UnshadedArray.j3md");
 
         main.getRootNode().attachChild(terrainNode);
         mat.getAdditionalRenderState().setWireframe(enableWireframe);
         mat.getAdditionalRenderState().setFaceCullMode(RenderState.FaceCullMode.Off);
 
-        if (Globals.LOAD_FROM_FILE) {
-            Globals.loadFromFile();
-        }
     }
 
     public static void saveToFile() {
@@ -124,10 +126,14 @@ public class Globals extends AbstractAppState {
         save += "pX=" + pX + "\n";
         save += "pY=" + pY + "\n";
         save += "pZ=" + pZ + "\n";
+        save += "pGX=" + (int) engine.getCamera().getLocation().getX() + "\n";
+        save += "pGY=" + (int) engine.getCamera().getLocation().getY() + "\n";
+        save += "pGZ=" + (int) engine.getCamera().getLocation().getZ() + "\n";
         save += "renderDistance=" + renderDistance + "\n";
         save += "pickingDistance=" + pickingDistance + "\n";
 
         File f = Paths.get(Globals.workingDir + "settings").toFile();
+        f.delete();
 
         if (!f.exists()) {
             try {
@@ -149,64 +155,73 @@ public class Globals extends AbstractAppState {
                 //System.out.println(s1[1]);
                 switch (s1[0]) {
                     case "chunkSize":
-                        chunkSize = Integer.valueOf(s1[1]);
+                        Globals.chunkSize = Integer.valueOf(s1[1]);
                         break;
                     case "worldHeight":
-                        worldHeight = Integer.valueOf(s1[1]);
+                        Globals.worldHeight = Integer.valueOf(s1[1]);
                         break;
                     case "TESTING":
-                        TESTING = Boolean.valueOf(s1[1]);
+                        Globals.TESTING = Boolean.valueOf(s1[1]);
                         break;
                     case "enableDebug":
-                        enableDebug = Boolean.valueOf(s1[1]);
+                        Globals.enableDebug = Boolean.valueOf(s1[1]);
                         break;
                     case "enablePhysics":
-                        enablePhysics = Boolean.valueOf(s1[1]);
+                        Globals.enablePhysics = Boolean.valueOf(s1[1]);
                         break;
                     case "enablePlayer":
-                        enablePlayer = Boolean.valueOf(s1[1]);
+                        Globals.enablePlayer = Boolean.valueOf(s1[1]);
                         break;
                     case "enableWireframe":
-                        enableWireframe = Boolean.valueOf(s1[1]);
+                        Globals.enableWireframe = Boolean.valueOf(s1[1]);
                         break;
                     case "worldGenerator":
-                        setWorldGenerator(s1[1]);
+                        Globals.setWorldGenerator(s1[1]);
                         break;
                     case "worldDecorator":
-                        setWorldDecorator(s1[1]);
+                        Globals.setWorldDecorator(s1[1]);
                         break;
                     case "enableDecorators":
-                        enableDecorators = Boolean.valueOf(s1[1]);
+                        Globals.enableDecorators = Boolean.valueOf(s1[1]);
                         break;
                     case "LOAD_FROM_FILE":
-                        LOAD_FROM_FILE = Boolean.valueOf(s1[1]);
+                        Globals.LOAD_FROM_FILE = Boolean.valueOf(s1[1]);
                         break;
                     case "SAVE_ON_EXIT":
-                        SAVE_ON_EXIT = Boolean.valueOf(s1[1]);
+                        Globals.SAVE_ON_EXIT = Boolean.valueOf(s1[1]);
                         break;
                     case "workingDir":
-                        workingDir = s1[1];
+                        Globals.workingDir = s1[1];
                         break;
                     case "permtableName":
-                        permtableName = s1[1];
+                        Globals.permtableName = s1[1];
                         break;
                     case "MAXX":
-                        MAXX = Integer.valueOf(s1[1]);
+                        Globals.MAXX = Integer.valueOf(s1[1]);
                         break;
                     case "MAXY":
-                        MAXY = Integer.valueOf(s1[1]);
+                        Globals.MAXY = Integer.valueOf(s1[1]);
                         break;
                     case "MAXZ":
-                        MAXZ = Integer.valueOf(s1[1]);
+                        Globals.MAXZ = Integer.valueOf(s1[1]);
                         break;
                     case "pX":
-                        pX = Integer.valueOf(s1[1]);
+                        Globals.pX = Integer.valueOf(s1[1]);
                         break;
                     case "pY":
-                        pY = Integer.valueOf(s1[1]);
+                        Globals.pY = Integer.valueOf(s1[1]);
                         break;
                     case "pZ":
-                        pZ = Integer.valueOf(s1[1]);
+                        Globals.pZ = Integer.valueOf(s1[1]);
+                        break;
+                    case "pGX":
+                        Globals.pGX = Integer.valueOf(s1[1]);
+                        break;
+                    case "pGY":
+                        Globals.pGY = Integer.valueOf(s1[1]);
+                        break;
+                    case "pGZ":
+                        Globals.pGZ = Integer.valueOf(s1[1]);
                         break;
                     case "renderDistance":
                         renderDistance = Integer.valueOf(s1[1]);
@@ -218,7 +233,6 @@ public class Globals extends AbstractAppState {
                         System.out.println("Ouch " + s);
                         break;
                 }
-                control.respawnPoint = new Vector3f(pGX, pGY, pGZ);
             }
             f.delete();
         } catch (IOException | NumberFormatException e) {
