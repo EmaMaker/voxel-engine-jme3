@@ -19,15 +19,16 @@ public class Main extends SimpleApplication {
         Globals.setPhysicsEnabled(true);
         Globals.setTesting(false);
         Globals.setWireFrameEnabled(false);
-        Globals.setWorldGenerator(new WorldGeneratorTerrain());
-        Globals.setWorldDecorator(new WorldDecoratorTrees());
+        Globals.setWorldGenerator((WorldGenerator) Globals.getGenerators().get("generatorTerrain"));
+        Globals.setWorldDecorator((WorldDecorator) Globals.getDecorators().get("decoratorTrees"));
         Globals.enableDecorators(true);
         Globals.setRenderDistance(12);
         Globals.setDebugEnabled(false);
         Globals.setWorldHeight(0);
         Globals.setWorldSize(100, 20, 100);
         
-        Globals.LOAD_FROM_FILE = true;
+        
+        Globals.LOAD_FROM_FILE = false;
         Globals.SAVE_ON_EXIT = true;
 
         stateManager.attach(new VoxelEngine(settings));

@@ -60,7 +60,7 @@ public class ControlsHandler extends AbstractAppState implements ActionListener,
     AppStateManager stateManager;
 
     //PLAYER CONTROLS
-    public Vector3f respawnPoint = new Vector3f(8, worldHeight * chunkSize + chunkSize, 8);
+    public Vector3f respawnPoint = new Vector3f(pX, pY, pZ);
 
     Box box = new Box(0.4f, 0.8f, 0.4f);
     public Geometry playerModel = new Geometry("Player", box);
@@ -84,7 +84,7 @@ public class ControlsHandler extends AbstractAppState implements ActionListener,
         engine = stateManager.getState(VoxelEngine.class);
         this.stateManager = stateManager;
         this.app = (SimpleApplication) app;
-
+        
         //PLAYER CONTROL
         playerModel.setMaterial(new Material(app.getAssetManager(), "Materials/UnshadedArray.j3md"));
         this.app.getRootNode().attachChild(playerModel);

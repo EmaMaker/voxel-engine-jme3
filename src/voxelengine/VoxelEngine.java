@@ -18,6 +18,13 @@ import com.jme3.renderer.Camera;
 import com.jme3.scene.Node;
 import com.jme3.system.AppSettings;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.nio.file.Paths;
 import voxelengine.block.TextureManager;
 import voxelengine.control.ControlsHandler;
 import voxelengine.utils.GuiManager;
@@ -73,7 +80,7 @@ public class VoxelEngine extends AbstractAppState {
 
         initCrossHairs();
         main.getViewPort().setBackgroundColor(ColorRGBA.Cyan);
-        
+
         stateManager.getState(BulletAppState.class).setEnabled(Globals.phyEnabled());
         prov = stateManager.getState(WorldManager.class);
         //if we're instead going to load from files, the process is already handled by the update in the WorldManager
@@ -84,12 +91,13 @@ public class VoxelEngine extends AbstractAppState {
 
     private void exitAndSave() {
         SimplexNoise.saveToFile();
+        Globals.saveToFile();
         for (int i = 0; i < MAXX; i++) {
             for (int j = 0; j < MAXY; j++) {
                 for (int k = 0; k < MAXZ; k++) {
 
-                    if (prov.getChunk(i,j,k) != null) {
-                        prov.getChunk(i,j,k).saveToFile();
+                    if (prov.getChunk(i, j, k) != null) {
+                        prov.getChunk(i, j, k).saveToFile();
                     }
                 }
             }
@@ -147,5 +155,6 @@ public class VoxelEngine extends AbstractAppState {
     public Camera getCamera() {
         return main.getCamera();
     }
+
 
 }

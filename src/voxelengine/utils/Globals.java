@@ -8,6 +8,7 @@ import com.jme3.material.Material;
 import com.jme3.material.RenderState;
 import com.jme3.scene.Node;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import voxelengine.VoxelEngine;
 import voxelengine.world.WorldManager;
@@ -15,6 +16,8 @@ import voxelengine.world.decorators.WorldDecorator;
 import voxelengine.world.decorators.WorldDecoratorTrees;
 import voxelengine.world.generators.WorldGenerator;
 import voxelengine.world.generators.WorldGeneratorBase;
+import voxelengine.world.generators.WorldGeneratorCube;
+import voxelengine.world.generators.WorldGeneratorTerrain;
 
 public class Globals extends AbstractAppState {
 
@@ -51,11 +54,23 @@ public class Globals extends AbstractAppState {
 
     public static ScheduledThreadPoolExecutor executor = new ScheduledThreadPoolExecutor(2);
 
-    
     public static int MAXX = 100, MAXY = 40, MAXZ = 100;
-    public static int pX = 8, pY = 8, pZ = 8;
+    public static int pX = 8, pY = 16, pZ = 8;
     public static int renderDistance = 8;
     static int pickingDistance = 6;
+
+    static HashMap<String, WorldDecorator> decorators = new HashMap<String, WorldDecorator>() {
+        {
+            put("decoratorTrees", new WorldDecoratorTrees());
+        }
+    };
+    static HashMap<String, WorldGenerator> generators = new HashMap<String, WorldGenerator>() {
+        {
+            put("generatorBase", new WorldGeneratorBase());
+            put("generatorCube", new WorldGeneratorCube());
+            put("generatorTerrain", new WorldGeneratorTerrain());
+        }
+    };
 
     @Override
     public void initialize(AppStateManager stateManager, Application app) {
@@ -68,12 +83,27 @@ public class Globals extends AbstractAppState {
         main.getRootNode().attachChild(terrainNode);
         mat.getAdditionalRenderState().setWireframe(enableWireframe);
         mat.getAdditionalRenderState().setFaceCullMode(RenderState.FaceCullMode.Off);
+
+        if (LOAD_FROM_FILE) {
+            loadFromFile();
+        }
     }
 
-    @Override
-    public void update(float tpf) {
+    public static void saveToFile() {
     }
-    
+
+    public static void loadFromFile() {
+
+    }
+
+    public static HashMap getGenerators() {
+        return generators;
+    }
+
+    public static HashMap getDecorators() {
+        return decorators;
+    }
+
     //Actually only does prints in console things, but it's useful to not comment the debug lines each time, but only pressing a key
     public static void debug(Object... s) {
         if (enableDebug) {
@@ -186,19 +216,19 @@ public class Globals extends AbstractAppState {
     public static WorldDecorator getWorldDecorator() {
         return decorator;
     }
-    
-    public static void enableDecorators(boolean b){
+
+    public static void enableDecorators(boolean b) {
         enableDecorators = b;
     }
-    
-    public static boolean decoratorsEnabled(){
+
+    public static boolean decoratorsEnabled() {
         return enableDecorators;
     }
 
-    public static void setWorldSize(int x, int y, int z){
+    public static void setWorldSize(int x, int y, int z) {
         MAXX = x;
         MAXY = y;
         MAXZ = z;
     }
-    
+
 }
