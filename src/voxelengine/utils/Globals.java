@@ -200,6 +200,7 @@ public class Globals extends AbstractAppState {
                         Globals.MAXX = Integer.valueOf(s1[1]);
                         break;
                     case "MAXY":
+                        
                         Globals.MAXY = Integer.valueOf(s1[1]);
                         break;
                     case "MAXZ":

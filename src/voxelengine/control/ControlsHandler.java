@@ -342,7 +342,7 @@ public class ControlsHandler extends AbstractAppState implements ActionListener,
     }
 
     public byte getFaceFromVertices(ArrayList<Vector3f> al, int worldX, int worldY, int worldZ) {
-        System.out.println(al + ", " + worldX + ", " + worldY + ", " + worldZ);
+        //System.out.println(al + ", " + worldX + ", " + worldY + ", " + worldZ);
         if (al.get(0).x == al.get(1).x && al.get(0).x == al.get(2).x && al.get(0).x == al.get(3).x) {
             if (al.get(0).x == worldX) {
                 return 0;
