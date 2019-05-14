@@ -19,7 +19,7 @@ import voxelengine.world.generators.WorldGeneratorBase;
 
 public class WorldManager extends AbstractAppState {
 
-    public static Chunk[] chunks = new Chunk[MAXX * MAXY * MAXZ];
+    Chunk[][][] chunks;
 
     SimpleApplication app;
     Random rand = new Random();
@@ -35,23 +35,24 @@ public class WorldManager extends AbstractAppState {
         this.app = (SimpleApplication) app;
         this.stateManager = stateManager;
         controlHandler = stateManager.getState(ControlsHandler.class);
+
+        chunks = new Chunk[MAXX][MAXY][MAXZ];
         preload();
     }
 
     public void preload() {
+        updateChunks = true;
+
         if (Globals.isTesting()) {
-            updateChunks = true;
+            //updateChunks = true;
             generateChunks = false;
 
             Globals.setWorldGenerator(new WorldGeneratorBase(3));
 
-            for (int i = 0; i < 1; i++) {
-                for (int j = 0; j < 1; j++) {
-                    chunks[MathHelper.flatChunk3Dto1D(i, 0, j)] = new Chunk(i, 0, j);
-                    chunks[MathHelper.flatChunk3Dto1D(i, 0, j)].generate();
-                    chunks[MathHelper.flatChunk3Dto1D(i, 0, j)].processCells();
-                    chunks[MathHelper.flatChunk3Dto1D(i, 0, j)].load();
-                    chunks[MathHelper.flatChunk3Dto1D(i, 0, j)].loadPhysics();
+            for (int i = 0; i < 5; i++) {
+                for (int j = 0; j < 5; j++) {
+                    newChunk(i, 0, j);
+                    System.out.println(i + " " + j + " is " + getChunk(i, 0, j));
                 }
             }
         }
@@ -66,8 +67,8 @@ public class WorldManager extends AbstractAppState {
                 for (int k = pZ - renderDistance; k < pZ + renderDistance * 1.5; k++) {
 
                     if (i >= 0 && i < MAXX && j >= 0 && j < MAXY && k >= 0 && k < MAXZ) {
-                        if (chunks[MathHelper.flatChunk3Dto1D(i, j, k)] != null) {
-                            chunks[MathHelper.flatChunk3Dto1D(i, j, k)].updateMesh();
+                        if (getChunk(i, j, k) != null) {
+                            getChunk(i, j, k).updateMesh();
                         }
                     }
                 }
@@ -80,11 +81,11 @@ public class WorldManager extends AbstractAppState {
         int plusX = i % chunkSize, plusY = j % chunkSize, plusZ = k % chunkSize;
         int chunkX = (i - plusX) / chunkSize, chunkY = (j - plusY) / chunkSize, chunkZ = (k - plusZ) / chunkSize;
 
-        if (chunkX >= 0 && chunkY >= 0 && chunkZ >= 0 && chunkX < MAXX && chunkY < MAXY && chunkZ < MAXZ && MathHelper.flatChunk3Dto1D(chunkX, chunkY, chunkZ) < MAXX * MAXY * MAXZ) {
-            if (chunks[MathHelper.flatChunk3Dto1D(chunkX, chunkY, chunkZ)] == null) {
-                chunks[MathHelper.flatChunk3Dto1D(chunkX, chunkY, chunkZ)] = new Chunk(chunkX, chunkY, chunkZ);
+        if (chunkX >= 0 && chunkY >= 0 && chunkZ >= 0 && chunkX < MAXX && chunkY < MAXY && chunkZ < MAXZ) {
+            if (getChunk(chunkX, chunkY, chunkZ) == null) {
+                setChunk(chunkX, chunkY, chunkZ, new Chunk(chunkX, chunkY, chunkZ));
             }
-            chunks[MathHelper.flatChunk3Dto1D(chunkX, chunkY, chunkZ)].setCell(plusX, plusY, plusZ, id);
+            getChunk(chunkX, chunkY, chunkZ).setCell(plusX, plusY, plusZ, id);
         }
     }
 
@@ -93,8 +94,8 @@ public class WorldManager extends AbstractAppState {
         int chunkX = (i - plusX) / chunkSize, chunkY = (j - plusY) / chunkSize, chunkZ = (k - plusZ) / chunkSize;
 
         if (chunkX >= 0 && chunkY >= 0 && chunkZ >= 0 && chunkX < MAXX && chunkY < MAXY && chunkZ < MAXZ) {
-            if (chunks[MathHelper.flatChunk3Dto1D(chunkX, chunkY, chunkZ)] != null) {
-                return chunks[MathHelper.flatChunk3Dto1D(chunkX, chunkY, chunkZ)].getCell(plusX, plusY, plusZ);
+            if (getChunk(chunkX, chunkY, chunkZ) != null) {
+                return getChunk(chunkX, chunkY, chunkZ).getCell(plusX, plusY, plusZ);
             }
         }
         return Byte.MIN_VALUE;
@@ -105,11 +106,16 @@ public class WorldManager extends AbstractAppState {
         int plusX = i % chunkSize, plusY = j % chunkSize, plusZ = k % chunkSize;
         int chunkX = (i - plusX) / chunkSize, chunkY = (j - plusY) / chunkSize, chunkZ = (k - plusZ) / chunkSize;
 
-        return chunks[MathHelper.flatChunk3Dto1D(chunkX, chunkY, chunkZ)];
+        return chunks[chunkX][chunkY][chunkZ];
     }
 
     public void setChunk(int i, int j, int k, Chunk c) {
-        chunks[MathHelper.flatChunk3Dto1D(i, j, k)] = c;
+        chunks[i][j][k] = c;
+    }
+
+    public void newChunk(int i, int j, int k) {
+        Chunk c = new Chunk(i, j, k);
+        chunks[i][j][k] = c;
     }
 
     public void setCellFromVertices(ArrayList<Vector3f> al, byte id) {
@@ -171,7 +177,7 @@ public class WorldManager extends AbstractAppState {
 
     public void loadFromFile(int i, int j, int k) {
         File f = Paths.get(Globals.workingDir + i + "-" + j + "-" + k + ".chunk").toFile();
-        chunks[MathHelper.flatChunk3Dto1D(i, j, k)].loadFromFile(f);
+        getChunk(i, j, k).loadFromFile(f);
     }
 
     public boolean canLoadFromFile(int i, int j, int k) {
@@ -205,19 +211,19 @@ public class WorldManager extends AbstractAppState {
                     for (int k = pZ - renderDistance; k < pZ + renderDistance * 1.5; k++) {
 
                         if (i >= 0 && i < MAXX && j >= 0 && j < MAXY && k >= 0 && k < MAXZ) {
-                            if (chunks[MathHelper.flatChunk3Dto1D(i, j, k)] != null) {
+                            if (getChunk(i, j, k) != null) {
                                 if (generateChunks) {
-                                    chunks[MathHelper.flatChunk3Dto1D(i, j, k)].generate();
-                                    chunks[MathHelper.flatChunk3Dto1D(i, j, k)].decorate();
+                                    getChunk(i, j, k).generate();
+                                    getChunk(i, j, k).decorate();
                                 }
-                                chunks[MathHelper.flatChunk3Dto1D(i, j, k)].processCells();
+                                getChunk(i, j, k).processCells();
                             } else {
                                 if (canLoadFromFile(i, j, k)) {
-                                    chunks[MathHelper.flatChunk3Dto1D(i, j, k)] = new Chunk(i, j, k);
+                                    newChunk(i, j, k);
                                     loadFromFile(i, j, k);
                                 } else {
                                     if (j <= Globals.getWorldHeight()) {
-                                        chunks[MathHelper.flatChunk3Dto1D(i, j, k)] = new Chunk(i, j, k);
+                                        newChunk(i, j, k);
                                     }
                                 }
                             }

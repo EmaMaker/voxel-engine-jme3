@@ -98,13 +98,7 @@ public class Chunk extends AbstractControl {
                 }
             }
             
-            kindaBetterGreedy();
-            //if (Thread.currentThread() == VoxelEngine.mainThread) {
-//            unload();
-//            unloadPhysics();
-            //}
-//            updateMesh();
-            
+            kindaBetterGreedy();            
             markForUpdate(false);
             debug("Updated " + this.toString() + " at " + x + ", " + y + ", " + z);
         }
@@ -229,7 +223,7 @@ public class Chunk extends AbstractControl {
                 if (Math.sqrt(Math.pow(x - pX, 2) + Math.pow(y - pY, 2) + Math.pow(z - pZ, 2)) > renderDistance * 2.5f) {
                     saveToFile();
                     Globals.terrainNode.removeControl(this);
-                    WorldManager.chunks[MathHelper.flatChunk3Dto1D(x, y, z)] = null;
+                    //Globals.prov.setChunk(x, y, z, null);
                 }
             } else {
                 this.load();
@@ -321,7 +315,7 @@ public class Chunk extends AbstractControl {
             for (int j = -1; j <= 1; j++) {
                 for (int k = -1; k <= 1; k++) {
                     if (x + i >= 0 && x + i < MAXX && y + j >= 0 && y + j < MAXY && z + k >= 0 && z + k < MAXZ) {
-                        if (Globals.prov.chunks[MathHelper.flatChunk3Dto1D(x + i, y + j, z + k)] != null) {
+                        if (Globals.prov.getChunk(x + i, y + j, z + k) != null) {
                             v = true;
                         }
                     } else {

@@ -48,10 +48,10 @@ public class MathHelper {
         return bd.floatValue();
     }
 
-    public static int flatChunk3Dto1D(int x, int y, int z) {
+    /*public static int flatChunk3Dto1D(int x, int y, int z) {
         //return (z * MAXX * MAXY) + (y * MAXX) + x;
         return x + y * MAXX + z * MAXX * MAXZ;
-    }
+    }*/
 
     public static int flatCell3Dto1D(int x, int y, int z) {
         if (x >= 0 && y >= 0 && z >= 0 && x < chunkSize && y < chunkSize && z < chunkSize) {
