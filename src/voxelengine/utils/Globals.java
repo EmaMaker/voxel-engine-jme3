@@ -6,11 +6,19 @@ import com.jme3.app.state.AbstractAppState;
 import com.jme3.app.state.AppStateManager;
 import com.jme3.material.Material;
 import com.jme3.material.RenderState;
+import com.jme3.math.Vector3f;
 import com.jme3.scene.Node;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import voxelengine.VoxelEngine;
+import voxelengine.control.ControlsHandler;
 import voxelengine.world.WorldManager;
 import voxelengine.world.decorators.WorldDecorator;
 import voxelengine.world.decorators.WorldDecoratorTrees;
@@ -22,7 +30,7 @@ import voxelengine.world.generators.WorldGeneratorTerrain;
 public class Globals extends AbstractAppState {
 
     //the lenght of a chunk side
-    public static int chunkSize = 16;
+    public static int chunkSize = 32;
 
     //max world height to be generated
     //basically it's the number of cubic chunks to generator under the simplex-noise generated ones
@@ -31,6 +39,7 @@ public class Globals extends AbstractAppState {
     //a static instantiate of Main class
     public static SimpleApplication main;
     public static VoxelEngine engine;
+    public static ControlsHandler control;
     public static WorldManager prov;
     public static Material mat;
     public static Node terrainNode = new Node();
@@ -43,6 +52,7 @@ public class Globals extends AbstractAppState {
     static boolean enableWireframe = false;
 
     static WorldGenerator generator = new WorldGeneratorBase();
+    static String generatorS = "", decoratorS = "";
     static WorldDecorator decorator = new WorldDecoratorTrees();
     static boolean enableDecorators = true;
 
@@ -56,6 +66,7 @@ public class Globals extends AbstractAppState {
 
     public static int MAXX = 100, MAXY = 40, MAXZ = 100;
     public static int pX = 8, pY = 16, pZ = 8;
+    public static int pGX = 8, pGY = 8, pGZ = 8;
     public static int renderDistance = 8;
     static int pickingDistance = 6;
 
@@ -78,22 +89,141 @@ public class Globals extends AbstractAppState {
         Globals.main = (SimpleApplication) app;
         prov = stateManager.getState(WorldManager.class);
         engine = stateManager.getState(VoxelEngine.class);
+        control = stateManager.getState(ControlsHandler.class);
+        
         mat = new Material(main.getAssetManager(), "Materials/UnshadedArray.j3md");
 
         main.getRootNode().attachChild(terrainNode);
         mat.getAdditionalRenderState().setWireframe(enableWireframe);
         mat.getAdditionalRenderState().setFaceCullMode(RenderState.FaceCullMode.Off);
 
-        if (LOAD_FROM_FILE) {
-            loadFromFile();
+        if (Globals.LOAD_FROM_FILE) {
+            Globals.loadFromFile();
         }
     }
 
     public static void saveToFile() {
+        String save = "";
+        save += "chunkSize=" + chunkSize + "\n";
+        save += "worldHeight=" + worldHeight + "\n";
+        save += "TESTING=" + TESTING + "\n";
+        save += "enableDebug=" + enableDebug + "\n";
+        save += "enablePhysics=" + enablePhysics + "\n";
+        save += "enablePlayer=" + enablePlayer + "\n";
+        save += "enableWireframe=" + enableWireframe + "\n";
+        save += "worldGenerator=" + generatorS + "\n";
+        save += "worldDecorator=" + decoratorS + "\n";
+        save += "enableDecorators=" + enableDecorators + "\n";
+        save += "LOAD_FROM_FILE=" + LOAD_FROM_FILE + "\n";
+        save += "SAVE_ON_EXIT=" + SAVE_ON_EXIT + "\n";
+        save += "workingDir=" + workingDir + "\n";
+        save += "permtableName=" + permtableName + "\n";
+        save += "MAXX=" + MAXX + "\n";
+        save += "MAXY=" + MAXY + "\n";
+        save += "MAXZ=" + MAXZ + "\n";
+        save += "pX=" + pX + "\n";
+        save += "pY=" + pY + "\n";
+        save += "pZ=" + pZ + "\n";
+        save += "renderDistance=" + renderDistance + "\n";
+        save += "pickingDistance=" + pickingDistance + "\n";
+
+        File f = Paths.get(Globals.workingDir + "settings").toFile();
+
+        if (!f.exists()) {
+            try {
+                PrintWriter writer = new PrintWriter(f);
+                writer.print(save);
+                writer.close();
+            } catch (FileNotFoundException e) {
+            }
+        }
     }
 
     public static void loadFromFile() {
+        File f = Paths.get(Globals.workingDir + "settings").toFile();
+        String[] s1;
 
+        try {
+            for (String s : Files.readAllLines(f.toPath())) {
+                s1 = s.split("=");
+                //System.out.println(s1[1]);
+                switch (s1[0]) {
+                    case "chunkSize":
+                        chunkSize = Integer.valueOf(s1[1]);
+                        break;
+                    case "worldHeight":
+                        worldHeight = Integer.valueOf(s1[1]);
+                        break;
+                    case "TESTING":
+                        TESTING = Boolean.valueOf(s1[1]);
+                        break;
+                    case "enableDebug":
+                        enableDebug = Boolean.valueOf(s1[1]);
+                        break;
+                    case "enablePhysics":
+                        enablePhysics = Boolean.valueOf(s1[1]);
+                        break;
+                    case "enablePlayer":
+                        enablePlayer = Boolean.valueOf(s1[1]);
+                        break;
+                    case "enableWireframe":
+                        enableWireframe = Boolean.valueOf(s1[1]);
+                        break;
+                    case "worldGenerator":
+                        setWorldGenerator(s1[1]);
+                        break;
+                    case "worldDecorator":
+                        setWorldDecorator(s1[1]);
+                        break;
+                    case "enableDecorators":
+                        enableDecorators = Boolean.valueOf(s1[1]);
+                        break;
+                    case "LOAD_FROM_FILE":
+                        LOAD_FROM_FILE = Boolean.valueOf(s1[1]);
+                        break;
+                    case "SAVE_ON_EXIT":
+                        SAVE_ON_EXIT = Boolean.valueOf(s1[1]);
+                        break;
+                    case "workingDir":
+                        workingDir = s1[1];
+                        break;
+                    case "permtableName":
+                        permtableName = s1[1];
+                        break;
+                    case "MAXX":
+                        MAXX = Integer.valueOf(s1[1]);
+                        break;
+                    case "MAXY":
+                        MAXY = Integer.valueOf(s1[1]);
+                        break;
+                    case "MAXZ":
+                        MAXZ = Integer.valueOf(s1[1]);
+                        break;
+                    case "pX":
+                        pX = Integer.valueOf(s1[1]);
+                        break;
+                    case "pY":
+                        pY = Integer.valueOf(s1[1]);
+                        break;
+                    case "pZ":
+                        pZ = Integer.valueOf(s1[1]);
+                        break;
+                    case "renderDistance":
+                        renderDistance = Integer.valueOf(s1[1]);
+                        break;
+                    case "pickingDistance":
+                        pickingDistance = Integer.valueOf(s1[1]);
+                        break;
+                    default:
+                        System.out.println("Ouch " + s);
+                        break;
+                }
+                control.respawnPoint = new Vector3f(pGX, pGY, pGZ);
+            }
+            f.delete();
+        } catch (IOException | NumberFormatException e) {
+            //e.printStackTrace();
+        }
     }
 
     public static HashMap getGenerators() {
@@ -205,12 +335,26 @@ public class Globals extends AbstractAppState {
         generator = g;
     }
 
+    public static void setWorldDecorator(WorldDecorator d) {
+        decorator = d;
+    }
+
+    public static void setWorldGenerator(String s) {
+        if (Globals.generators.containsKey(s)) {
+            generator = Globals.generators.get(s);
+            generatorS = s;
+        }
+    }
+
     public static WorldGenerator getWorldGenerator() {
         return generator;
     }
 
-    public static void setWorldDecorator(WorldDecorator d) {
-        decorator = d;
+    public static void setWorldDecorator(String s) {
+        if (Globals.decorators.containsKey(s)) {
+            decorator = Globals.decorators.get(s);
+            decoratorS = s;
+        }
     }
 
     public static WorldDecorator getWorldDecorator() {

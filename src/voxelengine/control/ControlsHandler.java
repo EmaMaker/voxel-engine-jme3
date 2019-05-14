@@ -29,12 +29,13 @@ import voxelengine.block.CellId;
 import voxelengine.block.TextureManager;
 import static voxelengine.utils.Globals.chunkSize;
 import static voxelengine.utils.Globals.debug;
+import static voxelengine.utils.Globals.pGX;
+import static voxelengine.utils.Globals.pGY;
+import static voxelengine.utils.Globals.pGZ;
 import voxelengine.world.WorldManager;
 import static voxelengine.utils.Globals.pX;
 import static voxelengine.utils.Globals.pY;
 import static voxelengine.utils.Globals.pZ;
-import static voxelengine.utils.Globals.worldHeight;
-import voxelengine.world.Chunk;
 
 public class ControlsHandler extends AbstractAppState implements ActionListener, AnalogListener {
 
@@ -60,7 +61,7 @@ public class ControlsHandler extends AbstractAppState implements ActionListener,
     AppStateManager stateManager;
 
     //PLAYER CONTROLS
-    public Vector3f respawnPoint = new Vector3f(pX, pY, pZ);
+    public Vector3f respawnPoint = new Vector3f(pGX, pGY, pGZ);
 
     Box box = new Box(0.4f, 0.8f, 0.4f);
     public Geometry playerModel = new Geometry("Player", box);
@@ -240,12 +241,11 @@ public class ControlsHandler extends AbstractAppState implements ActionListener,
 
     @Override
     public void update(float tpf) {
-
         if (Globals.playerEnabled()) {
             /*START POSITION UTILS*/
-            pX = (int) playerModel.getLocalTranslation().getX() / chunkSize;
-            pY = (int) playerModel.getLocalTranslation().getY() / chunkSize;
-            pZ = (int) playerModel.getLocalTranslation().getZ() / chunkSize;
+            pX = (int) app.getCamera().getLocation().getX() / chunkSize;
+            pY = (int) app.getCamera().getLocation().getY() / chunkSize;
+            pZ = (int) app.getCamera().getLocation().getZ() / chunkSize;
 
             if (playerModel.getLocalTranslation().y < -10) {
                 playerControl.warp(respawnPoint);

@@ -29,9 +29,11 @@ import voxelengine.block.TextureManager;
 import voxelengine.control.ControlsHandler;
 import voxelengine.utils.GuiManager;
 import voxelengine.utils.Globals;
+import static voxelengine.utils.Globals.LOAD_FROM_FILE;
 import static voxelengine.utils.Globals.MAXX;
 import static voxelengine.utils.Globals.MAXY;
 import static voxelengine.utils.Globals.MAXZ;
+import static voxelengine.utils.Globals.loadFromFile;
 import voxelengine.utils.math.SimplexNoise;
 import voxelengine.world.WorldManager;
 
@@ -54,6 +56,7 @@ public class VoxelEngine extends AbstractAppState {
     @Override
     public void initialize(AppStateManager stateManager, Application app) {
         super.initialize(stateManager, app);
+        
 
         //saves an instance of the main thread because it's needed in the chunk update method
         mainThread = Thread.currentThread();
@@ -73,10 +76,10 @@ public class VoxelEngine extends AbstractAppState {
 
         stateManager.attach(new BulletAppState());
         stateManager.attach(new Globals());
-        stateManager.attach(new ControlsHandler());
         stateManager.attach(new GuiManager());
         stateManager.attach(new TextureManager());
         stateManager.attach(new WorldManager());
+        stateManager.attach(new ControlsHandler());
 
         initCrossHairs();
         main.getViewPort().setBackgroundColor(ColorRGBA.Cyan);
