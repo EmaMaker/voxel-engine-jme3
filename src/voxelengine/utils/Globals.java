@@ -86,10 +86,7 @@ public class Globals extends AbstractAppState {
     @Override
     public void initialize(AppStateManager stateManager, Application app) {
         super.initialize(stateManager, app);
-
-        if (Globals.LOAD_FROM_FILE) {
-            Globals.loadFromFile();
-        }
+        
 
         Globals.main = (SimpleApplication) app;
         prov = stateManager.getState(WorldManager.class);
@@ -102,6 +99,11 @@ public class Globals extends AbstractAppState {
         mat.getAdditionalRenderState().setWireframe(enableWireframe);
         mat.getAdditionalRenderState().setFaceCullMode(RenderState.FaceCullMode.Off);
 
+        pGY = prov.getHighestCellAt(pGX, pGZ);
+
+        if (Globals.LOAD_FROM_FILE) {
+            Globals.loadFromFile();
+        }
     }
 
     public static void saveToFile() {
